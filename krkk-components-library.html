@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KRKK 디자인 시스템 컴포넌트 라이브러리</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+          --color-bg-light: #F0F4F8;
+          --color-bg-base: #E3EDF7;
+          --color-accent-glow: #B8D4FF;
+          --color-text-dark: #1A2B4C;
+          --color-text-light: #4A5F7F;
+          --color-text-lighter: #7A8FA3;
+          --color-success: #4CAF50;
+          --color-warning: #FF9800;
+          --color-error: #F44336;
+          --color-info: #2196F3;
+          --font-primary: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          --font-weight-regular: 400;
+          --font-weight-medium: 500;
+          --font-weight-semibold: 600;
+          --font-weight-bold: 700;
+          --spacing-xs: 4px;
+          --spacing-sm: 8px;
+          --spacing-md: 16px;
+          --spacing-lg: 24px;
+          --spacing-xl: 32px;
+          --spacing-2xl: 48px;
+          --radius-xs: 8px;
+          --radius-sm: 12px;
+          --radius-md: 16px;
+          --radius-lg: 20px;
+          --radius-xl: 24px;
+          --shadow-xs: 0 2px 8px rgba(31, 38, 135, 0.03);
+          --shadow-sm: 0 6px 24px rgba(31, 38, 135, 0.05);
+          --shadow-md: 0 8px 32px rgba(31, 38, 135, 0.07);
+          --shadow-lg: 0 12px 40px rgba(31, 38, 135, 0.12);
+          --transition-fast: 0.15s ease;
+          --transition-normal: 0.3s ease;
+        }
+
+        body {
+            font-family: var(--font-primary);
+            background-color: var(--color-bg-light);
+            background-image: 
+                radial-gradient(circle at 0% 0%, hsla(210, 50%, 93%, 1) 0, transparent 50%), 
+                radial-gradient(circle at 100% 0%, hsla(212, 60%, 88%, 1) 0, transparent 50%),
+                radial-gradient(circle at 50% 100%, hsla(214, 40%, 95%, 1) 0, transparent 50%);
+            min-height: 100vh;
+            color: var(--color-text-light);
+            padding: var(--spacing-2xl) var(--spacing-lg);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: var(--spacing-4xl);
+            text-align: center;
+        }
+
+        header h1 {
+            color: var(--color-text-dark);
+            font-size: 3.5rem;
+            margin-bottom: var(--spacing-md);
+            font-weight: var(--font-weight-bold);
+        }
+
+        header p {
+            color: var(--color-text-light);
+            font-size: 1.1rem;
+            line-height: 1.8;
+            max-width: 600px;
+            margin: 0 auto var(--spacing-xl);
+        }
+
+        /* 섹션 */
+        section {
+            margin-bottom: var(--spacing-4xl);
+        }
+
+        section h2 {
+            color: var(--color-text-dark);
+            font-size: 2.2rem;
+            margin-bottom: var(--spacing-xl);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 2px solid rgba(184, 212, 255, 0.3);
+            font-weight: var(--font-weight-bold);
+        }
+
+        .component-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-xl);
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .component-demo {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            box-shadow: var(--shadow-md);
+        }
+
+        .component-demo h3 {
+            color: var(--color-text-dark);
+            font-size: 1.2rem;
+            margin-bottom: var(--spacing-lg);
+            font-weight: var(--font-weight-semibold);
+        }
+
+        .component-demo p {
+            color: var(--color-text-lighter);
+            font-size: 0.875rem;
+            margin-bottom: var(--spacing-lg);
+            line-height: 1.6;
+        }
+
+        .demo-box {
+            padding: var(--spacing-lg);
+            background: rgba(184, 212, 255, 0.1);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-lg);
+            text-align: center;
+        }
+
+        /* 카드 */
+        .card {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            box-shadow: var(--shadow-md);
+            transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-sm {
+            padding: var(--spacing-md);
+        }
+
+        .card-lg {
+            padding: var(--spacing-xl);
+        }
+
+        /* 버튼 */
+        .btn {
+            display: inline-block;
+            padding: 14px 32px;
+            border-radius: var(--radius-sm);
+            border: 1px solid transparent;
+            font-family: var(--font-primary);
+            font-size: 1rem;
+            font-weight: var(--font-weight-semibold);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            text-decoration: none;
+            margin-right: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, rgba(26, 43, 76, 0.9), rgba(26, 43, 76, 0.75));
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, rgba(26, 43, 76, 1), rgba(26, 43, 76, 0.9));
+            box-shadow: 0 8px 20px rgba(26, 43, 76, 0.2);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.4);
+            color: var(--color-text-dark);
+            border: 1px solid rgba(26, 43, 76, 0.15);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .btn-sm {
+            padding: 10px 20px;
+            font-size: 0.875rem;
+        }
+
+        .btn-lg {
+            padding: 18px 40px;
+            font-size: 1.1rem;
+        }
+
+        /* Input */
+        input[type="text"],
+        input[type="email"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(26, 43, 76, 0.1);
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            font-family: var(--font-primary);
+            font-size: 1rem;
+            color: var(--color-text-dark);
+            transition: border-color var(--transition-fast);
+            margin-bottom: var(--spacing-md);
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: rgba(26, 43, 76, 0.3);
+            box-shadow: 0 0 0 3px rgba(184, 212, 255, 0.2);
+        }
+
+        /* Tag */
+        .tag {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: var(--radius-xs);
+            font-size: 0.75rem;
+            font-weight: var(--font-weight-semibold);
+            border: 1px solid rgba(184, 212, 255, 0.3);
+            background: rgba(184, 212, 255, 0.2);
+            color: var(--color-text-dark);
+            margin-right: var(--spacing-xs);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .tag-success {
+            background: rgba(76, 175, 80, 0.2);
+            border-color: rgba(76, 175, 80, 0.3);
+            color: var(--color-success);
+        }
+
+        .tag-warning {
+            background: rgba(255, 152, 0, 0.2);
+            border-color: rgba(255, 152, 0, 0.3);
+            color: var(--color-warning);
+        }
+
+        .tag-error {
+            background: rgba(244, 67, 54, 0.2);
+            border-color: rgba(244, 67, 54, 0.3);
+            color: var(--color-error);
+        }
+
+        /* Typography */
+        h1 { color: var(--color-text-dark); font-weight: var(--font-weight-bold); }
+        h2 { color: var(--color-text-dark); font-weight: var(--font-weight-bold); }
+        h3 { color: var(--color-text-dark); font-weight: var(--font-weight-semibold); }
+        p { line-height: 1.8; margin-bottom: var(--spacing-md); }
+
+        .text-accent { color: var(--color-accent-glow); font-weight: var(--font-weight-semibold); }
+        .text-muted { color: var(--color-text-lighter); }
+
+        /* 그리드 예제 */
+        .grid-demo {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .grid-item {
+            background: rgba(255, 255, 255, 0.3);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            text-align: center;
+            font-size: 0.875rem;
+            color: var(--color-text-light);
+        }
+
+        @media (max-width: 768px) {
+            .component-group {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 2.5rem;
+            }
+
+            section h2 {
+                font-size: 1.8rem;
+            }
+
+            .grid-demo {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 코드 블록 */
+        .code-block {
+            background: rgba(26, 43, 76, 0.05);
+            border: 1px solid rgba(26, 43, 76, 0.1);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            overflow-x: auto;
+            margin-top: var(--spacing-md);
+            font-size: 0.875rem;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            color: var(--color-text-dark);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: var(--spacing-2xl) var(--spacing-lg);
+            color: var(--color-text-lighter);
+            margin-top: var(--spacing-4xl);
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>🎨 KRKK 디자인 시스템</h1>
+            <p>재사용 가능한 글래스모피즘 컴포넌트 라이브러리<br>
+            <span class="text-accent">모든 프로젝트에 이식 가능한 체계적인 디자인 시스템</span></p>
+        </header>
+
+        <!-- 카드 섹션 -->
+        <section>
+            <h2>📦 Card (카드)</h2>
+            <div class="component-group">
+                <div class="component-demo">
+                    <h3>Large Card</h3>
+                    <div class="demo-box">
+                        <div class="card card-lg">
+                            <h3>카드 제목</h3>
+                            <p>이것은 큰 카드 컴포넌트의 예시입니다. 최대 정보와 함께 표시됩니다.</p>
+                        </div>
+                    </div>
+                    <div class="code-block">.card.card-lg { padding: var(--spacing-xl); }</div>
+                </div>
+
+                <div class="component-demo">
+                    <h3>Medium Card</h3>
+                    <div class="demo-box">
+                        <div class="card">
+                            <h3>기본 카드</h3>
+                            <p>기본 크기의 카드로, 대부분의 콘텐츠에 사용됩니다.</p>
+                        </div>
+                    </div>
+                    <div class="code-block">.card { padding: var(--spacing-xl); }</div>
+                </div>
+
+                <div class="component-demo">
+                    <h3>Small Card</h3>
+                    <div class="demo-box">
+                        <div class="card card-sm">
+                            <h3>작은 카드</h3>
+                            <p>콤팩트한 정보 표시용</p>
+                        </div>
+                    </div>
+                    <div class="code-block">.card.card-sm { padding: var(--spacing-md); }</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 버튼 섹션 -->
+        <section>
+            <h2>🔘 Button (버튼)</h2>
+            <div class="component-group">
+                <div class="component-demo">
+                    <h3>Primary Button</h3>
+                    <div class="demo-box">
+                        <button class="btn btn-primary">Primary Button</button>
+                        <button class="btn btn-primary btn-sm">Small</button>
+                        <button class="btn btn-primary btn-lg">Large</button>
+                    </div>
+                    <div class="code-block">.btn.btn-primary</div>
+                </div>
+
+                <div class="component-demo">
+                    <h3>Secondary Button</h3>
+                    <div class="demo-box">
+                        <button class="btn btn-secondary">Secondary Button</button>
+                        <button class="btn btn-secondary btn-sm">Small</button>
+                        <button class="btn btn-secondary btn-lg">Large</button>
+                    </div>
+                    <div class="code-block">.btn.btn-secondary</div>
+                </div>
+
+                <div class="component-demo">
+                    <h3>Button States</h3>
+                    <div class="demo-box">
+                        <button class="btn btn-primary">Default</button>
+                        <button class="btn btn-primary" disabled>Disabled</button>
+                    </div>
+                    <div class="code-block">.btn:disabled</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Input 섹션 -->
+        <section>
+            <h2>⌨️ Form Input (입력 필드)</h2>
+            <div class="component-group">
+                <div class="component-demo">
+                    <h3>Text Input</h3>
+                    <div class="demo-box">
+                        <input type="text" placeholder="텍스트 입력...">
+                    </div>
+                    <div class="code-block">input[type="text"]</div>
+                </div>
+
+                <div class="component-demo">
+                    <h3>Email Input</h3>
+                    <div class="demo-box">
+                        <input type="email" placeholder="이메일 입력...">
+                    </div>
+                    <div class="code-block">input[type="email"]</div>
+                </div>
+
+                <div class="component-demo">
+                    <h3>Textarea</h3>
+                    <div class="demo-box">
+                        <textarea placeholder="여러 줄 입력..."></textarea>
+                    </div>
+                    <div class="code-block">textarea</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tag 섹션 -->
+        <section>
+            <h2>🏷️ Tag (태그)</h2>
+            <div class="component-group">
+                <div class="component-demo">
+                    <h3>Basic Tags</h3>
+                    <div class="demo-box">
+                        <span class="tag">Default Tag</span>
+                        <span class="tag">Korean Food</span>
+                        <span class="tag">SaaS</span>
+                    </div>
+                    <div class="code-block">.tag</div>
+                </div>
+
+                <div class="component-demo">
+                    <h3>Status Tags</h3>
+                    <div class="demo-box">
+                        <span class="tag tag-success">Success</span>
+                        <span class="tag tag-warning">Warning</span>
+                        <span class="tag tag-error">Error</span>
+                    </div>
+                    <div class="code-block">.tag-success / .tag-warning / .tag-error</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 레이아웃 섹션 -->
+        <section>
+            <h2>📐 Layout (레이아웃)</h2>
+            <div class="component-group">
+                <div class="component-demo">
+                    <h3>Grid System</h3>
+                    <p>3열 그리드 레이아웃 데모</p>
+                    <div class="grid-demo">
+                        <div class="grid-item">Column 1</div>
+                        <div class="grid-item">Column 2</div>
+                        <div class="grid-item">Column 3</div>
+                    </div>
+                    <div class="code-block">grid-template-columns: repeat(3, 1fr);</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 색상 섹션 -->
+        <section>
+            <h2>🎨 Color System (색상 체계)</h2>
+            <div class="component-group">
+                <div class="component-demo">
+                    <h3>Primary Colors</h3>
+                    <div style="display: grid; gap: 8px;">
+                        <div style="background: #F0F4F8; padding: 20px; border-radius: 8px; text-align: center; color: #1A2B4C;">
+                            <strong>#F0F4F8</strong><br>Sky Light
+                        </div>
+                        <div style="background: #E3EDF7; padding: 20px; border-radius: 8px; text-align: center; color: #1A2B4C;">
+                            <strong>#E3EDF7</strong><br>Sky Base
+                        </div>
+                        <div style="background: #B8D4FF; padding: 20px; border-radius: 8px; text-align: center; color: #1A2B4C;">
+                            <strong>#B8D4FF</strong><br>Soft Blue
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-demo">
+                    <h3>Text Colors</h3>
+                    <div style="display: grid; gap: 8px;">
+                        <div style="background: #1A2B4C; padding: 20px; border-radius: 8px; text-align: center; color: white;">
+                            <strong>#1A2B4C</strong><br>Navy Dark
+                        </div>
+                        <div style="background: #4A5F7F; padding: 20px; border-radius: 8px; text-align: center; color: white;">
+                            <strong>#4A5F7F</strong><br>Navy Light
+                        </div>
+                        <div style="background: rgba(184, 212, 255, 0.3); padding: 20px; border-radius: 8px; text-align: center; color: #1A2B4C;">
+                            <strong>Accent</strong><br>Highlight
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-demo">
+                    <h3>Semantic Colors</h3>
+                    <div style="display: grid; gap: 8px;">
+                        <div style="background: #4CAF50; padding: 20px; border-radius: 8px; text-align: center; color: white;">
+                            <strong>Success</strong><br>#4CAF50
+                        </div>
+                        <div style="background: #FF9800; padding: 20px; border-radius: 8px; text-align: center; color: white;">
+                            <strong>Warning</strong><br>#FF9800
+                        </div>
+                        <div style="background: #F44336; padding: 20px; border-radius: 8px; text-align: center; color: white;">
+                            <strong>Error</strong><br>#F44336
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 실제 사용 예시 -->
+        <section>
+            <h2>💡 실제 사용 예시</h2>
+            <div class="card card-lg">
+                <h2>KRKK 서비스 소개</h2>
+                <p>한식 음식 사업을 위한 <span class="text-accent">종합 운영 시스템</span>으로 관리 효율을 극대화합니다.</p>
+                
+                <div style="margin-top: var(--spacing-xl);">
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-lg); margin-bottom: var(--spacing-xl);">
+                        <div class="card card-sm">
+                            <h3>🚀 빠른 구축</h3>
+                            <p class="text-muted">간단한 설정으로 즉시 시작</p>
+                        </div>
+                        <div class="card card-sm">
+                            <h3>📊 데이터 분석</h3>
+                            <p class="text-muted">실시간 통계 및 인사이트</p>
+                        </div>
+                        <div class="card card-sm">
+                            <h3>🔐 안전성</h3>
+                            <p class="text-muted">엔터프라이즈급 보안</p>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: var(--spacing-md);">
+                        <button class="btn btn-primary">지금 시작</button>
+                        <button class="btn btn-secondary">자세히 알아보기</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>© 2024 KRKK 디자인 시스템 v1.0 | 모든 프로젝트에 재사용 가능</p>
+    </footer>
+</body>
+</html>
