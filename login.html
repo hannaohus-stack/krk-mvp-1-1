@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KRK - 로그인</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --color-bg-light: #F0F4F8;
+      --color-bg-base: #E3EDF7;
+      --color-accent-glow: #B8D4FF;
+      --color-text-dark: #1A2B4C;
+      --color-text-light: #4A5F7F;
+      --color-text-lighter: #7A8FA3;
+      --color-success: #4CAF50;
+      --color-warning: #FF9800;
+      --color-error: #F44336;
+      --color-info: #2196F3;
+      --font-primary: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-weight-regular: 400;
+      --font-weight-medium: 500;
+      --font-weight-semibold: 600;
+      --font-weight-bold: 700;
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+      --spacing-lg: 24px;
+      --spacing-xl: 32px;
+      --spacing-2xl: 48px;
+      --radius-xs: 8px;
+      --radius-sm: 12px;
+      --radius-md: 16px;
+      --radius-lg: 20px;
+      --radius-xl: 24px;
+      --shadow-xs: 0 2px 8px rgba(31, 38, 135, 0.03);
+      --shadow-sm: 0 6px 24px rgba(31, 38, 135, 0.05);
+      --shadow-md: 0 8px 32px rgba(31, 38, 135, 0.07);
+      --shadow-lg: 0 12px 40px rgba(31, 38, 135, 0.12);
+      --transition-normal: 0.3s ease;
+    }
+
+    body {
+      font-family: var(--font-primary);
+      color: var(--color-text-light);
+      background-color: var(--color-bg-light);
+      background-image: 
+        radial-gradient(circle at 0% 0%, hsla(210, 50%, 93%, 1) 0, transparent 50%), 
+        radial-gradient(circle at 100% 0%, hsla(212, 60%, 88%, 1) 0, transparent 50%),
+        radial-gradient(circle at 50% 100%, hsla(214, 40%, 95%, 1) 0, transparent 50%);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ==================== 네비게이션 ==================== */
+    nav {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(15px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+      padding: var(--spacing-lg) var(--spacing-xl);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: var(--shadow-xs);
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      transition: all var(--transition-normal);
+    }
+
+    .logo-img {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 4px rgba(26, 43, 76, 0.1));
+      transition: all var(--transition-normal);
+    }
+
+    .logo:hover .logo-img {
+      filter: drop-shadow(0 4px 8px rgba(26, 43, 76, 0.15)) brightness(1.05);
+      transform: scale(1.08);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: var(--spacing-xl);
+      list-style: none;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: var(--color-text-dark);
+      font-weight: var(--font-weight-semibold);
+      font-size: 14px;
+      transition: color var(--transition-normal);
+    }
+
+    .nav-links a:hover {
+      color: var(--color-info);
+    }
+
+    /* ==================== 메인 콘텐츠 ==================== */
+    .main-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--spacing-2xl) var(--spacing-xl);
+    }
+
+    .form-container {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .form-header {
+      text-align: center;
+      margin-bottom: var(--spacing-2xl);
+    }
+
+    .form-header h1 {
+      font-size: 32px;
+      font-weight: var(--font-weight-bold);
+      color: var(--color-text-dark);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .form-header p {
+      font-size: 16px;
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-dark);
+      line-height: 1.6;
+    }
+
+    .form-group {
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-dark);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 14px;
+      border: 1px solid rgba(184, 212, 255, 0.4);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-primary);
+      transition: all var(--transition-normal);
+      background: rgba(255, 255, 255, 0.6);
+      color: var(--color-text-dark);
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--color-info);
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+    }
+
+    .form-group input::placeholder {
+      color: var(--color-text-lighter);
+    }
+
+    /* ==================== 옵션 (기억하기, 비밀번호 찾기) ==================== */
+    .form-options {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-xl);
+      font-size: 13px;
+    }
+
+    .form-options label {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      cursor: pointer;
+      margin: 0;
+      color: var(--color-text-dark);
+      font-weight: var(--font-weight-medium);
+    }
+
+    .form-options input[type="checkbox"] {
+      cursor: pointer;
+      accent-color: var(--color-info);
+    }
+
+    .form-options a {
+      color: var(--color-info);
+      text-decoration: none;
+      font-weight: var(--font-weight-semibold);
+      transition: opacity var(--transition-normal);
+    }
+
+    .form-options a:hover {
+      opacity: 0.8;
+      text-decoration: underline;
+    }
+
+    /* ==================== 버튼 ==================== */
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xl);
+    }
+
+    .btn {
+      padding: 14px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-weight: var(--font-weight-bold);
+      cursor: pointer;
+      transition: all var(--transition-normal);
+      text-decoration: none;
+      display: block;
+      text-align: center;
+      font-family: var(--font-primary);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #1A2B4C, #0F1B3C);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #0F1B3C, #050F2A);
+      box-shadow: 0 8px 20px rgba(26, 43, 76, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .signup-link-container {
+      text-align: center;
+      padding-top: var(--spacing-lg);
+    }
+
+    .signup-link-container p {
+      font-size: 13px;
+      color: var(--color-text-lighter);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .signup-link-container a {
+      color: var(--color-info);
+      text-decoration: none;
+      font-weight: var(--font-weight-bold);
+      cursor: pointer;
+      transition: opacity var(--transition-normal);
+    }
+
+    .signup-link-container a:hover {
+      opacity: 0.8;
+      text-decoration: underline;
+    }
+
+    /* ==================== 푸터 ==================== */
+    footer {
+      background: linear-gradient(135deg, rgba(26, 43, 76, 0.9), rgba(26, 43, 76, 0.75));
+      color: white;
+      padding: var(--spacing-xl);
+      text-align: center;
+      margin-top: auto;
+    }
+
+    footer p {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    /* ==================== 반응형 ==================== */
+    @media (max-width: 768px) {
+      .form-container {
+        max-width: 100%;
+      }
+
+      .form-header h1 {
+        font-size: 24px;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .form-options {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 네비게이션 -->
+  <nav>
+    <div class="nav-container">
+      <a href="index.html" class="logo">
+        <img src="logo.png" alt="KRK Logo" class="logo-img">
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html#features">기능</a></li>
+        <li><a href="index.html#pricing">요금</a></li>
+        <li><a href="index.html#about">회사</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- 메인 콘텐츠 -->
+  <div class="main-content">
+    <div class="form-container">
+      <div class="form-header">
+        <h1>로그인</h1>
+        <p>당신의 라벨을 관리하세요</p>
+      </div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="email">이메일</label>
+          <input type="email" id="email" name="email" placeholder="your@email.com" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password">비밀번호</label>
+          <input type="password" id="password" name="password" placeholder="비밀번호 입력" required>
+        </div>
+
+        <!-- 옵션 -->
+        <div class="form-options">
+          <label>
+            <input type="checkbox" name="remember">
+            로그인 상태 유지
+          </label>
+          <a href="javascript:void(0)">비밀번호 찾기</a>
+        </div>
+
+        <!-- 버튼 -->
+        <div class="btn-group">
+          <button type="submit" class="btn btn-primary">로그인</button>
+          <div class="signup-link-container">
+            <p>아직 계정이 없으신가요?</p>
+            <a href="signup.html">가입하기</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 푸터 -->
+  <footer>
+    <p>&copy; 2026 KRK. All rights reserved. | Powered by Chaeum</p>
+  </footer>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      // ✅ 로그인 세션 저장
+      localStorage.setItem('krk_session', 'true');
+      // 대시보드로 이동
+      window.location.href = 'dashboard.html';
+    });
+  </script>
+</body>
+</html>
