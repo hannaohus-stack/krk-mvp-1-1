@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
@@ -8,15 +7,11 @@
   <link rel="stylesheet" href="creator.css">
 
   <!-- Google Fonts -->
-
   <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- HTML to PDF/PNG -->
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
 </head>
 <body>
   <!-- Header -->
@@ -25,205 +20,223 @@
       <h1>🏷️ AI 라벨 생성기</h1>
       <p>배합비만 넣으면 한글표시사항이 자동 생성됩니다</p>
     </div>
+
     <div class="header-right">
-      <span class="status-badge" id="statusBadge">새 작업</span>
-      <button onclick="window.location.href='dashboard.html'" class="btn-secondary">대시보드</button>
+      <span class="status-badge status-default" id="statusBadge">새 작업</span>
+      <button type="button" class="btn-secondary" onclick="window.location.href='dashboard.html'">대시보드</button>
+      <button type="button" class="btn-secondary" onclick="window.location.href='creator.html'">초기화</button>
     </div>
   </header>
 
   <!-- Main Container -->
-
   <div class="creator-container">
+    <!-- 좌측: 입력 패널 -->
+    <div class="creator-input-panel">
 
-<!-- 좌측: 입력 패널 -->
-<div class="creator-input-panel">
-  
-  <!-- 1. 제품 기본정보 -->
-  <div class="form-card">
-    <h3>1️⃣ 제품 기본정보</h3>
-    <p class="card-description">품목제조보고서 또는 실제 판매 라벨 기준으로 입력하세요</p>
-    
-    <div class="form-grid">
-      <div class="form-group">
-        <label>제품명 *</label>
-        <input type="text" id="productName" placeholder="예: KRK 고추장 쿠키" required>
-        <span class="help-text">품목제조보고서 상 제품명과 동일하게 입력</span>
-      </div>
-      
-      <div class="form-group">
-        <label>식품유형 *</label>
-        <select id="foodType" required>
-          <option value="">선택...</option>
-          <option value="과자">과자</option>
-          <option value="캔디류">캔디류</option>
-          <option value="빵류">빵류</option>
-          <option value="음료">음료</option>
-          <option value="다류">다류</option>
-          <option value="면류">면류</option>
-          <option value="떡류">떡류</option>
-          <option value="소스류">소스류</option>
-          <option value="기타">기타</option>
-        </select>
-        <span class="help-text">식품의 기준 및 규격상 식품유형 선택</span>
-      </div>
-      
-      <div class="form-group">
-        <label>업종 *</label>
-        <div class="radio-group">
-          <label><input type="radio" name="businessType" value="제조업"> 제조업</label>
-          <label><input type="radio" name="businessType" value="즉석판매"> 즉석판매제조·가공업</label>
+      <!-- 1. 제품 기본정보 -->
+      <div class="form-card">
+        <h3>1️⃣ 제품 기본정보</h3>
+        <p class="card-description">품목제조보고서 또는 실제 판매 라벨 기준으로 입력하세요</p>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="productName">제품명 *</label>
+            <input type="text" id="productName" placeholder="예: KRK 고추장 쿠키" required>
+            <span class="help-text">품목제조보고서 상 제품명과 동일하게 입력</span>
+          </div>
+
+          <div class="form-group">
+            <label for="foodType">식품유형 *</label>
+            <select id="foodType" required>
+              <option value="">선택...</option>
+              <option value="과자">과자</option>
+              <option value="캔디류">캔디류</option>
+              <option value="빵류">빵류</option>
+              <option value="음료">음료</option>
+              <option value="다류">다류</option>
+              <option value="면류">면류</option>
+              <option value="떡류">떡류</option>
+              <option value="소스류">소스류</option>
+              <option value="기타">기타</option>
+            </select>
+            <span class="help-text">식품의 기준 및 규격상 식품유형 선택</span>
+          </div>
+
+          <div class="form-group">
+            <label>업종 *</label>
+            <div class="radio-group">
+              <label><input type="radio" name="businessType" value="제조업"> 제조업</label>
+              <label><input type="radio" name="businessType" value="즉석판매"> 즉석판매제조·가공업</label>
+            </div>
+            <span class="help-text">업종에 따라 영양성분 의무 여부가 달라집니다</span>
+          </div>
+
+          <div class="form-group">
+            <label for="manufacturer">제조원 *</label>
+            <input type="text" id="manufacturer" placeholder="예: (주)KRK푸드" required>
+            <span class="help-text">영업신고증 기준 상호명</span>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="manufacturerAddress">제조원 주소 *</label>
+            <input type="text" id="manufacturerAddress" placeholder="예: 서울시 강남구..." required>
+            <span class="help-text">영업신고증 기준 주소</span>
+          </div>
+
+          <div class="form-group">
+            <label for="consumerDate">소비기한 *</label>
+            <input type="text" id="consumerDate" placeholder="예: 2026.12.31" required>
+            <span class="help-text">현재는 '소비기한' 표기를 우선 확인</span>
+          </div>
+
+          <div class="form-group">
+            <label for="weight">내용량 *</label>
+            <div class="input-with-unit">
+              <input type="number" id="weight" placeholder="100" required>
+              <select id="weightUnit">
+                <option value="g">g</option>
+                <option value="ml">ml</option>
+                <option value="kg">kg</option>
+                <option value="L">L</option>
+              </select>
+            </div>
+            <span class="help-text">예: 100g</span>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="storageMethod">보관방법 *</label>
+            <textarea id="storageMethod" placeholder="직사광선을 피하고 서늘한 곳에 보관" required></textarea>
+            <span class="help-text">보관 온도 또는 방법을 구체적으로 입력</span>
+          </div>
+
+          <div class="form-group">
+            <label for="packagingMaterial">포장재질 *</label>
+            <input type="text" id="packagingMaterial" placeholder="예: 내포장 폴리에틸렌(PE)" required>
+            <span class="help-text">용기·포장 재질 표기용</span>
+          </div>
+
+          <div class="form-group">
+            <label for="originCountry">원산지</label>
+            <input type="text" id="originCountry" placeholder="예: 국내산 / 미국산">
+            <span class="help-text">필요 품목만 기재</span>
+          </div>
         </div>
-        <span class="help-text">업종에 따라 영양성분 의무 여부가 달라집니다</span>
       </div>
-      
-      <div class="form-group">
-        <label>제조원 *</label>
-        <input type="text" id="manufacturer" placeholder="예: (주)KRK푸드" required>
-        <span class="help-text">영업신고증 기준 상호명</span>
-      </div>
-      
-      <div class="form-group full-width">
-        <label>제조원 주소 *</label>
-        <input type="text" id="manufacturerAddress" placeholder="예: 서울시 강남구..." required>
-        <span class="help-text">영업신고증 기준 주소</span>
-      </div>
-      
-      <div class="form-group">
-        <label>소비기한 *</label>
-        <input type="text" id="consumerDate" placeholder="예: 2026.12.31" required>
-        <span class="help-text">현재는 '소비기한' 표기를 우선 확인</span>
-      </div>
-      
-      <div class="form-group">
-        <label>내용량 *</label>
-        <div class="input-with-unit">
-          <input type="number" id="weight" placeholder="100" required>
-          <select id="weightUnit">
-            <option value="g">g</option>
-            <option value="ml">ml</option>
-            <option value="kg">kg</option>
-            <option value="L">L</option>
-          </select>
+
+      <!-- 2. 원재료 입력 -->
+      <div class="form-card">
+        <h3>2️⃣ 원재료 및 배합비</h3>
+        <p class="card-description">많이 들어간 순서대로 자동 정렬됩니다</p>
+
+        <div class="table-wrapper">
+          <table class="ingredients-table">
+            <thead>
+              <tr>
+                <th>재료명</th>
+                <th>중량(g)</th>
+                <th>원산지</th>
+                <th style="width: 60px;">삭제</th>
+              </tr>
+            </thead>
+            <tbody id="ingredientsBody">
+              <tr class="ingredient-row">
+                <td><input type="text" class="ingredient-name" placeholder="밀가루"></td>
+                <td><input type="number" class="ingredient-weight" placeholder="100" step="0.01"></td>
+                <td><input type="text" class="ingredient-origin" placeholder="미국산"></td>
+                <td><button type="button" class="btn-delete" onclick="deleteIngredient(this)">🗑️</button></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <span class="help-text">예: 100g</span>
-      </div>
-      
-      <div class="form-group full-width">
-        <label>보관방법 *</label>
-        <textarea id="storageMethod" placeholder="직사광선을 피하고 서늘한 곳에 보관" required></textarea>
-        <span class="help-text">보관 온도 또는 방법을 구체적으로 입력</span>
-      </div>
-      
-      <div class="form-group">
-        <label>포장재질 *</label>
-        <input type="text" id="packagingMaterial" placeholder="예: 내포장 폴리에틸렌(PE)" required>
-        <span class="help-text">용기·포장 재질 표기용</span>
-      </div>
-      
-      <div class="form-group">
-        <label>원산지</label>
-        <input type="text" id="originCountry" placeholder="예: 국내산 / 미국산">
-        <span class="help-text">필요 품목만 기재</span>
-      </div>
-    </div>
-  </div>
-  
-  <!-- 2. 원재료 입력 -->
-  <div class="form-card">
-    <h3>2️⃣ 원재료 및 배합비</h3>
-    <p class="card-description">많이 들어간 순서대로 자동 정렬됩니다</p>
-    
-    <div class="table-wrapper">
-      <table class="ingredients-table">
-        <thead>
-          <tr>
-            <th>재료명</th>
-            <th>중량(g)</th>
-            <th>원산지</th>
-            <th style="width: 60px;">삭제</th>
-          </tr>
-        </thead>
-        <tbody id="ingredientsBody">
-          <tr class="ingredient-row">
-            <td><input type="text" class="ingredient-name" placeholder="밀가루"></td>
-            <td><input type="number" class="ingredient-weight" placeholder="100" step="0.01"></td>
-            <td><input type="text" class="ingredient-origin" placeholder="미국산"></td>
-            <td><button type="button" class="btn-delete" onclick="deleteIngredient(this)">🗑️</button></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    
-    <div class="button-group">
-      <button type="button" class="btn-secondary" onclick="addIngredient()">+ 원재료 추가</button>
-      <button type="button" class="btn-secondary" onclick="showExcelPaste()">📊 엑셀 붙여넣기</button>
-    </div>
-    
-    <div class="ingredients-summary">
-      <p>총 원재료: <strong id="totalIngredients">0</strong>개 | 총 중량: <strong id="totalWeight">0</strong>g</p>
-      <p>감지된 알레르기: <strong id="detectedAllergens">없음</strong></p>
-    </div>
-  </div>
-  
-</div>
 
-<!-- 우측: 결과 패널 -->
-<div class="creator-result-panel">
-  
-  <!-- 필수항목 체크 -->
-  <div class="result-card">
-    <h3>✅ 필수 항목 체크</h3>
-    <ul class="checklist" id="requiredCheckList">
-      <li><span class="check">○</span> 제품명</li>
-      <li><span class="check">○</span> 식품유형</li>
-      <li><span class="check">○</span> 제조원</li>
-      <li><span class="check">○</span> 제조원 주소</li>
-      <li><span class="check">○</span> 소비기한</li>
-      <li><span class="check">○</span> 내용량</li>
-      <li><span class="check">○</span> 원재료명</li>
-      <li><span class="check">○</span> 보관방법</li>
-      <li><span class="check">○</span> 1399 문구</li>
-    </ul>
-    <div class="completion-bar">
-      <div class="completion-progress" id="completionProgress"></div>
-    </div>
-    <p class="completion-status">완료: <span id="completedItems">0</span>/9</p>
-  </div>
-  
-  <!-- 라벨 미리보기 -->
-  <div class="result-card">
-    <h3>🏷️ 한글표시사항 미리보기</h3>
-    <div class="label-preview" id="labelPreview">
-      <p class="empty-state">왼쪽에 제품 정보를 입력하면 라벨이 자동으로 생성됩니다</p>
-    </div>
-  </div>
-  
-  <!-- 다운로드 버튼 -->
-  <div class="result-card action-card">
-    <h3>📥 내보내기</h3>
-    <button type="button" class="btn-primary" onclick="downloadLabel('pdf')">📄 PDF 다운로드</button>
-    <button type="button" class="btn-primary" onclick="downloadLabel('png')">🖼️ PNG 다운로드</button>
-    <button type="button" class="btn-secondary" onclick="copyToClipboard()">📋 텍스트 복사</button>
-    <button type="button" class="btn-success" onclick="analyzeLabel()">🔍 라벨 분석하기</button>
-  </div>
-  
-</div>
+        <div class="button-group">
+          <button type="button" class="btn-secondary" onclick="addIngredient()">+ 원재료 추가</button>
+          <button type="button" class="btn-secondary" onclick="showExcelPaste()">📊 엑셀 붙여넣기</button>
+        </div>
 
+        <div class="ingredients-summary">
+          <p>총 원재료: <strong id="totalIngredients">0</strong>개 | 총 중량: <strong id="totalWeight">0</strong>g</p>
+          <p>감지된 알레르기: <strong id="detectedAllergens">없음</strong></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 우측: 결과 패널 -->
+    <div class="creator-result-panel">
+
+      <!-- 필수항목 체크 -->
+      <div class="result-card">
+        <h3>✅ 필수 항목 체크</h3>
+
+        <ul class="checklist" id="requiredCheckList">
+          <li data-check-key="productName"><span class="check">○</span> 제품명</li>
+          <li data-check-key="foodType"><span class="check">○</span> 식품유형</li>
+          <li data-check-key="manufacturer"><span class="check">○</span> 제조원</li>
+          <li data-check-key="manufacturerAddress"><span class="check">○</span> 제조원 주소</li>
+          <li data-check-key="consumerDate"><span class="check">○</span> 소비기한</li>
+          <li data-check-key="weight"><span class="check">○</span> 내용량</li>
+          <li data-check-key="ingredients"><span class="check">○</span> 원재료명</li>
+          <li data-check-key="storageMethod"><span class="check">○</span> 보관방법</li>
+          <li data-check-key="report1399"><span class="check">○</span> 1399 문구</li>
+        </ul>
+
+        <div class="completion-bar">
+          <div class="completion-progress" id="completionProgress"></div>
+        </div>
+
+        <p class="completion-status">완료: <span id="completedItems">0</span>/9</p>
+      </div>
+
+      <!-- 원재료 요약 결과 -->
+      <div class="result-card">
+        <h3>📦 자동 정렬된 원재료</h3>
+        <div id="ingredientSummary" class="ingredient-summary-panel">
+          <p class="empty-state">원재료를 입력하면 자동 정렬된 결과와 알레르기 문구가 표시됩니다</p>
+        </div>
+      </div>
+
+      <!-- 라벨 미리보기 -->
+      <div class="result-card">
+        <h3>🏷️ 한글표시사항 미리보기</h3>
+        <div class="label-preview" id="labelPreview">
+          <p class="empty-state">왼쪽에 제품 정보를 입력하면 라벨이 자동으로 생성됩니다</p>
+        </div>
+      </div>
+
+      <!-- 다운로드 버튼 -->
+      <div class="result-card action-card">
+        <h3>📥 내보내기</h3>
+        <button type="button" class="btn-primary" onclick="downloadLabel('pdf')">📄 PDF 다운로드</button>
+        <button type="button" class="btn-primary" onclick="downloadLabel('png')">🖼️ PNG 다운로드</button>
+        <button type="button" class="btn-secondary" onclick="copyToClipboard()">📋 텍스트 복사</button>
+        <button type="button" class="btn-success" onclick="analyzeLabel()">🔍 라벨 분석하기</button>
+      </div>
+    </div>
   </div>
 
   <!-- Excel Paste Modal -->
-
   <div id="excelModal" class="modal" style="display: none;">
     <div class="modal-content">
       <div class="modal-header">
         <h2>엑셀 데이터 붙여넣기</h2>
         <button type="button" class="btn-close" onclick="closeExcelPaste()">×</button>
       </div>
+
       <div class="modal-body">
         <p style="margin-bottom: 10px;">형식: 재료명,중량,원산지 (한 줄에 하나씩)</p>
-        <p style="margin-bottom: 15px; color: #666; font-size: 12px;">예:<br>밀가루,100,미국산<br>설탕,50,국산<br>버터,30,뉴질랜드산</p>
-        <textarea id="excelPasteArea" placeholder="붙여넣기..." style="width: 100%; height: 150px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: monospace;"></textarea>
+        <p style="margin-bottom: 15px; color: #666; font-size: 12px;">
+          예:<br>
+          밀가루,100,미국산<br>
+          설탕,50,국산<br>
+          버터,30,뉴질랜드산
+        </p>
+        <textarea
+          id="excelPasteArea"
+          placeholder="붙여넣기..."
+          style="width: 100%; height: 150px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: monospace;"
+        ></textarea>
       </div>
+
       <div class="modal-footer">
         <button type="button" class="btn-secondary" onclick="closeExcelPaste()">취소</button>
         <button type="button" class="btn-primary" onclick="pasteExcelData()">가져오기</button>
@@ -232,12 +245,8 @@
   </div>
 
   <!-- Scripts -->
-
   <script src="utils/allergenDB.js"></script>
-
   <script src="utils/labelGenerator.js"></script>
-
   <script src="creator.js"></script>
-
 </body>
 </html>
