@@ -1,0 +1,529 @@
+/* ========================================
+   Checker CSS - AI 라벨 분석기
+   ======================================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #f0f4f8 0%, #e3edf7 100%);
+  color: #333;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ========== Header ========== */
+.checker-header {
+  background: white;
+  border-bottom: 2px solid #FF6B6B;
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.checker-header h1 {
+  font-size: 24px;
+  color: #FF6B6B;
+  margin-bottom: 4px;
+}
+
+.checker-header p {
+  font-size: 13px;
+  color: #666;
+  margin: 0;
+}
+
+.header-right {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #f0f0f0;
+  color: #333;
+}
+
+.status-badge.status-safe {
+  background: #4CAF50;
+  color: white;
+}
+
+.status-badge.status-warning {
+  background: #FF9800;
+  color: white;
+}
+
+.status-badge.status-danger {
+  background: #f44336;
+  color: white;
+}
+
+/* ========== Main Container ========== */
+.checker-container {
+  display: grid;
+  grid-template-columns: 45% 55%;
+  gap: 30px;
+  padding: 30px 40px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.checker-upload-panel,
+.checker-result-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ========== Upload Card ========== */
+.upload-card,
+.upload-card-base {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-left: 4px solid #FF6B6B;
+}
+
+.upload-card h3 {
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: #333;
+  font-weight: 600;
+}
+
+.card-description {
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 20px;
+}
+
+/* ========== Upload Area ========== */
+.upload-area {
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: #fafafa;
+}
+
+.upload-area:hover {
+  border-color: #FF6B6B;
+  background: #fff5f5;
+}
+
+.upload-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.upload-icon {
+  font-size: 48px;
+}
+
+.upload-area p {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+}
+
+.upload-hint {
+  font-size: 11px;
+  color: #999;
+}
+
+/* ========== Preview ========== */
+.preview-wrapper {
+  margin: 20px 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.preview-image {
+  width: 100%;
+  height: auto;
+  max-height: 400px;
+  object-fit: cover;
+  display: block;
+}
+
+#imagePreviewContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* ========== Progress ========== */
+.progress-card {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-left: 4px solid #2196F3;
+}
+
+.progress-card h3 {
+  font-size: 16px;
+  margin-bottom: 15px;
+  color: #333;
+  font-weight: 600;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #eee;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2196F3, #4CAF50);
+  border-radius: 4px;
+  width: 0%;
+  transition: width 0.3s;
+}
+
+#progressText {
+  font-size: 12px;
+  color: #999;
+  text-align: center;
+}
+
+/* ========== Result Card ========== */
+.result-card {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.result-card h3 {
+  font-size: 16px;
+  margin-bottom: 15px;
+  color: #333;
+  font-weight: 600;
+}
+
+/* ========== OCR Text ========== */
+.ocr-text-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ocr-text {
+  width: 100%;
+  height: 150px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  resize: vertical;
+}
+
+.ocr-text:focus {
+  outline: none;
+  border-color: #FF6B6B;
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+}
+
+.btn-copy {
+  align-self: flex-end;
+}
+
+/* ========== Risk Level ========== */
+.risk-level {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 20px;
+  background: #f9f9f9;
+  border-radius: 8px;
+}
+
+.risk-badge {
+  padding: 12px 20px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  color: white;
+  width: fit-content;
+}
+
+.risk-badge.risk-safe {
+  background: #4CAF50;
+}
+
+.risk-badge.risk-warning {
+  background: #FF9800;
+}
+
+.risk-badge.risk-danger {
+  background: #f44336;
+}
+
+.risk-badge.risk-pending {
+  background: #999;
+}
+
+#riskMessage {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+}
+
+/* ========== Analysis Result ========== */
+.analysis-result {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.empty-text {
+  text-align: center;
+  color: #999;
+  padding: 20px;
+}
+
+.result-section {
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 4px;
+}
+
+.result-section h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.result-item {
+  font-size: 13px;
+  color: #666;
+  padding: 6px 0;
+  padding-left: 20px;
+  position: relative;
+}
+
+.result-item::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  font-weight: bold;
+}
+
+.result-item.error {
+  color: #f44336;
+}
+
+.result-item.warning {
+  color: #FF9800;
+}
+
+.result-item.success {
+  color: #4CAF50;
+}
+
+/* ========== Action Card ========== */
+.action-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.action-card button {
+  width: 100%;
+}
+
+/* ========== Buttons ========== */
+button {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #2196F3;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #1976D2;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.btn-secondary {
+  background: #f0f0f0;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.btn-secondary:hover {
+  background: #e8e8e8;
+}
+
+.btn-success {
+  background: #4CAF50;
+  color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+  background: #388E3C;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+/* ========== Responsive Design ========== */
+
+@media (max-width: 1024px) {
+  .checker-container {
+    grid-template-columns: 1fr;
+    padding: 20px;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .checker-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 15px 20px;
+    gap: 10px;
+  }
+  
+  .header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .checker-container {
+    padding: 15px;
+  }
+  
+  .upload-card,
+  .result-card {
+    padding: 15px;
+  }
+  
+  button {
+    padding: 10px 15px;
+    font-size: 12px;
+  }
+  
+  .upload-area {
+    padding: 30px 15px;
+  }
+  
+  .upload-icon {
+    font-size: 36px;
+  }
+  
+  .action-card {
+    gap: 8px;
+  }
+  
+  .action-card button {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .checker-header h1 {
+    font-size: 18px;
+  }
+  
+  .upload-card,
+  .result-card {
+    border-radius: 6px;
+  }
+  
+  .ocr-text {
+    font-size: 11px;
+    height: 120px;
+  }
+  
+  .upload-area {
+    padding: 20px 10px;
+  }
+  
+  .upload-icon {
+    font-size: 32px;
+  }
+  
+  .preview-image {
+    max-height: 300px;
+  }
+}
+
+/* ========== Animations ========== */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.upload-card,
+.result-card,
+.progress-card {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* ========== Utility Classes ========== */
+.hidden {
+  display: none !important;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-success {
+  color: #4CAF50;
+}
+
+.text-error {
+  color: #f44336;
+}
+
+.text-warning {
+  color: #ff9800;
+}
