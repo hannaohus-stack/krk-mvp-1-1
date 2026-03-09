@@ -97,35 +97,53 @@ main {
   margin-bottom: 10px;
 }
 .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
 .action-card {
-  display: flex; flex-direction: column; gap: 14px;
-  padding: 20px;
-  background: rgba(255,255,255,0.55);
-  backdrop-filter: blur(15px);
-  border: 1px solid rgba(255,255,255,0.42);
+  display: flex; flex-direction: row;
+  align-items: center; gap: 14px;
+  padding: 18px 20px;
   border-radius: var(--r-lg);
-  box-shadow: var(--sh-sm);
-  text-decoration: none; color: var(--navy);
+  box-shadow: var(--sh-md);
+  text-decoration: none;
   transition: all var(--ease);
 }
-.action-card:hover {
+/* 라벨 생성 — 네이비 */
+.action-card.creator {
+  background: linear-gradient(135deg, #1A2B4C, #2E4270);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: white;
+}
+.action-card.creator:hover {
   transform: translateY(-3px);
-  box-shadow: var(--sh-lg);
-  border-color: rgba(184,212,255,0.55);
-  background: rgba(255,255,255,0.7);
+  box-shadow: 0 12px 36px rgba(26,43,76,0.35);
 }
+/* 라벨 분석 — 소프트 블루 */
+.action-card.checker {
+  background: linear-gradient(135deg, #3B6FD4, #5B8FEF);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: white;
+}
+.action-card.checker:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 36px rgba(59,111,212,0.35);
+}
+
 .action-icon {
-  width: 42px; height: 42px; border-radius: var(--r-sm);
-  background: rgba(184,212,255,0.2);
-  border: 1px solid rgba(184,212,255,0.3);
+  width: 44px; height: 44px; border-radius: var(--r-sm);
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.2);
   display: flex; align-items: center;
-  justify-content: center; font-size: 1.25rem;
+  justify-content: center; font-size: 1.3rem;
+  flex-shrink: 0;
 }
+.action-text { flex: 1; min-width: 0; }
 .action-card h3 {
   font-size: 0.92rem; font-weight: 700;
-  color: var(--navy); margin-bottom: 2px;
+  color: white; margin-bottom: 2px;
 }
-.action-card p { font-size: 0.74rem; color: var(--muted); margin: 0; }
+.action-card p {
+  font-size: 0.73rem; color: rgba(255,255,255,0.7); margin: 0;
+}
 
 /* ── 3. USAGE ── */
 .usage-card {
@@ -358,16 +376,16 @@ main {
 <div>
   <p class="section-label">오늘 무엇을 하시겠어요?</p>
   <div class="action-grid">
-    <a class="action-card" href="./creator.html">
+    <a class="action-card creator" href="./creator.html">
       <div class="action-icon">✏️</div>
-      <div>
+      <div class="action-text">
         <h3>라벨 생성하기</h3>
         <p>배합비 입력 → 라벨 자동 생성</p>
       </div>
     </a>
-    <a class="action-card" href="./checker.html">
+    <a class="action-card checker" href="./checker.html">
       <div class="action-icon">📋</div>
-      <div>
+      <div class="action-text">
         <h3>라벨 분석하기</h3>
         <p>라벨 업로드 → 리스크 검사</p>
       </div>
