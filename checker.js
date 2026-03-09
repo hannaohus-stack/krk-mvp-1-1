@@ -99,6 +99,14 @@ async function startOCR() {
     
     // 분석 실행
     performAnalysis(text);
+
+    // 작업 기록 저장
+    saveCheckerResult(analysisData.imageFile?.name, {
+      status: analysisData.riskLevel,
+      errors: analysisData.missingItems,
+      warnings: analysisData.forbiddenExpressions,
+      suggestions: []
+    });
     
     // UI 업데이트
     document.getElementById('ocrProgress').style.display = 'none';
@@ -512,4 +520,23 @@ function resetImage() {
   analysisData.ocrText = '';
   
   updateStatusBadge('pending');
+}
+
+// ========== 작업 기록 저장 ==========
+function saveCheckerResult(fileName, result) {
+  const works = JSON.parse(localStorage.getItem('krk_works') || '[]');
+  works.unshift({
+    id: 'work_' + Date.now(),
+    type: 'checker',
+    title: (fileName || '라벨') + ' 분석',
+    created_at: new Date().toISOString().split('T')[0],
+    status: result.status,
+    payload: {
+      errors: result.errors?.length || 0,
+      warnings: result.warnings?.length || 0,
+      suggestions: result.suggestions?.length || 0
+    }
+  });
+  if (works.length > 50) works.pop();
+  localStorage.setItem('krk_works', JSON.stringify(works));
 }

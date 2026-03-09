@@ -595,3 +595,23 @@ window.addEventListener('beforeunload', (e) => {
     e.returnValue = '';
   }
 });
+function saveWorkToHistory(labelData, status) {
+  const works = JSON.parse(localStorage.getItem('krk_works') || '[]');
+  works.unshift({
+    id: 'work_' + Date.now(),
+    type: 'creator',
+    title: (labelData.productName || '새 라벨') + ' 라벨',
+    created_at: new Date().toISOString().split('T')[0],
+    status: status || 'safe',
+    payload: {
+      product_name: labelData.productName,
+      food_type: labelData.foodType,
+      ingredients_count: labelData.ingredients?.length || 0
+    }
+  });
+  if (works.length > 50) works.pop();
+  localStorage.setItem('krk_works', JSON.stringify(works));
+}
+  
+  saveWorkToHistory(formData, 'safe'); 
+  

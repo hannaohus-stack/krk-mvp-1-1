@@ -3,750 +3,576 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="KRK - 라벨부터 신고까지, 한 곳에서">
   <title>KRK - 대시보드</title>
-  
-  <!-- Pretendard 폰트 -->
-  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary-blue: #0052FF;
+      --accent-green: #00E676;
+      --danger-red: #FF4444;
+      --warning-yellow: #FFB800;
+      --text-dark: #1A1A1A;
+      --text-light: #666666;
+      --bg-light: #F5F5F5;
+      --white: #FFFFFF;
+      --border: rgba(0,0,0,0.08);
     }
 
     body {
-      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #F0F4F8 0%, #E3EDF7 100%);
+      font-family: 'Pretendard', -apple-system, sans-serif;
+      background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+      color: var(--text-dark);
       min-height: 100vh;
-      padding: 24px;
-      color: #1A2B4C;
-      letter-spacing: 0.3px;
-      line-height: 1.6;
     }
 
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
+    /* ===== HEADER ===== */
+    header {
+      padding: 16px 0;
+      position: sticky;
+      top: 0;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+      border-bottom: 1px solid rgba(0,82,255,0.1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
-
-    /* ==================== 헤더 (통합됨) ==================== */
-    .header {
-      background: rgba(255, 255, 255, 0.65);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.45);
-      border-radius: 24px;
-      padding: 32px;
-      margin-bottom: 32px;
-      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.12);
-    }
-
     .header-content {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 40px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 40px;
     }
-
-    /* 헤더 좌측 - 사용자 정보 */
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      flex-shrink: 0;
+    .logo {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--primary-blue);
+      cursor: pointer;
+      text-decoration: none;
     }
-
-    .logo-icon {
-      width: 48px;
-      height: 48px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      background: rgba(184, 212, 255, 0.25);
-      border-radius: 12px;
-      border: 1px solid rgba(184, 212, 255, 0.3);
-      backdrop-filter: blur(10px);
-    }
-
-    .user-info {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .user-info h2 {
-      font-size: 16px;
-      margin-bottom: 4px;
-      color: #1A2B4C;
-      font-weight: 700;
-      letter-spacing: -0.2px;
-    }
-
-    .user-info p {
-      font-size: 12px;
-      color: #7A8FA3;
-      margin: 0;
-      letter-spacing: 0.2px;
-    }
-
-    /* 헤더 중앙 - 플랜 & 사용량 */
-    .header-middle {
-      display: flex;
-      gap: 40px;
-      flex: 1;
-      align-items: center;
-    }
-
-    .header-info-group {
-      display: flex;
-      flex-direction: column;
-      min-width: 120px;
-    }
-
-    .header-info-label {
-      font-size: 11px;
-      color: #7A8FA3;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      margin-bottom: 8px;
-    }
-
-    .header-info-value {
-      font-size: 18px;
-      color: #1A2B4C;
-      font-weight: 700;
-      letter-spacing: -0.2px;
-      margin-bottom: 4px;
-    }
-
-    .header-plan-badge {
-      display: inline-block;
-      width: fit-content;
-      padding: 6px 12px;
-      background: rgba(184, 212, 255, 0.15);
-      border: 1px solid rgba(184, 212, 255, 0.3);
-      border-radius: 8px;
-      color: #2196F3;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.3px;
-    }
-
-    .header-plan-badge.active {
-      background: rgba(76, 175, 80, 0.15);
-      border-color: rgba(76, 175, 80, 0.3);
-      color: #4CAF50;
-    }
-
-    .header-usage-bar {
-      width: 100%;
-      height: 6px;
-      background: rgba(26, 43, 76, 0.1);
-      border-radius: 999px;
-      overflow: hidden;
-      margin-top: 6px;
-    }
-
-    .header-usage-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #4CAF50, #45a049);
-      border-radius: 999px;
-    }
-
-    /* 헤더 우측 - 액션 버튼 */
     .header-right {
       display: flex;
-      gap: 12px;
       align-items: center;
-      flex-shrink: 0;
+      gap: 16px;
     }
-
-    .btn {
-      padding: 12px 24px;
-      border-radius: 12px;
-      border: none;
-      font-family: 'Pretendard', sans-serif;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-      letter-spacing: 0.3px;
-      white-space: nowrap;
-    }
-
-    .btn-upgrade {
-      background: linear-gradient(135deg, rgba(33, 150, 243, 0.95), rgba(33, 150, 243, 0.85));
-      color: white;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 14px 32px;
-      font-size: 13px;
+    .plan-badge {
+      padding: 6px 14px;
+      background: rgba(0,230,118,0.1);
+      border-radius: 6px;
+      font-size: 0.8rem;
+      color: #00AA55;
       font-weight: 700;
     }
-
-    .btn-upgrade:hover {
-      background: linear-gradient(135deg, rgba(33, 150, 243, 1), rgba(33, 150, 243, 0.95));
-      box-shadow: 0 8px 20px rgba(33, 150, 243, 0.3);
-      transform: translateY(-2px);
+    .plan-badge.premium {
+      background: rgba(0,82,255,0.1);
+      color: var(--primary-blue);
     }
-
-    .btn-upgrade.hidden {
-      display: none;
-    }
-
-    .btn-manage {
-      padding: 12px 20px;
-      background: rgba(255, 255, 255, 0.4);
-      color: #1A2B4C;
-      border: 1px solid rgba(26, 43, 76, 0.15);
-      font-size: 13px;
-    }
-
-    .btn-manage:hover {
-      background: rgba(255, 255, 255, 0.6);
-    }
-
-    .btn-logout {
-      padding: 12px 20px;
-      background: rgba(255, 255, 255, 0.4);
-      color: #1A2B4C;
-      border: 1px solid rgba(26, 43, 76, 0.15);
-      font-size: 13px;
-    }
-
-    .btn-logout:hover {
-      background: rgba(255, 255, 255, 0.6);
-    }
-
-    /* ==================== 헤드라인 섹션 ==================== */
-    .headline-section {
-      background: rgba(255, 255, 255, 0.65);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.45);
-      border-radius: 24px;
-      padding: 48px;
-      margin-bottom: 32px;
-      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.12);
-      text-align: center;
-    }
-
-    .headline-greeting {
-      font-size: 28px;
-      font-weight: 800;
-      color: #1A2B4C;
-      margin-bottom: 12px;
-      letter-spacing: -0.5px;
-      line-height: 1.4;
-    }
-
-    .headline-subtext {
-      font-size: 15px;
-      color: #4A5F7F;
-      margin-bottom: 24px;
-      line-height: 1.7;
-      letter-spacing: 0.2px;
-    }
-
-    .headline-actions {
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--primary-blue);
+      color: white;
       display: flex;
-      gap: 16px;
+      align-items: center;
       justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .btn-action {
-      padding: 12px 28px;
-      border-radius: 12px;
-      border: none;
-      font-family: 'Pretendard', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-      letter-spacing: 0.3px;
-      text-decoration: none;
-      display: inline-block;
-    }
-
-    .btn-action.primary {
-      background: linear-gradient(135deg, rgba(26, 43, 76, 0.95), rgba(26, 43, 76, 0.85));
-      color: white;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    .btn-action.primary:hover {
-      background: linear-gradient(135deg, rgba(26, 43, 76, 1), rgba(26, 43, 76, 0.95));
-      box-shadow: 0 8px 20px rgba(26, 43, 76, 0.25);
-      transform: translateY(-2px);
-    }
-
-    .btn-action.secondary {
-      background: rgba(255, 255, 255, 0.4);
-      color: #1A2B4C;
-      border: 1px solid rgba(26, 43, 76, 0.15);
-    }
-
-    .btn-action.secondary:hover {
-      background: rgba(255, 255, 255, 0.6);
-    }
-
-    /* ==================== 법적 업데이트 피드 ==================== */
-    .legal-update-section {
-      background: rgba(255, 255, 255, 0.65);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.45);
-      border-radius: 24px;
-      padding: 32px;
-      margin-bottom: 32px;
-      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.12);
-    }
-
-    .legal-update-title {
-      font-size: 16px;
       font-weight: 700;
-      color: #1A2B4C;
-      margin-bottom: 24px;
-      letter-spacing: 0.2px;
+      font-size: 0.9rem;
     }
 
-    .legal-update-feed {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+    /* ===== MAIN ===== */
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 40px 80px;
     }
 
-    .legal-update-item {
-      background: rgba(184, 212, 255, 0.08);
-      border-left: 4px solid rgba(33, 150, 243, 0.5);
-      border-radius: 12px;
-      padding: 16px;
-      transition: all 0.3s;
-      backdrop-filter: blur(10px);
+    /* ===== GREETING ===== */
+    .greeting {
+      margin-bottom: 40px;
+    }
+    .greeting h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 6px;
+    }
+    .greeting p {
+      color: var(--text-light);
+      font-size: 0.95rem;
+    }
+    .greeting .date-text {
+      font-size: 0.85rem;
+      color: #999;
+      margin-top: 4px;
     }
 
-    .legal-update-item:hover {
-      background: rgba(184, 212, 255, 0.15);
-      transform: translateX(4px);
+    /* ===== STATS GRID ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 40px;
     }
 
-    .legal-update-date {
-      font-size: 11px;
-      color: #7A8FA3;
+    .stat-card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+    .stat-card .stat-icon {
+      font-size: 1.8rem;
+      margin-bottom: 12px;
+    }
+    .stat-card .stat-label {
+      font-size: 0.8rem;
+      color: var(--text-light);
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin-bottom: 6px;
     }
-
-    .legal-update-title-item {
-      font-size: 13px;
-      font-weight: 600;
-      color: #1A2B4C;
-      margin-bottom: 6px;
-      line-height: 1.5;
-      letter-spacing: 0.2px;
+    .stat-card .stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      line-height: 1;
     }
-
-    .legal-update-desc {
-      font-size: 12px;
-      color: #4A5F7F;
-      line-height: 1.7;
-      letter-spacing: 0.2px;
+    .stat-card .stat-sub {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      margin-top: 4px;
     }
-
-    /* ==================== 최근 작업 ==================== */
-    .recent-section {
-      background: rgba(255, 255, 255, 0.65);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.45);
-      border-radius: 24px;
-      padding: 32px;
-      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.12);
+    .stat-card.plan-card {
+      background: linear-gradient(135deg, #0052FF 0%, #0040CC 100%);
+      color: white;
     }
-
-    .recent-title {
-      font-size: 16px;
+    .stat-card.plan-card .stat-label { color: rgba(255,255,255,0.7); }
+    .stat-card.plan-card .stat-value { color: white; font-size: 1.3rem; }
+    .stat-card.plan-card .stat-sub { color: rgba(255,255,255,0.65); }
+    .stat-card.plan-card .plan-features {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .stat-card.plan-card .plan-feature {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.8);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .stat-card.plan-card .plan-feature::before {
+      content: '✓';
+      color: var(--accent-green);
       font-weight: 700;
-      color: #1A2B4C;
-      margin-bottom: 24px;
-      letter-spacing: 0.2px;
     }
 
-    .recent-list {
-      list-style: none;
+    .usage-bar-wrap {
+      margin-top: 10px;
+    }
+    .usage-bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text-light);
+      margin-bottom: 4px;
+    }
+    .usage-bar {
+      height: 6px;
+      background: #eee;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .usage-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--primary-blue);
+      transition: width 0.5s ease;
+    }
+    .usage-bar-fill.green { background: var(--accent-green); }
+    .usage-bar-fill.red { background: var(--danger-red); }
+
+    /* ===== QUICK ACTIONS ===== */
+    .quick-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+    .action-btn {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 20px 24px;
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--text-dark);
+      transition: all 0.2s;
+    }
+    .action-btn:hover {
+      border-color: var(--primary-blue);
+      background: rgba(0,82,255,0.02);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(0,82,255,0.1);
+    }
+    .action-btn .action-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+    .action-btn .action-icon.blue { background: rgba(0,82,255,0.1); }
+    .action-btn .action-icon.green { background: rgba(0,230,118,0.1); }
+    .action-btn .action-text h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+    .action-btn .action-text p {
+      font-size: 0.8rem;
+      color: var(--text-light);
+    }
+    .action-btn .action-arrow {
+      margin-left: auto;
+      color: #ccc;
+      font-size: 1.1rem;
     }
 
-    .recent-item {
+    /* ===== WORKS SECTION ===== */
+    .section-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 16px;
-      border-bottom: 1px solid rgba(26, 43, 76, 0.08);
-      transition: background 0.3s;
+      margin-bottom: 20px;
+    }
+    .section-header h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+    .section-header .total-count {
+      font-size: 0.85rem;
+      color: var(--text-light);
     }
 
-    .recent-item:last-child {
-      border-bottom: none;
+    /* Filter Tabs */
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
     }
-
-    .recent-item:hover {
-      background: rgba(184, 212, 255, 0.08);
-    }
-
-    .recent-info {
-      flex: 1;
-    }
-
-    .recent-name {
-      font-size: 14px;
-      font-weight: 600;
-      color: #1A2B4C;
-      margin-bottom: 6px;
-      letter-spacing: 0.2px;
-    }
-
-    .recent-date {
-      font-size: 12px;
-      color: #7A8FA3;
-      letter-spacing: 0.2px;
-    }
-
-    .recent-view {
-      padding: 8px 16px;
-      background: rgba(33, 150, 243, 0.2);
-      border: 1px solid rgba(33, 150, 243, 0.3);
-      border-radius: 8px;
-      color: #2196F3;
-      font-size: 12px;
+    .filter-tab {
+      padding: 7px 16px;
+      border-radius: 999px;
+      font-size: 0.82rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.3s;
+      border: 1.5px solid var(--border);
+      background: white;
+      color: var(--text-light);
+      transition: all 0.15s;
+    }
+    .filter-tab.active {
+      background: var(--primary-blue);
+      color: white;
+      border-color: var(--primary-blue);
+    }
+
+    /* Works List */
+    .works-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .work-item {
+      background: white;
+      border-radius: 12px;
+      padding: 18px 20px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .work-item:hover {
+      border-color: rgba(0,82,255,0.2);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    }
+
+    .work-type-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .work-type-icon.creator { background: rgba(0,82,255,0.1); }
+    .work-type-icon.checker { background: rgba(0,230,118,0.1); }
+
+    .work-info { flex: 1; min-width: 0; }
+    .work-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 3px;
+    }
+    .work-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .work-type-label {
+      font-size: 0.75rem;
+      color: var(--text-light);
+    }
+    .work-date {
+      font-size: 0.75rem;
+      color: #bbb;
+    }
+
+    /* Status Badges */
+    .status-badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
       letter-spacing: 0.3px;
+      flex-shrink: 0;
+    }
+    .status-badge.safe {
+      background: rgba(0,230,118,0.12);
+      color: #00A040;
+    }
+    .status-badge.warning {
+      background: rgba(255,184,0,0.12);
+      color: #CC8000;
+    }
+    .status-badge.risk {
+      background: rgba(255,68,68,0.1);
+      color: var(--danger-red);
     }
 
-    .recent-view:hover {
-      background: rgba(33, 150, 243, 0.3);
-    }
-
+    /* Empty State */
     .empty-state {
       text-align: center;
-      padding: 48px 24px;
-      color: #4A5F7F;
+      padding: 60px 20px;
+      background: white;
+      border-radius: 16px;
+      border: 1.5px dashed var(--border);
     }
-
-    .empty-icon {
-      font-size: 48px;
-      margin-bottom: 16px;
-      opacity: 0.5;
+    .empty-state .empty-icon { font-size: 3rem; margin-bottom: 16px; }
+    .empty-state h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
     }
-
     .empty-state p {
-      letter-spacing: 0.2px;
+      font-size: 0.85rem;
+      color: var(--text-light);
+      margin-bottom: 20px;
     }
-
-    /* 반응형 */
-    @media (max-width: 1200px) {
-      .header-content {
-        gap: 24px;
-      }
-
-      .header-middle {
-        gap: 24px;
-      }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 24px;
+      background: var(--primary-blue);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: opacity 0.2s;
+      font-family: inherit;
     }
+    .btn-primary:hover { opacity: 0.88; }
 
-    @media (max-width: 1024px) {
-      .header-content {
-        flex-wrap: wrap;
-      }
-
-      .header-middle {
-        order: 3;
-        width: 100%;
-        flex-wrap: wrap;
-      }
-
-      .header-right {
-        order: 2;
-      }
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
     }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      background: white;
+      border-radius: 20px;
+      padding: 32px;
+      width: 90%;
+      max-width: 520px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    }
+    .modal-close {
+      float: right;
+      background: none;
+      border: none;
+      font-size: 1.3rem;
+      cursor: pointer;
+      color: var(--text-light);
+      margin-top: -4px;
+    }
+    .modal-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 0.9rem;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-row .label { color: var(--text-light); }
+    .detail-row .value { font-weight: 600; }
 
+    /* ===== RESPONSIVE ===== */
     @media (max-width: 768px) {
-      body {
-        padding: 16px;
-      }
-
-      .header {
-        padding: 24px;
-      }
-
-      .header-content {
-        flex-direction: column;
-        gap: 16px;
-      }
-
-      .header-left {
-        width: 100%;
-      }
-
-      .header-middle {
-        width: 100%;
-        gap: 16px;
-      }
-
-      .header-right {
-        width: 100%;
-        flex-direction: column;
-      }
-
-      .btn-upgrade,
-      .btn-manage,
-      .btn-logout {
-        width: 100%;
-      }
-
-      .headline-section {
-        padding: 24px;
-      }
-
-      .headline-greeting {
-        font-size: 22px;
-      }
-
-      .legal-update-section,
-      .recent-section {
-        padding: 24px;
-      }
-
-      .recent-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-      }
-
-      .recent-view {
-        align-self: flex-end;
-      }
+      .header-content { padding: 0 20px; }
+      main { padding: 24px 20px 60px; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .quick-actions { grid-template-columns: 1fr; }
+      .greeting h1 { font-size: 1.4rem; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- 헤더 (통합됨) -->
-    <div class="header">
-      <div class="header-content">
-        <!-- 좌측: 사용자 정보 -->
-        <div class="header-left">
-          <div class="logo-icon">🍳</div>
-          <div class="user-info">
-            <h2 id="userName">로딩 중...</h2>
-            <p id="userCompany">회사명</p>
-          </div>
-        </div>
 
-        <!-- 중앙: 플랜 & 사용량 정보 -->
-        <div class="header-middle">
-          <!-- 현재 플랜 -->
-          <div class="header-info-group">
-            <div class="header-info-label">현재 플랜</div>
-            <div style="display: flex; align-items: center; gap: 12px;">
-              <div class="header-info-value" id="planName">FREE</div>
-              <span class="header-plan-badge" id="planStatus">무료</span>
-            </div>
-          </div>
-
-          <!-- 다음 결제일 -->
-          <div class="header-info-group">
-            <div class="header-info-label">다음 결제일</div>
-            <div class="header-info-value" id="nextBillingDate">-</div>
-          </div>
-
-          <!-- 라벨 생성 사용량 -->
-          <div class="header-info-group">
-            <div class="header-info-label">라벨 생성</div>
-            <div class="header-info-value" id="labelUsageText">1 / 3</div>
-            <div class="header-usage-bar">
-              <div class="header-usage-bar-fill" id="labelUsageBar" style="width: 33%;"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 우측: 액션 버튼 -->
-        <div class="header-right">
-          <button class="btn btn-upgrade hidden" onclick="goToUpgrade()" id="upgradeBtn">업그레이드</button>
-          <button class="btn btn-manage" onclick="goToSubscription()">구독관리</button>
-          <button class="btn btn-logout" onclick="logout()">로그아웃</button>
-        </div>
+  <!-- ===== HEADER ===== -->
+  <header>
+    <div class="header-content">
+      <a class="logo" href="../index.html">KRK</a>
+      <div class="header-right">
+        <span class="plan-badge" id="planBadge">Free</span>
+        <div class="user-avatar" id="userAvatar">K</div>
       </div>
     </div>
+  </header>
 
-    <!-- 헤드라인 섹션 -->
-    <div class="headline-section">
-      <div class="headline-greeting" id="greeting">안녕하세요! 오늘 개발할 새로운 식품은 무엇인가요?</div>
-      <div class="headline-subtext">KRK와 함께라면 라벨부터 신고까지 모든 것을 한곳에서 관리할 수 있습니다</div>
-      <div class="headline-actions">
-        <a href="label-create.html" class="btn-action primary">🏷️ 라벨 생성하기</a>
-        <a href="label-diagnose.html" class="btn-action secondary">🔍 라벨 진단받기</a>
-      </div>
+  <!-- ===== MAIN ===== -->
+  <main>
+
+    <!-- Greeting -->
+    <div class="greeting">
+      <h1 id="greetingText">안녕하세요 👋</h1>
+      <p>오늘도 안전한 라벨 만들기를 시작해볼까요?</p>
+      <p class="date-text" id="todayDate"></p>
     </div>
 
-    <!-- 법적 업데이트 알림 피드 -->
-    <div class="legal-update-section">
-      <h3 class="legal-update-title">⚖️ 식품 법규 업데이트</h3>
-      <div class="legal-update-feed">
-        <div class="legal-update-item">
-          <div class="legal-update-date">2026년 2월 25일</div>
-          <div class="legal-update-title-item">영양표시 의무화 (2026년 시행)</div>
-          <div class="legal-update-desc">모든 가공식품에 영양표시가 의무화됩니다. KRK의 AI 기능으로 자동 생성하세요.</div>
-        </div>
-        <div class="legal-update-item">
-          <div class="legal-update-date">2026년 2월 20일</div>
-          <div class="legal-update-title-item">원산지 표시 기준 개정</div>
-          <div class="legal-update-desc">주요 원료 원산지 표시 범위가 확대되었습니다. 더 알아보기 →</div>
-        </div>
-        <div class="legal-update-item">
-          <div class="legal-update-date">2026년 2월 15일</div>
-          <div class="legal-update-title-item">식품 접촉물질 규정 변경</div>
-          <div class="legal-update-desc">포장재료 규격 기준이 업데이트되었습니다. 보다 안전한 제품 개발을 위해 확인하세요.</div>
-        </div>
+    <!-- Stats -->
+    <div class="stats-grid">
+
+      <!-- Plan Card -->
+      <div class="stat-card plan-card">
+        <div class="stat-icon">💎</div>
+        <div class="stat-label">현재 플랜</div>
+        <div class="stat-value" id="planName">Free</div>
+        <div class="stat-sub" id="planDesc">월 0원</div>
+        <div class="plan-features" id="planFeatures"></div>
       </div>
+
+      <!-- Label Usage -->
+      <div class="stat-card">
+        <div class="stat-icon">🏷️</div>
+        <div class="stat-label">라벨 생성</div>
+        <div class="stat-value" id="labelCount">0</div>
+        <div class="stat-sub" id="labelSub">이번 달 남은 횟수</div>
+        <div class="usage-bar-wrap" id="labelBar"></div>
+      </div>
+
+      <!-- Checker Usage -->
+      <div class="stat-card">
+        <div class="stat-icon">🔍</div>
+        <div class="stat-label">라벨 분석</div>
+        <div class="stat-value" id="checkerCount">0</div>
+        <div class="stat-sub" id="checkerSub">이번 달 남은 횟수</div>
+        <div class="usage-bar-wrap" id="checkerBar"></div>
+      </div>
+
     </div>
 
-    <!-- 최근 작업 -->
-    <div class="recent-section">
-      <h3 class="recent-title">📋 최근 작업</h3>
-      <ul class="recent-list" id="recentList">
-        <div class="empty-state">
-          <div class="empty-icon">📂</div>
-          <p>아직 작업 이력이 없습니다. 첫 번째 라벨을 만들어보세요!</p>
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <a class="action-btn" href="../creator/creator.html">
+        <div class="action-icon blue">✏️</div>
+        <div class="action-text">
+          <h3>라벨 생성하기</h3>
+          <p>배합비 입력 → 한글표시사항 자동 생성</p>
         </div>
-      </ul>
+        <div class="action-arrow">›</div>
+      </a>
+      <a class="action-btn" href="../checker/checker.html">
+        <div class="action-icon green">📋</div>
+        <div class="action-text">
+          <h3>라벨 분석하기</h3>
+          <p>라벨 시안 업로드 → 리스크 포인트 검출</p>
+        </div>
+        <div class="action-arrow">›</div>
+      </a>
+    </div>
+
+    <!-- Works Section -->
+    <div class="section-header">
+      <h2>최근 작업</h2>
+      <span class="total-count" id="totalCount">전체 0건</span>
+    </div>
+
+    <div class="filter-tabs">
+      <button class="filter-tab active" onclick="filterWorks('all')">전체</button>
+      <button class="filter-tab" onclick="filterWorks('creator')">라벨 생성</button>
+      <button class="filter-tab" onclick="filterWorks('checker')">라벨 분석</button>
+    </div>
+
+    <div class="works-list" id="worksList"></div>
+
+  </main>
+
+  <!-- ===== WORK DETAIL MODAL ===== -->
+  <div class="modal-overlay" id="workModal">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div class="modal-title" id="modalTitle">작업 상세</div>
+      <div id="modalContent"></div>
     </div>
   </div>
 
-  <script>
-    // 페이지 로드 전에 데이터 초기화
-    const testMode = new URLSearchParams(window.location.search).get('test') === '1';
-    let user = null;
-
-    if (testMode) {
-      // 테스트 모드: 항상 샘플 데이터 사용
-      user = {
-        id: 'test_user',
-        email: 'hanna@example.com',
-        company: '테스트 회사',
-        isPremium: false,
-        usageQuota: 3,
-        usageRemaining: 1
-      };
-    } else {
-      // 실제 모드: localStorage에서 읽기
-      const userData = localStorage.getItem('krk_user');
-      if (userData) {
-        user = JSON.parse(userData);
-      }
-    }
-
-    // 사용자 정보가 없으면 기본값
-    if (!user) {
-      user = {
-        id: 'default_user',
-        email: 'user@example.com',
-        company: '회사명',
-        isPremium: false,
-        usageQuota: 3,
-        usageRemaining: 3
-      };
-    }
-
-    // 페이지 로드 후 UI 업데이트
-    window.addEventListener('load', () => {
-      // 사용자명 설정
-      const userName = user.email.split('@')[0];
-      document.getElementById('userName').textContent = userName;
-      document.getElementById('userCompany').textContent = user.company;
-
-      // 헤드라인 업데이트
-      document.getElementById('greeting').textContent = `안녕하세요, ${userName}님! 오늘 개발할 새로운 식품은 무엇인가요?`;
-
-      // 플랜 정보 설정
-      const planName = user.isPremium ? 'STANDARD' : 'FREE';
-      document.getElementById('planName').textContent = planName;
-      
-      const planBadge = document.getElementById('planStatus');
-      const upgradeBtn = document.getElementById('upgradeBtn');
-      const nextBillingEl = document.getElementById('nextBillingDate');
-      const labelUsageText = document.getElementById('labelUsageText');
-      const labelUsageBar = document.getElementById('labelUsageBar');
-
-      if (user.isPremium) {
-        // 프리미엄 사용자
-        planBadge.textContent = '활성';
-        planBadge.classList.add('active');
-        upgradeBtn.classList.add('hidden');
-        
-        const nextBilling = new Date();
-        nextBilling.setMonth(nextBilling.getMonth() + 1);
-        nextBillingEl.textContent = nextBilling.toLocaleDateString('ko-KR');
-        
-        labelUsageText.innerHTML = '<span style="color: #4CAF50; font-weight: 700;">무제한</span>';
-        labelUsageBar.style.width = '100%';
-      } else {
-        // 무료 사용자
-        planBadge.textContent = '무료';
-        upgradeBtn.classList.remove('hidden');
-        nextBillingEl.textContent = '-';
-        
-        const usageRemaining = user.usageRemaining || 3;
-        const usageUsed = user.usageQuota - usageRemaining;
-        const usagePercent = (usageUsed / user.usageQuota) * 100;
-        
-        labelUsageBar.style.width = usagePercent + '%';
-        labelUsageText.textContent = usageUsed + ' / ' + user.usageQuota;
-      }
-
-      // 최근 작업 로드
-      const recentWorks = localStorage.getItem('krk_recent_works');
-      const recentList = document.getElementById('recentList');
-      
-      if (recentWorks) {
-        try {
-          const works = JSON.parse(recentWorks);
-          recentList.innerHTML = works.map(work => `
-            <li class="recent-item">
-              <div class="recent-info">
-                <div class="recent-name">${work.name}</div>
-                <div class="recent-date">${work.date}</div>
-              </div>
-              <button class="recent-view" onclick="viewLabelDetail('${work.id}')">상세보기</button>
-            </li>
-          `).join('');
-        } catch (e) {
-          console.log('최근 작업 로드 실패');
-        }
-      }
-    });
-
-    function logout() {
-      if (confirm('로그아웃 하시겠습니까?')) {
-        localStorage.removeItem('krk_session');
-        window.location.href = 'login.html';
-      }
-    }
-
-    function goToUpgrade() {
-      window.location.href = 'paywall.html';
-    }
-
-    function goToSubscription() {
-      window.location.href = 'subscription.html';
-    }
-
-    function viewLabelDetail(id = 'sample') {
-      // 라벨 상세보기 페이지로 이동
-      window.location.href = 'label-detail.html?id=' + id;
-    }
-  </script>
+  <script src="dashboard.js"></script>
 </body>
 </html>
+
