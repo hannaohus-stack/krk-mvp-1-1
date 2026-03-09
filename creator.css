@@ -1,0 +1,671 @@
+/* ========================================
+   Creator CSS - AI 라벨 생성기
+   ======================================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #f0f4f8 0%, #e3edf7 100%);
+  color: #333;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ========== Header ========== */
+.creator-header {
+  background: white;
+  border-bottom: 2px solid #2196F3;
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.creator-header h1 {
+  font-size: 24px;
+  color: #2196F3;
+  margin-bottom: 4px;
+}
+
+.creator-header p {
+  font-size: 13px;
+  color: #666;
+  margin: 0;
+}
+
+.header-right {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #f0f0f0;
+  color: #333;
+}
+
+.status-badge.status-success {
+  background: #4CAF50;
+  color: white;
+}
+
+.status-badge.status-warning {
+  background: #FF9800;
+  color: white;
+}
+
+.status-badge.status-default {
+  background: #e0e0e0;
+  color: #666;
+}
+
+/* ========== Main Container ========== */
+.creator-container {
+  display: grid;
+  grid-template-columns: 45% 55%;
+  gap: 30px;
+  padding: 30px 40px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.creator-input-panel,
+.creator-result-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ========== Form Card ========== */
+.form-card {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-left: 4px solid #2196F3;
+}
+
+.form-card h3 {
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: #333;
+  font-weight: 600;
+}
+
+.card-description {
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 20px;
+}
+
+/* ========== Form Grid ========== */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #2196F3;
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.help-text {
+  font-size: 11px;
+  color: #999;
+  margin-top: 4px;
+}
+
+/* ========== Radio Group ========== */
+.radio-group {
+  display: flex;
+  gap: 15px;
+}
+
+.radio-group label {
+  display: flex;
+  align-items: center;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.radio-group input[type="radio"] {
+  margin-right: 6px;
+  cursor: pointer;
+  width: auto;
+  padding: 0;
+  border: none;
+}
+
+/* ========== Input with Unit ========== */
+.input-with-unit {
+  display: flex;
+  gap: 8px;
+}
+
+.input-with-unit input {
+  flex: 1;
+}
+
+.input-with-unit select {
+  width: 80px;
+}
+
+/* ========== Ingredients Table ========== */
+.table-wrapper {
+  overflow-x: auto;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.ingredients-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.ingredients-table thead {
+  background: #f5f5f5;
+  border-bottom: 2px solid #ddd;
+}
+
+.ingredients-table th {
+  padding: 10px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+}
+
+.ingredients-table td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.ingredients-table input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.ingredients-table input:focus {
+  outline: none;
+  border-color: #2196F3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+}
+
+.btn-delete {
+  padding: 6px 10px;
+  border: none;
+  background: #ff5252;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.btn-delete:hover {
+  background: #d32f2f;
+}
+
+/* ========== Button Group ========== */
+.button-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.button-group button {
+  flex: 1;
+}
+
+/* ========== Ingredients Summary ========== */
+.ingredients-summary {
+  background: #f9f9f9;
+  padding: 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.8;
+}
+
+.ingredients-summary p {
+  margin: 4px 0;
+}
+
+.ingredients-summary strong {
+  color: #2196F3;
+  font-weight: 600;
+}
+
+/* ========== Result Card ========== */
+.result-card {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.result-card h3 {
+  font-size: 16px;
+  margin-bottom: 15px;
+  color: #333;
+  font-weight: 600;
+}
+
+/* ========== Checklist ========== */
+.checklist {
+  list-style: none;
+  margin-bottom: 15px;
+}
+
+.checklist li {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 13px;
+  color: #666;
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+  font-size: 14px;
+  color: #999;
+  font-weight: bold;
+}
+
+.checklist li:has(.check[style*="color: #4CAF50"]) {
+  color: #4CAF50;
+  font-weight: 500;
+}
+
+/* ========== Completion Bar ========== */
+.completion-bar {
+  width: 100%;
+  height: 6px;
+  background: #eee;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.completion-progress {
+  height: 100%;
+  background: linear-gradient(90deg, #2196F3, #4CAF50);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+.completion-status {
+  font-size: 12px;
+  color: #999;
+  text-align: center;
+}
+
+/* ========== Label Preview ========== */
+.label-preview {
+  background: white;
+  padding: 20px;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  min-height: 300px;
+  max-height: 600px;
+  overflow-y: auto;
+  font-size: 12px;
+}
+
+.empty-state {
+  text-align: center;
+  color: #999;
+  padding: 40px 20px;
+}
+
+.label-preview table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #000;
+  font-family: 'Arial', sans-serif;
+}
+
+.label-preview table td {
+  border: 1px solid #000;
+  padding: 8px;
+}
+
+.label-preview table td:first-child {
+  font-weight: bold;
+  width: 30%;
+  background: #f9f9f9;
+}
+
+/* ========== Action Card ========== */
+.action-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.action-card button {
+  width: 100%;
+}
+
+/* ========== Buttons ========== */
+button {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.btn-primary {
+  background: #2196F3;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #1976D2;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.btn-secondary {
+  background: #f0f0f0;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.btn-secondary:hover {
+  background: #e8e8e8;
+}
+
+.btn-success {
+  background: #4CAF50;
+  color: white;
+}
+
+.btn-success:hover {
+  background: #388E3C;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+/* ========== Modal ========== */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal.show {
+  display: flex;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h2 {
+  font-size: 16px;
+  color: #333;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: auto;
+}
+
+.btn-close:hover {
+  color: #333;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 10px;
+  padding: 20px;
+  border-top: 1px solid #eee;
+}
+
+.modal-footer button {
+  flex: 1;
+}
+
+/* ========== Responsive Design ========== */
+
+@media (max-width: 1024px) {
+  .creator-container {
+    grid-template-columns: 1fr;
+    padding: 20px;
+    gap: 20px;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .creator-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 15px 20px;
+    gap: 10px;
+  }
+  
+  .header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .creator-container {
+    padding: 15px;
+  }
+  
+  .form-card,
+  .result-card {
+    padding: 15px;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  button {
+    padding: 10px 15px;
+    font-size: 12px;
+  }
+  
+  .ingredients-table {
+    font-size: 12px;
+  }
+  
+  .ingredients-table th,
+  .ingredients-table td {
+    padding: 6px;
+  }
+  
+  .action-card {
+    gap: 8px;
+  }
+  
+  .action-card button {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .creator-header h1 {
+    font-size: 18px;
+  }
+  
+  .form-card,
+  .result-card {
+    border-radius: 6px;
+  }
+  
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-size: 14px;
+  }
+  
+  .label-preview {
+    font-size: 11px;
+    min-height: 250px;
+  }
+  
+  .label-preview table td {
+    padding: 6px;
+  }
+}
+
+/* ========== Print Styles ========== */
+@media print {
+  .creator-header,
+  .creator-input-panel,
+  .action-card,
+  button {
+    display: none;
+  }
+  
+  .creator-container {
+    grid-template-columns: 1fr;
+    padding: 0;
+  }
+  
+  .label-preview {
+    border: none;
+    box-shadow: none;
+  }
+}
+
+/* ========== Animations ========== */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-card,
+.result-card {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* ========== Utility Classes ========== */
+.hidden {
+  display: none !important;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-success {
+  color: #4CAF50;
+}
+
+.text-error {
+  color: #f44336;
+}
+
+.text-warning {
+  color: #ff9800;
+}
