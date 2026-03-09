@@ -20,26 +20,25 @@ allergens: []
 };
 
 // ========== 초기화 ==========
+// [수정1] 일반 진입 시 항상 새 작업. ?edit=workId 일 때만 기존 데이터 로드.
 document.addEventListener(‘DOMContentLoaded’, () => {
 setupEventListeners();
 
-// [수정1] 항상 새 작업으로 시작
-// ?edit=workId 파라미터가 있을 때만 이전 데이터 로드
 const params = new URLSearchParams(location.search);
 const editId = params.get(‘edit’);
 
 if (editId) {
+// 수정 모드: 작업 기록에서 데이터 로드
 loadFromWorkHistory(editId);
-} else {
-localStorage.removeItem(‘creatorFormData’);
-restoreIngredients(); // 빈 행 1개만 렌더
 }
+// 일반 진입: formData 기본값 그대로, UI도 빈 상태 그대로 시작
 
 updatePreview();
 });
 
 // ========== 이벤트 리스너 설정 ==========
 function setupEventListeners() {
+// 제품정보 입력 필드
 const inputFields = [‘productName’, ‘foodType’, ‘manufacturer’, ‘manufacturerAddress’,
 ‘consumerDate’, ‘weight’, ‘storageMethod’, ‘packagingMaterial’, ‘originCountry’];
 
@@ -51,12 +50,15 @@ element.addEventListener(‘input’, handleInputChange);
 }
 });
 
+// 내용량 단위
 document.getElementById(‘weightUnit’).addEventListener(‘change’, handleInputChange);
 
+// 업종 라디오
 document.querySelectorAll(‘input[name=“businessType”]’).forEach(radio => {
 radio.addEventListener(‘change’, handleInputChange);
 });
 
+// 원재료 입력 감시
 document.getElementById(‘ingredientsBody’).addEventListener(‘input’, handleIngredientsChange);
 }
 
@@ -71,13 +73,11 @@ formData[id] = value;
 }
 
 updatePreview();
-saveToLocalStorage();
 }
 
 function handleIngredientsChange() {
 updateIngredients();
 updatePreview();
-saveToLocalStorage();
 }
 
 // ========== 원재료 관리 ==========
@@ -90,6 +90,7 @@ row.innerHTML = `<td><input type="text" class="ingredient-name" placeholder="밀
 
 tbody.appendChild(row);
 
+// 새 입력 필드에 이벤트 리스너 추가
 row.querySelectorAll(‘input’).forEach(input => {
 input.addEventListener(‘input’, handleIngredientsChange);
 });
@@ -99,7 +100,6 @@ function deleteIngredient(button) {
 button.closest(‘tr’).remove();
 updateIngredients();
 updatePreview();
-saveToLocalStorage();
 }
 
 function updateIngredients() {
@@ -124,28 +124,38 @@ if (name && weight > 0) {
 
 });
 
+// 배합비 계산 및 정렬
 if (ingredients.length > 0) {
 formData.ingredients = calculateAndSortIngredients(ingredients);
-const ingredientText = formData.ingredients.map(i => i.label).join(’, ’);
+
+```
+// 알레르기 감지
+const ingredientText = formData.ingredients.map(i => i.label).join(', ');
 formData.allergens = detectAllergens(ingredientText);
+```
+
 } else {
 formData.ingredients = [];
 formData.allergens = [];
 }
 
+// 요약 업데이트
 updateIngredientsSummary();
 }
 
 // ========== 배합비 계산 및 정렬 ==========
 function calculateAndSortIngredients(ingredients) {
 const totalWeight = ingredients.reduce((sum, ing) => sum + ing.weight, 0);
+
 if (totalWeight === 0) return ingredients;
 
+// 백분율 계산
 const calculated = ingredients.map(ing => ({
 …ing,
 percent: ((ing.weight / totalWeight) * 100).toFixed(2)
 }));
 
+// 고함량순 정렬
 return calculated.sort((a, b) => parseFloat(b.percent) - parseFloat(a.percent));
 }
 
@@ -198,14 +208,21 @@ document.getElementById(‘totalWeight’).textContent = Math.round(totalWeight 
 document.getElementById(‘detectedAllergens’).textContent = allergens;
 }
 
-// ========== 미리보기 업데이트 ==========
+// ========== 미리보기 업데이트 (핵심) ==========
 function updatePreview() {
+// 필수항목 체크
 updateRequiredCheckList();
 
+// 라벨 생성
 const weight = formData.weight ? `${formData.weight}${formData.weightUnit}` : ‘’;
-const labelHTML = generateLabelTable({ …formData, weight: weight });
+const labelHTML = generateLabelTable({
+…formData,
+weight: weight
+});
 
 document.getElementById(‘labelPreview’).innerHTML = labelHTML;
+
+// 상태 배지 업데이트
 updateStatusBadge();
 }
 
@@ -220,13 +237,13 @@ const checks = {
 ‘내용량’: !!formData.weight,
 ‘원재료명’: formData.ingredients.length > 0,
 ‘보관방법’: !!formData.storageMethod,
-‘1399 문구’: true
+‘1399 문구’: true // 자동 추가
 };
 
 const listItems = document.querySelectorAll(’#requiredCheckList li’);
 let completed = 0;
-const checkLabels = Object.keys(checks);
 
+const checkLabels = Object.keys(checks);
 listItems.forEach((item, index) => {
 const checkSpan = item.querySelector(’.check’);
 const key = checkLabels[index];
@@ -245,7 +262,10 @@ if (checks[key]) {
 });
 
 document.getElementById(‘completedItems’).textContent = completed;
-document.getElementById(‘completionProgress’).style.width = (completed / 9 * 100) + ‘%’;
+
+// 진행률 바 업데이트
+const percentage = (completed / 9) * 100;
+document.getElementById(‘completionProgress’).style.width = percentage + ‘%’;
 }
 
 // ========== 상태 배지 업데이트 ==========
@@ -270,23 +290,27 @@ function generateLabelTable(data) {
 const { productName, foodType, consumerDate, weight, manufacturer, manufacturerAddress,
 ingredients, allergens, storageMethod, packagingMaterial } = data;
 
+// 원재료명 문장 생성
 const ingredientLabels = ingredients.map(i => i.label).join(’, ’);
 const ingredientText = ingredientLabels ? `원재료명: ${ingredientLabels}` : ‘’;
+
+// 알레르기 문구 생성
 const allergenText = allergens.length > 0
 ? `알레르기 유발물질: ${allergens.join(', ')} 함유`
 : ‘’;
 
-let html = ` <table style="width: 100%; border-collapse: collapse; border: 2px solid #000; font-family: Arial, sans-serif;"> <tr> <td style="border: 1px solid #000; padding: 8px; width: 35%; font-weight: bold; background: #f9f9f9;">제품명</td> <td style="border: 1px solid #000; padding: 8px;">${productName || '-'}</td> </tr> <tr> <td style="border: 1px solid #000; padding: 8px; font-weight: bold; background: #f9f9f9;">식품유형</td> <td style="border: 1px solid #000; padding: 8px;">${foodType || '-'}</td> </tr> <tr> <td style="border: 1px solid #000; padding: 8px; font-weight: bold; background: #f9f9f9;">소비기한</td> <td style="border: 1px solid #000; padding: 8px;">${consumerDate || '-'}</td> </tr> <tr> <td style="border: 1px solid #000; padding: 8px; font-weight: bold; background: #f9f9f9;">내용량</td> <td style="border: 1px solid #000; padding: 8px;">${weight || '-'}</td> </tr> <tr> <td style="border: 1px solid #000; padding: 8px; font-weight: bold; background: #f9f9f9;">제조원</td> <td style="border: 1px solid #000; padding: 8px;">${manufacturer || '-'}</td> </tr> <tr> <td style="border: 1px solid #000; padding: 8px; font-weight: bold; background: #f9f9f9;">소재지</td> <td style="border: 1px solid #000; padding: 8px;">${manufacturerAddress || '-'}</td> </tr>`;
+// 테이블 생성
+let html = `<table style="width: 100%; border-collapse: collapse; border: 2px solid #000; font-family: Arial, sans-serif;"> <tr> <td style="border: 1px solid #000; padding: 8px; width: 35%; font-weight: bold; background: #f9f9f9;">제품명</td> <td style="border: 1px solid #000; padding: 8px;">${productName || '-'}</td> </tr> <tr> <td style="border: 1px solid #000; padding: 8px; font-weight: bold; background: #f9f9f9;">식품유형</td> <td style="border: 1px solid #000; padding: 8px;">${foodType || '-'}</td> </tr> <tr> <td style="border: 1px solid #000; padding: 8px; font-weight: bold; background: #f9f9f9;">소비기한</td> <td style="border: 1px solid #000; padding: 8px;">${consumerDate || '-'}</td> </tr> <tr> <td style="border: 1px solid #000; padding: 8px; font-weight: bold; background: #f9f9f9;">내용량</td> <td style="border: 1px solid #000; padding: 8px;">${weight || '-'}</td> </tr> <tr> <td style="border: 1px solid #000; padding: 8px; font-weight: bold; background: #f9f9f9;">제조원</td> <td style="border: 1px solid #000; padding: 8px;">${manufacturer || '-'}</td> </tr> <tr> <td style="border: 1px solid #000; padding: 8px; font-weight: bold; background: #f9f9f9;">소재지</td> <td style="border: 1px solid #000; padding: 8px;">${manufacturerAddress || '-'}</td> </tr>`;
 
 if (ingredientText) {
-html += ` <tr> <td style="border: 1px solid #000; padding: 8px; font-weight: bold; background: #f9f9f9;">원재료명</td> <td style="border: 1px solid #000; padding: 8px;">${ingredientText}</td> </tr>`;
+html += `<tr> <td style="border: 1px solid #000; padding: 8px; font-weight: bold; background: #f9f9f9;">원재료명</td> <td style="border: 1px solid #000; padding: 8px;">${ingredientText}</td> </tr>`;
 }
 
 if (allergenText) {
-html += ` <tr> <td style="border: 1px solid #000; padding: 8px; font-weight: bold; background: #fff3cd; color: #856404;">알레르기</td> <td style="border: 1px solid #000; padding: 8px; background: #fff3cd;">${allergenText}</td> </tr>`;
+html += `<tr> <td style="border: 1px solid #000; padding: 8px; font-weight: bold; background: #fff3cd; color: #856404;">알레르기</td> <td style="border: 1px solid #000; padding: 8px; background: #fff3cd;">${allergenText}</td> </tr>`;
 }
 
-html += ` <tr> <td style="border: 1px solid #000; padding: 8px; font-weight: bold; background: #f9f9f9;">보관방법</td> <td style="border: 1px solid #000; padding: 8px;">${storageMethod || '-'}</td> </tr> <tr> <td style="border: 1px solid #000; padding: 8px; font-weight: bold; background: #f9f9f9;">포장재질</td> <td style="border: 1px solid #000; padding: 8px;">${packagingMaterial || '-'}</td> </tr> <tr> <td colspan="2" style="border: 1px solid #000; padding: 8px; text-align: center; font-size: 11px;"> 부정·불량식품 신고는 국번없이 1399 </td> </tr> </table>`;
+html += `<tr> <td style="border: 1px solid #000; padding: 8px; font-weight: bold; background: #f9f9f9;">보관방법</td> <td style="border: 1px solid #000; padding: 8px;">${storageMethod || '-'}</td> </tr> <tr> <td style="border: 1px solid #000; padding: 8px; font-weight: bold; background: #f9f9f9;">포장재질</td> <td style="border: 1px solid #000; padding: 8px;">${packagingMaterial || '-'}</td> </tr> <tr> <td colspan="2" style="border: 1px solid #000; padding: 8px; text-align: center; font-size: 11px;"> 부정·불량식품 신고는 국번없이 1399 </td> </tr> </table>`;
 
 return html;
 }
@@ -322,7 +346,6 @@ alert(’PNG 다운로드 실패: ’ + err.message);
 });
 }
 
-saveToLocalStorage();
 saveWorkToHistory(formData, ‘safe’);
 }
 
@@ -368,13 +391,15 @@ alert(‘✅ 복사되었습니다!’);
 
 // ========== 라벨 분석기로 보내기 ==========
 function analyzeLabel() {
+const labelHTML = document.getElementById(‘labelPreview’).innerHTML;
+
 if (!formData.productName) {
 alert(‘⚠️ 제품명을 먼저 입력해주세요!’);
 return;
 }
 
 sessionStorage.setItem(‘labelToAnalyze’, JSON.stringify({
-labelHTML: document.getElementById(‘labelPreview’).innerHTML,
+labelHTML: labelHTML,
 productName: formData.productName,
 sourceData: formData
 }));
@@ -401,37 +426,50 @@ return;
 }
 
 const tbody = document.getElementById(‘ingredientsBody’);
+const lines = text.split(’\n’);
+
+// 기존 행 모두 삭제
 tbody.innerHTML = ‘’;
 
 let addedCount = 0;
-text.split(’\n’).forEach(line => {
+lines.forEach(line => {
 const parts = line.split(’,’).map(p => p.trim());
 if (parts[0] && parts[1]) {
 const row = document.createElement(‘tr’);
 row.className = ‘ingredient-row’;
-row.innerHTML = `<td><input type="text" class="ingredient-name" value="${parts[0]}"></td> <td><input type="number" class="ingredient-weight" value="${parts[1]}" step="0.01"></td> <td><input type="text" class="ingredient-origin" value="${parts[2] || ''}"></td> <td><button type="button" class="btn-delete" onclick="deleteIngredient(this)">🗑️</button></td>`;
-tbody.appendChild(row);
-row.querySelectorAll(‘input’).forEach(input => {
-input.addEventListener(‘input’, handleIngredientsChange);
-});
-addedCount++;
+
+```
+  const name = parts[0];
+  const weight = parts[1];
+  const origin = parts[2] || '';
+  
+  row.innerHTML = `
+    <td><input type="text" class="ingredient-name" value="${name}"></td>
+    <td><input type="number" class="ingredient-weight" value="${weight}" step="0.01"></td>
+    <td><input type="text" class="ingredient-origin" value="${origin}"></td>
+    <td><button type="button" class="btn-delete" onclick="deleteIngredient(this)">🗑️</button></td>
+  `;
+  
+  tbody.appendChild(row);
+  
+  row.querySelectorAll('input').forEach(input => {
+    input.addEventListener('input', handleIngredientsChange);
+  });
+  
+  addedCount++;
 }
+```
+
 });
 
 if (addedCount > 0) {
 updateIngredients();
 updatePreview();
-saveToLocalStorage();
 alert(`✅ ${addedCount}개의 원재료가 추가되었습니다!`);
 closeExcelPaste();
 } else {
 alert(‘❌ 올바른 형식의 데이터가 없습니다.\n형식: 재료명,중량’);
 }
-}
-
-// ========== LocalStorage ==========
-function saveToLocalStorage() {
-localStorage.setItem(‘creatorFormData’, JSON.stringify(formData));
 }
 
 // ========== 수정 모드: 작업 기록에서 로드 ==========
@@ -474,20 +512,36 @@ if (formData.ingredients && formData.ingredients.length > 0) {
 formData.ingredients.forEach(ing => {
 const row = document.createElement(‘tr’);
 row.className = ‘ingredient-row’;
-row.innerHTML = `<td><input type="text" class="ingredient-name" value="${ing.name}"></td> <td><input type="number" class="ingredient-weight" value="${ing.weight}" step="0.01"></td> <td><input type="text" class="ingredient-origin" value="${ing.origin || ''}"></td> <td><button type="button" class="btn-delete" onclick="deleteIngredient(this)">🗑️</button></td>`;
-tbody.appendChild(row);
-row.querySelectorAll(‘input’).forEach(input => {
-input.addEventListener(‘input’, handleIngredientsChange);
+
+```
+  row.innerHTML = `
+    <td><input type="text" class="ingredient-name" value="${ing.name}"></td>
+    <td><input type="number" class="ingredient-weight" value="${ing.weight}" step="0.01"></td>
+    <td><input type="text" class="ingredient-origin" value="${ing.origin || ''}"></td>
+    <td><button type="button" class="btn-delete" onclick="deleteIngredient(this)">🗑️</button></td>
+  `;
+  
+  tbody.appendChild(row);
+  
+  row.querySelectorAll('input').forEach(input => {
+    input.addEventListener('input', handleIngredientsChange);
+  });
 });
-});
+```
+
 } else {
+// 기본 빈 행 1개 유지
 const row = document.createElement(‘tr’);
 row.className = ‘ingredient-row’;
 row.innerHTML = `<td><input type="text" class="ingredient-name" placeholder="밀가루"></td> <td><input type="number" class="ingredient-weight" placeholder="100" step="0.01"></td> <td><input type="text" class="ingredient-origin" placeholder="미국산"></td> <td><button type="button" class="btn-delete" onclick="deleteIngredient(this)">🗑️</button></td>`;
 tbody.appendChild(row);
-row.querySelectorAll(‘input’).forEach(input => {
-input.addEventListener(‘input’, handleIngredientsChange);
+
+```
+row.querySelectorAll('input').forEach(input => {
+  input.addEventListener('input', handleIngredientsChange);
 });
+```
+
 }
 }
 
