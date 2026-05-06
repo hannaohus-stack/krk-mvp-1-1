@@ -442,3 +442,25 @@ img, svg { display: block; max-width: 100%; }
     font-size:15px;
   }
 }
+
+.hero-media{
+  width:100%;
+  min-height:100vh;
+  overflow:hidden;
+  background:#fff;
+}
+
+.hero-video{
+  width:100%;
+  height:100vh;
+  object-fit:cover;
+  display:block;
+}
+
+@media (max-width:720px){
+  .hero-media,
+  .hero-video{
+    height:100svh;
+    min-height:100svh;
+  }
+}
