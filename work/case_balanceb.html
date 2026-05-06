@@ -4,33 +4,89 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Work Detail | KRK.TEAM</title>
-    <link rel="stylesheet" href="../assets/krk-tokens.css" />
     <style>
-      /* Case · Balance B — page-specific styles only.
-         Tokens, reset, topbar (white-on-dark default), footer
-         live in ../assets/krk-tokens.css */
-
       :root {
-        --bg:      #f5ede3;
-        --paper:   #fbf8f3;
-        --dark:    #1f1915;
-        --dark-2:  #2c241f;
-        --accent:  #cab08b;
-        --warm:    #efe3d2;
+        --bg: #f5ede3;
+        --paper: #fbf8f3;
+        --ink: #161311;
+        --ink-2: rgba(22,19,17,.7);
+        --ink-3: rgba(22,19,17,.48);
+        --rule: rgba(22,19,17,.12);
+        --dark: #1f1915;
+        --dark-2: #2c241f;
+        --accent: #cab08b;
+        --warm: #efe3d2;
+        --pad-x: clamp(20px, 4vw, 48px);
+        --max: 1320px;
+        --en: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --kr: system-ui, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
       }
-      html { scroll-behavior: smooth; }
+
+      * { box-sizing: border-box; }
+      html, body { margin: 0; min-height: 100%; overflow-x: hidden; scroll-behavior: smooth; }
       body {
         background:
           radial-gradient(circle at top left, rgba(255,255,255,.45), transparent 28%),
           linear-gradient(180deg, #f6efe6 0%, #f2e7da 48%, #f4ece3 100%);
+        color: var(--ink);
+        font-family: var(--kr);
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
       }
+      a { color: inherit; text-decoration: none; }
+      img { display: block; max-width: 100%; }
+      button { font: inherit; }
       ::selection { background: var(--ink); color: var(--paper); }
 
-      /* topbar — case page wants subtle dark blur over hero */
       .topbar {
+        position: fixed;
+        z-index: 70;
+        top: 0; left: 0; right: 0;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        padding: 18px var(--pad-x);
         background: rgba(20,17,15,.14);
         backdrop-filter: blur(18px) saturate(140%);
         -webkit-backdrop-filter: blur(18px) saturate(140%);
+        color: rgba(255,255,255,.9);
+        font-family: var(--en);
+        font-size: 13px;
+        letter-spacing: .02em;
+      }
+      .topbar-menu {
+        display: flex;
+        align-items: center;
+        gap: 26px;
+        font-weight: 520;
+      }
+      .topbar-menu.left { justify-self: start; }
+      .topbar-menu.right { justify-self: end; }
+      .topbar-menu a { color: rgba(255,255,255,.72); transition: color .18s ease; }
+      .topbar-menu a:hover, .topbar-menu a.is-active { color: #fff; }
+      .nav-cta {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 116px;
+        min-height: 42px;
+        padding: 0 18px;
+        border: 1px solid rgba(255,255,255,.2);
+        border-radius: 999px;
+        background: rgba(255,255,255,.08);
+        color: #fff !important;
+        font-weight: 700;
+      }
+      .topbar-logo {
+        justify-self: center;
+        display: inline-flex;
+        align-items: center;
+        height: 28px;
+      }
+      .topbar-logo img {
+        height: 24px;
+        width: auto;
+        filter: brightness(0) invert(1);
       }
 
       .fade-in {
@@ -99,11 +155,11 @@
       .hero-title {
         margin: 0;
         max-width: 12ch;
-        font-family: var(--serif);
-        font-size: clamp(54px, 9vw, 138px);
-        font-weight: 300;
-        line-height: .95;
-        letter-spacing: -.02em;
+        font-family: var(--en);
+        font-size: clamp(56px, 10vw, 156px);
+        font-weight: 760;
+        line-height: .9;
+        letter-spacing: -.03em;
       }
       .hero-subtitle {
         margin: 24px 0 0;
@@ -728,6 +784,28 @@
         text-transform: uppercase;
       }
 
+      .bottom-logo {
+        display: grid;
+        place-items: center;
+        padding: 84px var(--pad-x) 70px;
+        text-align: center;
+      }
+      .bottom-logo img {
+        width: min(52vw, 350px);
+        height: auto;
+        margin-bottom: 24px;
+      }
+      .bottom-info {
+        display: grid;
+        gap: 2px;
+        color: var(--ink);
+        font-family: var(--en);
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: .02em;
+        text-transform: uppercase;
+      }
+
       @media (max-width: 1080px) {
         .overview-grid,
         .section-head,
@@ -739,7 +817,19 @@
         .instagram-grid { grid-template-columns: 1fr; }
       }
       @media (max-width: 760px) {
-        .topbar { background: rgba(20,17,15,.28); }
+        .topbar {
+          grid-template-columns: 1fr auto;
+          padding: 16px var(--pad-x);
+          background: rgba(20,17,15,.28);
+        }
+        .topbar-logo {
+          position: absolute;
+          left: 50%;
+          transform: translateX(-50%);
+        }
+        .topbar-menu.left { gap: 16px; font-size: 12px; }
+        .topbar-menu.right { display: flex; }
+        .topbar-logo img { height: 21px; }
         .hero-inner { padding-top: 104px; padding-bottom: 34px; }
         .hero-title { max-width: 10ch; }
         .overview,
@@ -755,6 +845,7 @@
         .instagram-visuals { grid-template-columns: 1fr; }
         .carousel-slide { flex-basis: 72vw; }
         .phone-frame { width: min(248px, 64vw); }
+        .bottom-logo img { width: min(68vw, 380px); }
         .meta-value { white-space: normal; }
       }
     </style>
@@ -762,18 +853,15 @@
   <body>
     <header class="topbar">
       <nav class="topbar-menu left">
-        <a href="../service.html">Service</a>
-        <a class="is-active" href="index.html">Work</a>
-        
+        <a href="../../service.html">Service</a>
+        <a class="is-active" href="../../work.html">Work</a>
       </nav>
-      <a class="topbar-logo" href="../index.html" aria-label="KRK home">
-        <img src="../assets/krk-logo.svg" alt="KRK" />
+      <a class="topbar-logo" href="../../index.html" aria-label="KRK home">
+        <img src="../../assets/krk-logo.svg" alt="KRK" />
       </a>
-      <div class="topbar-right">
-        <span class="lang">
-          <span>KR</span>&nbsp;<span class="dim">/ EN</span>
-        </span>
-      </div>
+      <nav class="topbar-menu right">
+        <a class="nav-cta" href="../../consult.html">문의하기</a>
+      </nav>
     </header>
 
     <main>
@@ -931,7 +1019,7 @@
     </main>
 
     <footer class="bottom-logo" id="contact">
-      <img src="../assets/krk-logo.svg" alt="KRK" />
+      <img src="../../assets/krk-logo.svg" alt="KRK" />
       <div class="bottom-info">
         <span>©KRK. All rights reserved.</span>
         <a href="mailto:contact@krk.team">contact@krk.team</a>
@@ -939,7 +1027,7 @@
     </footer>
 
     <script>
-      const cases = [{"id":"balance-b","name":"Balance B","en":"Balance B","label":"","category":"Wellness","period":"2026","scope":"Brand Direction, Package, Product Scene, Detail Page","lead":"Balance B는 웰니스 이너뷰티 루틴을 위한 흑임자 프로틴 파우더 브랜드입니다. 조용한 감도의 패키지와 따뜻한 생활 장면을 연결해, 매일 마시는 한 포가 브랜드 경험으로 남도록 설계했습니다.","systemTitle":"이너뷰티 제품을 루틴의 감각으로 번역했습니다.","systemDesc":"Balance B는 성분과 효능을 과하게 설명하기보다, 섭취 전후의 감각과 일상 속 사용 장면을 먼저 보여주는 브랜드입니다. KRK는 패키지의 미니멀한 표정, 흑임자 파우더의 재료감, 따뜻한 피부 톤의 라이프스타일 이미지를 하나의 상세페이지 흐름으로 정리했습니다.","images":["../assets/balance-b-01.jpeg","../assets/balance-b-02.png","../assets/balance-b-03.jpeg","../assets/balance-b-04.png","../assets/balance-b-05.png","../assets/balance-b-06.png","../assets/balance-b-07.jpeg"],"palette":["#211A12","#6B563E","#C7B28E","#F3E8D5"],"keywords":["Inner Beauty","Protein","Black Sesame","Warm Routine"],"process":[["Positioning","웰니스와 이너뷰티 사이에서 Balance B가 말해야 할 지점을 루틴, 피부, 단백질, 흑임자라는 네 축으로 정리했습니다."],["Package Scene","화이트 박스와 다크 사쉐가 대비를 이루도록 제품 이미지 흐름을 만들고, 따뜻한 배경 위에서 브랜드의 차분한 밀도를 유지했습니다."],["Routine Flow","뜯고, 붓고, 마시고, 휴식하는 장면을 상세페이지 안에서 순서대로 보여주어 제품 사용이 자연스럽게 이해되도록 구성했습니다."]],"modules":[["Positioning Strategy","웰니스와 이너뷰티의 교차점에서 Balance B가 어떤 순간에 선택되는 브랜드인지 정의하고, 흑임자 프로틴을 루틴 언어로 번역했습니다."],["Visual Strategy","화이트 박스와 다크 사쉐, 피부 톤과 우드 텍스처, 따뜻한 그림자를 중심으로 브랜드의 조용한 밀도를 시각적으로 고정했습니다."],["Brand OS AI","상세페이지, 인스타그램, 운영 가이드까지 연결되는 시스템을 만들고 AI로 반복 가능한 문장과 콘텐츠 흐름을 운영할 수 있게 설계했습니다."]],"results":[["Balance","웰니스 이너뷰티 브랜드 톤 정리"],["07","제품/라이프스타일 이미지 세트 적용"],["Routine","섭취 장면 중심 상세 흐름"],["AI","운영 가능한 비주얼 확장 기준"]],"slogan":"Beauty begins in balance.","heroSubtitle":"A quiet inner beauty ritual built around black sesame protein.","overview":"Balance B is a wellness inner beauty brand designed around a daily one-sachet ritual. KRK translated the product into a warm, grounded visual system where package, powder, lifestyle scenes, Instagram outputs, and Brand OS assets all move with the same calm rhythm.","heroImage":"../assets/balance-b-05.png","fullBleedImage":"../assets/balance-b-03.jpeg","conceptSlides":["../assets/balance-b-03.jpeg","../assets/balance-b-01.jpeg","../assets/balance-b-02.png","../assets/balance-b-04.png","../assets/balance-b-05.png","../assets/balance-b-06.png","../assets/balance-b-07.jpeg"],"instagramSlides":["../assets/balance-b-04.png","../assets/balance-b-05.png","../assets/balance-b-06.png","../assets/balance-b-07.jpeg"],"moduleImages":["../assets/balance-b-01.jpeg","../assets/balance-b-02.png","../assets/balance-b-03.jpeg"],"frameImage":"../assets/balance-b-03.jpeg","focus":[["Hero Visual","제품 첫 장면. 사쉐와 박스의 대비를 활용해 Balance B의 첫인상을 단정하고 선명하게 보여줍니다."],["흑임자 텍스처","파우더의 질감과 원료감을 클로즈업 이미지로 연결해 제품 신뢰감을 만듭니다."],["섭취 루틴","인물 연출과 음용 장면을 통해 이너뷰티 제품의 일상성을 보여줍니다."]],"osHeadline":"Brand OS that moves from launch imagery to actual operation.","osCopy":"브랜드 감도를 유지한 채 인스타그램, 상세페이지, 운영 가이드, 콘텐츠 기획까지 이어지는 구조를 보여줍니다.","osBullets":["Instagram post directions and recurring content themes","Detail page structure that keeps the conversion story aligned","AI-ready operating guide for captions, campaign prompts, and content planning"],"logoType":"Minimal serif wordmark paired with restrained product typography for a premium but quiet presence.","voiceNote":"Calm, grounded, sensory, and precise. The brand speaks in ritual language rather than loud functional claims.","igWideImage":"../assets/balance-b-03.jpeg"];
+      const cases = [{"id":"balance-b","name":"Balance B","en":"Balance B","label":"","category":"Wellness","period":"2026","scope":"Brand Direction, Package, Product Scene, Detail Page","lead":"Balance B는 웰니스 이너뷰티 루틴을 위한 흑임자 프로틴 파우더 브랜드입니다. 조용한 감도의 패키지와 따뜻한 생활 장면을 연결해, 매일 마시는 한 포가 브랜드 경험으로 남도록 설계했습니다.","systemTitle":"이너뷰티 제품을 루틴의 감각으로 번역했습니다.","systemDesc":"Balance B는 성분과 효능을 과하게 설명하기보다, 섭취 전후의 감각과 일상 속 사용 장면을 먼저 보여주는 브랜드입니다. KRK는 패키지의 미니멀한 표정, 흑임자 파우더의 재료감, 따뜻한 피부 톤의 라이프스타일 이미지를 하나의 상세페이지 흐름으로 정리했습니다.","images":["../../assets/balance-b-01.jpeg","../../assets/balance-b-02.png","../../assets/balance-b-03.jpeg","../../assets/balance-b-04.png","../../assets/balance-b-05.png","../../assets/balance-b-06.png","../../assets/balance-b-07.jpeg"],"palette":["#211A12","#6B563E","#C7B28E","#F3E8D5"],"keywords":["Inner Beauty","Protein","Black Sesame","Warm Routine"],"process":[["Positioning","웰니스와 이너뷰티 사이에서 Balance B가 말해야 할 지점을 루틴, 피부, 단백질, 흑임자라는 네 축으로 정리했습니다."],["Package Scene","화이트 박스와 다크 사쉐가 대비를 이루도록 제품 이미지 흐름을 만들고, 따뜻한 배경 위에서 브랜드의 차분한 밀도를 유지했습니다."],["Routine Flow","뜯고, 붓고, 마시고, 휴식하는 장면을 상세페이지 안에서 순서대로 보여주어 제품 사용이 자연스럽게 이해되도록 구성했습니다."]],"modules":[["Positioning Strategy","웰니스와 이너뷰티의 교차점에서 Balance B가 어떤 순간에 선택되는 브랜드인지 정의하고, 흑임자 프로틴을 루틴 언어로 번역했습니다."],["Visual Strategy","화이트 박스와 다크 사쉐, 피부 톤과 우드 텍스처, 따뜻한 그림자를 중심으로 브랜드의 조용한 밀도를 시각적으로 고정했습니다."],["Brand OS AI","상세페이지, 인스타그램, 운영 가이드까지 연결되는 시스템을 만들고 AI로 반복 가능한 문장과 콘텐츠 흐름을 운영할 수 있게 설계했습니다."]],"results":[["Balance","웰니스 이너뷰티 브랜드 톤 정리"],["07","제품/라이프스타일 이미지 세트 적용"],["Routine","섭취 장면 중심 상세 흐름"],["AI","운영 가능한 비주얼 확장 기준"]],"slogan":"Beauty begins in balance.","heroSubtitle":"A quiet inner beauty ritual built around black sesame protein.","overview":"Balance B is a wellness inner beauty brand designed around a daily one-sachet ritual. KRK translated the product into a warm, grounded visual system where package, powder, lifestyle scenes, Instagram outputs, and Brand OS assets all move with the same calm rhythm.","heroImage":"../../assets/balance-b-05.png","fullBleedImage":"../../assets/balance-b-03.jpeg","conceptSlides":["../../assets/balance-b-03.jpeg","../../assets/balance-b-01.jpeg","../../assets/balance-b-02.png","../../assets/balance-b-04.png","../../assets/balance-b-05.png","../../assets/balance-b-06.png","../../assets/balance-b-07.jpeg"],"instagramSlides":["../../assets/balance-b-04.png","../../assets/balance-b-05.png","../../assets/balance-b-06.png","../../assets/balance-b-07.jpeg"],"moduleImages":["../../assets/balance-b-01.jpeg","../../assets/balance-b-02.png","../../assets/balance-b-03.jpeg"],"frameImage":"../../assets/balance-b-03.jpeg","focus":[["Hero Visual","제품 첫 장면. 사쉐와 박스의 대비를 활용해 Balance B의 첫인상을 단정하고 선명하게 보여줍니다."],["흑임자 텍스처","파우더의 질감과 원료감을 클로즈업 이미지로 연결해 제품 신뢰감을 만듭니다."],["섭취 루틴","인물 연출과 음용 장면을 통해 이너뷰티 제품의 일상성을 보여줍니다."]],"osHeadline":"Brand OS that moves from launch imagery to actual operation.","osCopy":"브랜드 감도를 유지한 채 인스타그램, 상세페이지, 운영 가이드, 콘텐츠 기획까지 이어지는 구조를 보여줍니다.","osBullets":["Instagram post directions and recurring content themes","Detail page structure that keeps the conversion story aligned","AI-ready operating guide for captions, campaign prompts, and content planning"],"logoType":"Minimal serif wordmark paired with restrained product typography for a premium but quiet presence.","voiceNote":"Calm, grounded, sensory, and precise. The brand speaks in ritual language rather than loud functional claims.","igWideImage":"../../assets/balance-b-03.jpeg"},{"id":"mium","name":"Mium Nutrition Kit","en":"Mium","label":"Wellness Package System, 2026","category":"Package","period":"2026","scope":"Package, Product Story, Content Guide","lead":"건강기능식품이 어렵게 느껴지지 않도록, 성분 중심의 설명을 루틴 중심의 경험 언어로 전환한 패키지 시스템입니다.","systemTitle":"성분보다 먼저 루틴이 보이도록 설계했습니다.","systemDesc":"정보가 많은 건강식품일수록 선택의 피로가 커집니다. KRK는 성분, 효능, 섭취 순간을 소비자 언어로 재배열해 패키지와 콘텐츠가 같은 방향으로 말하게 했습니다.","images":["../../assets/work-02.png","../../assets/work-04.png","../../assets/work-01.png"],"palette":["#0E0E0F","#617465","#EFEFEC","#FAFAF8"],"keywords":["Wellness","Routine","Trust","Clean"],"process":[["Diagnosis","성분 정보와 소비자 니즈 사이의 간극을 확인하고 메시지 우선순위를 다시 정했습니다."],["Packaging","전면부, 측면부, 상세 정보의 역할을 나누어 구매 전 확인 흐름을 단순화했습니다."],["Content","AI가 반복적으로 생성할 수 있는 성분 설명 톤과 루틴형 콘텐츠 문법을 정리했습니다."]],"modules":[["Routine Copy","루틴 카피","섭취 상황을 중심으로 제품 가치를 설명하는 문장 체계를 만들었습니다."],["Info Layer","정보 위계","복잡한 성분 정보를 패키지 면별로 구분해 읽기 쉽게 설계했습니다."],["Guide Sheet","운영 가이드","상세페이지와 SNS에서 반복 활용할 콘텐츠 기준을 정리했습니다."]],"results":[["03","주요 루틴 메시지 정의"],["05","패키지 정보 계층 정리"],["AI","성분 콘텐츠 생성 기준"],["1→10","라인업 확장 구조"]],"slogan":"Mium","heroSubtitle":"건강기능식품이 어렵게 느껴지지 않도록, 성분 중심의 설명을 루틴 중심의 경험 언어로 전환한 패키지 시스템입니다.","overview":"정보가 많은 건강식품일수록 선택의 피로가 커집니다. KRK는 성분, 효능, 섭취 순간을 소비자 언어로 재배열해 패키지와 콘텐츠가 같은 방향으로 말하게 했습니다.","heroImage":"../../assets/work-02.png","fullBleedImage":"../../assets/work-04.png","conceptSlides":["../../assets/work-02.png","../../assets/work-04.png","../../assets/work-01.png"],"instagramSlides":["../../assets/work-02.png","../../assets/work-04.png","../../assets/work-01.png"],"moduleImages":["../../assets/work-02.png","../../assets/work-04.png","../../assets/work-01.png"],"frameImage":"../../assets/work-01.png","focus":[["Diagnosis","성분 정보와 소비자 니즈 사이의 간극을 확인하고 메시지 우선순위를 다시 정했습니다."],["Packaging","전면부, 측면부, 상세 정보의 역할을 나누어 구매 전 확인 흐름을 단순화했습니다."],["Content","AI가 반복적으로 생성할 수 있는 성분 설명 톤과 루틴형 콘텐츠 문법을 정리했습니다."]],"osHeadline":"Brand OS built to keep the system running after launch.","osCopy":"정보가 많은 건강식품일수록 선택의 피로가 커집니다. KRK는 성분, 효능, 섭취 순간을 소비자 언어로 재배열해 패키지와 콘텐츠가 같은 방향으로 말하게 했습니다.","osBullets":["Core brand direction translated into repeatable operating modules","Social, detail-page, and campaign outputs aligned under one voice","Expandable guidelines for ongoing content production"],"logoType":"Brand-specific logotype and structured product typography.","voiceNote":"Clear, direct, and operationally consistent."},{"id":"krk-sauce","name":"KRK Sauce Goods","en":"KRK Sauce","label":"Sauce Goods System, 2026","category":"Package","period":"2026","scope":"Goods, Label, Visual Direction","lead":"작은 소스 굿즈가 브랜드의 태도를 드러낼 수 있도록, 라벨과 비주얼 언어를 압축해 설계한 프로젝트입니다.","systemTitle":"작은 라벨 안에 브랜드의 사용 장면을 담았습니다.","systemDesc":"소스류는 맛의 상상과 사용 상황이 빠르게 전달되어야 합니다. KRK는 라벨 안의 정보 밀도를 낮추고, 브랜드의 톤을 더 선명하게 남기는 방식으로 굿즈 시스템을 잡았습니다.","images":["../../assets/work-03.png","../../assets/work-01.png","../../assets/work-04.png"],"palette":["#0E0E0F","#B45A49","#F0E6D8","#FFFFFF"],"keywords":["Sauce","Goods","Bold","Table Scene"],"process":[["Taste Cue","맛의 방향과 사용 장면을 먼저 정의해 라벨 문구의 기준을 만들었습니다."],["Label","작은 면적에서 브랜드명, 맛, 사용 상황이 충돌하지 않도록 위계를 조정했습니다."],["Scene","제품 단독 이미지와 테이블 연출 이미지가 같은 브랜드 인상을 만들도록 톤을 맞췄습니다."]],"modules":[["Label Set","라벨 세트","제품별 확장이 가능한 전면 라벨 규칙을 구성했습니다."],["Flavor Words","맛 언어","맛을 설명하는 짧고 선명한 제품별 키워드를 정리했습니다."],["Photo Rule","촬영 가이드","매대와 테이블에서 동시에 통하는 이미지 방향을 설정했습니다."]],"results":[["02","라벨 타입 정리"],["06","맛 키워드 기준"],["AI","굿즈 설명 문구 확장"],["Retail","매대 적용 가능 구조"]],"slogan":"KRK Sauce","heroSubtitle":"작은 소스 굿즈가 브랜드의 태도를 드러낼 수 있도록, 라벨과 비주얼 언어를 압축해 설계한 프로젝트입니다.","overview":"소스류는 맛의 상상과 사용 상황이 빠르게 전달되어야 합니다. KRK는 라벨 안의 정보 밀도를 낮추고, 브랜드의 톤을 더 선명하게 남기는 방식으로 굿즈 시스템을 잡았습니다.","heroImage":"../../assets/work-03.png","fullBleedImage":"../../assets/work-01.png","conceptSlides":["../../assets/work-03.png","../../assets/work-01.png","../../assets/work-04.png"],"instagramSlides":["../../assets/work-03.png","../../assets/work-01.png","../../assets/work-04.png"],"moduleImages":["../../assets/work-03.png","../../assets/work-01.png","../../assets/work-04.png"],"frameImage":"../../assets/work-04.png","focus":[["Taste Cue","맛의 방향과 사용 장면을 먼저 정의해 라벨 문구의 기준을 만들었습니다."],["Label","작은 면적에서 브랜드명, 맛, 사용 상황이 충돌하지 않도록 위계를 조정했습니다."],["Scene","제품 단독 이미지와 테이블 연출 이미지가 같은 브랜드 인상을 만들도록 톤을 맞췄습니다."]],"osHeadline":"Brand OS built to keep the system running after launch.","osCopy":"소스류는 맛의 상상과 사용 상황이 빠르게 전달되어야 합니다. KRK는 라벨 안의 정보 밀도를 낮추고, 브랜드의 톤을 더 선명하게 남기는 방식으로 굿즈 시스템을 잡았습니다.","osBullets":["Core brand direction translated into repeatable operating modules","Social, detail-page, and campaign outputs aligned under one voice","Expandable guidelines for ongoing content production"],"logoType":"Brand-specific logotype and structured product typography.","voiceNote":"Clear, direct, and operationally consistent."},{"id":"quiet-bottle","name":"Quiet Bottle","en":"Quiet Bottle","label":"Minimal Package Study, 2026","category":"Package","period":"2026","scope":"Package, Tone, Product Page","lead":"조용한 감도의 제품이 온라인과 오프라인에서 같은 인상을 남기도록 패키지와 상세페이지의 밀도를 조정했습니다.","systemTitle":"적게 말하지만 정확히 기억되는 구조를 만들었습니다.","systemDesc":"미니멀한 제품은 비어 보이지 않게 하는 기준이 중요합니다. KRK는 여백, 정보량, 문장 톤, 이미지 순서를 조절해 차분하지만 구매에 필요한 설득은 놓치지 않는 구조를 설계했습니다.","images":["../../assets/work-04.png","../../assets/work-02.png","../../assets/work-03.png"],"palette":["#0E0E0F","#EFEFEC","#C7C2B8","#FFFFFF"],"keywords":["Quiet","Minimal","Precise","Calm"],"process":[["Silence","브랜드가 덜어내야 할 말과 반드시 남겨야 할 정보를 구분했습니다."],["Rhythm","패키지와 상세페이지에서 여백과 정보가 반복되는 리듬을 설계했습니다."],["Conversion","차분한 톤을 유지하면서 구매 결정에 필요한 근거를 자연스럽게 배치했습니다."]],"modules":[["Tone Rule","톤 규칙","조용하지만 모호하지 않은 브랜드 문장 기준을 만들었습니다."],["Layout","레이아웃","정보량이 늘어나도 미니멀한 인상이 유지되도록 구조를 잡았습니다."],["Detail Flow","상세 흐름","이미지, 기능, 사용 장면의 순서를 구매 흐름에 맞췄습니다."]],"results":[["01","핵심 톤 정의"],["03","상세페이지 모듈"],["AI","차분한 문구 생성 기준"],["Clean","확장 가능한 패키지 문법"]],"slogan":"Quiet Bottle","heroSubtitle":"조용한 감도의 제품이 온라인과 오프라인에서 같은 인상을 남기도록 패키지와 상세페이지의 밀도를 조정했습니다.","overview":"미니멀한 제품은 비어 보이지 않게 하는 기준이 중요합니다. KRK는 여백, 정보량, 문장 톤, 이미지 순서를 조절해 차분하지만 구매에 필요한 설득은 놓치지 않는 구조를 설계했습니다.","heroImage":"../../assets/work-04.png","fullBleedImage":"../../assets/work-02.png","conceptSlides":["../../assets/work-04.png","../../assets/work-02.png","../../assets/work-03.png"],"instagramSlides":["../../assets/work-04.png","../../assets/work-02.png","../../assets/work-03.png"],"moduleImages":["../../assets/work-04.png","../../assets/work-02.png","../../assets/work-03.png"],"frameImage":"../../assets/work-03.png","focus":[["Silence","브랜드가 덜어내야 할 말과 반드시 남겨야 할 정보를 구분했습니다."],["Rhythm","패키지와 상세페이지에서 여백과 정보가 반복되는 리듬을 설계했습니다."],["Conversion","차분한 톤을 유지하면서 구매 결정에 필요한 근거를 자연스럽게 배치했습니다."]],"osHeadline":"Brand OS built to keep the system running after launch.","osCopy":"미니멀한 제품은 비어 보이지 않게 하는 기준이 중요합니다. KRK는 여백, 정보량, 문장 톤, 이미지 순서를 조절해 차분하지만 구매에 필요한 설득은 놓치지 않는 구조를 설계했습니다.","osBullets":["Core brand direction translated into repeatable operating modules","Social, detail-page, and campaign outputs aligned under one voice","Expandable guidelines for ongoing content production"],"logoType":"Brand-specific logotype and structured product typography.","voiceNote":"Clear, direct, and operationally consistent."},{"id":"finding-keeping","name":"Finding's Keeping","en":"Finding's Keeping","label":"Brand Identity Study, 2026","category":"Branding","period":"2026","scope":"Identity, Copy, Campaign","lead":"브랜드가 발견되고 기억되는 과정을 중심으로, 이름과 캠페인 문장을 하나의 운영 언어로 연결했습니다.","systemTitle":"발견의 순간이 반복 가능한 브랜드 언어가 되도록 했습니다.","systemDesc":"좋은 이름은 캠페인, 제품 설명, 고객 응대 문장으로 계속 번역되어야 합니다. KRK는 네이밍의 감각을 운영 가능한 문장 체계와 콘텐츠 기준으로 확장했습니다.","images":["../../assets/work-01.png","../../assets/work-03.png","../../assets/work-02.png"],"palette":["#0E0E0F","#617465","#D8D0C1","#FAFAF8"],"keywords":["Finding","Keeping","Memory","Campaign"],"process":[["Name","이름이 담고 있는 발견과 보관의 의미를 브랜드 메시지로 확장했습니다."],["Voice","캠페인, 제품 설명, 안내 문구에 반복 적용할 수 있는 어조를 만들었습니다."],["Campaign","짧은 카피와 이미지 조합이 브랜드 기억을 쌓도록 콘텐츠 모듈을 설계했습니다."]],"modules":[["Name Logic","네이밍 구조","브랜드 이름의 의미와 사용 방식을 문서화했습니다."],["Copy Bank","카피 뱅크","운영자가 바로 활용할 수 있는 문장 풀을 만들었습니다."],["Campaign Kit","캠페인 키트","SNS와 상세페이지에 적용 가능한 콘텐츠 조합을 정리했습니다."]],"results":[["01","네이밍 로직 정리"],["20+","운영 카피 샘플"],["AI","문장 확장 프롬프트"],["Brand","캠페인 언어 시스템"]],"slogan":"Finding's Keeping","heroSubtitle":"브랜드가 발견되고 기억되는 과정을 중심으로, 이름과 캠페인 문장을 하나의 운영 언어로 연결했습니다.","overview":"좋은 이름은 캠페인, 제품 설명, 고객 응대 문장으로 계속 번역되어야 합니다. KRK는 네이밍의 감각을 운영 가능한 문장 체계와 콘텐츠 기준으로 확장했습니다.","heroImage":"../../assets/work-01.png","fullBleedImage":"../../assets/work-03.png","conceptSlides":["../../assets/work-01.png","../../assets/work-03.png","../../assets/work-02.png"],"instagramSlides":["../../assets/work-01.png","../../assets/work-03.png","../../assets/work-02.png"],"moduleImages":["../../assets/work-01.png","../../assets/work-03.png","../../assets/work-02.png"],"frameImage":"../../assets/work-02.png","focus":[["Name","이름이 담고 있는 발견과 보관의 의미를 브랜드 메시지로 확장했습니다."],["Voice","캠페인, 제품 설명, 안내 문구에 반복 적용할 수 있는 어조를 만들었습니다."],["Campaign","짧은 카피와 이미지 조합이 브랜드 기억을 쌓도록 콘텐츠 모듈을 설계했습니다."]],"osHeadline":"Brand OS built to keep the system running after launch.","osCopy":"좋은 이름은 캠페인, 제품 설명, 고객 응대 문장으로 계속 번역되어야 합니다. KRK는 네이밍의 감각을 운영 가능한 문장 체계와 콘텐츠 기준으로 확장했습니다.","osBullets":["Core brand direction translated into repeatable operating modules","Social, detail-page, and campaign outputs aligned under one voice","Expandable guidelines for ongoing content production"],"logoType":"Brand-specific logotype and structured product typography.","voiceNote":"Clear, direct, and operationally consistent."},{"id":"retail-table","name":"Retail Table System","en":"Retail Table","label":"Commerce Web System, 2026","category":"Web","period":"2026","scope":"Web, Content System, Retail Flow","lead":"브랜드의 제품군을 매대처럼 탐색하게 만드는 웹 콘텐츠 시스템입니다. 상품 정보와 브랜드 스토리를 한 화면 안에서 비교하고 선택하도록 설계했습니다.","systemTitle":"온라인 화면을 하나의 매대처럼 재구성했습니다.","systemDesc":"웹에서는 제품의 차이와 브랜드의 태도가 동시에 보여야 합니다. KRK는 카드, 비교 정보, 스토리 모듈, CTA 흐름을 정리해 제품군이 늘어나도 유지되는 구조를 만들었습니다.","images":["../../assets/work-02.png","../../assets/work-01.png","../../assets/work-04.png"],"palette":["#0E0E0F","#D8D0C1","#617465","#FFFFFF"],"keywords":["Retail","Web","Comparison","Commerce"],"process":[["Shelf","온라인에서 매대의 역할을 하는 첫 화면과 제품 카드 구조를 정의했습니다."],["Compare","제품별 차이가 빠르게 읽히도록 정보 항목과 시각 위계를 정리했습니다."],["Operate","신제품 추가와 프로모션 운영에 맞춰 반복 가능한 웹 모듈을 설계했습니다."]],"modules":[["Card System","카드 시스템","제품군 확장을 고려한 카드 레이아웃과 정보 구조입니다."],["Compare Row","비교 모듈","구매 판단에 필요한 차이를 한눈에 보이게 정리했습니다."],["CTA Flow","전환 흐름","탐색에서 문의와 구매 행동으로 자연스럽게 이어지는 흐름입니다."]],"results":[["06","제품 카드 기준"],["03","비교 정보 계층"],["AI","상품 설명 운영 기준"],["Web","확장형 콘텐츠 구조"]],"slogan":"Retail Table","heroSubtitle":"브랜드의 제품군을 매대처럼 탐색하게 만드는 웹 콘텐츠 시스템입니다. 상품 정보와 브랜드 스토리를 한 화면 안에서 비교하고 선택하도록 설계했습니다.","overview":"웹에서는 제품의 차이와 브랜드의 태도가 동시에 보여야 합니다. KRK는 카드, 비교 정보, 스토리 모듈, CTA 흐름을 정리해 제품군이 늘어나도 유지되는 구조를 만들었습니다.","heroImage":"../../assets/work-02.png","fullBleedImage":"../../assets/work-01.png","conceptSlides":["../../assets/work-02.png","../../assets/work-01.png","../../assets/work-04.png"],"instagramSlides":["../../assets/work-02.png","../../assets/work-01.png","../../assets/work-04.png"],"moduleImages":["../../assets/work-02.png","../../assets/work-01.png","../../assets/work-04.png"],"frameImage":"../../assets/work-04.png","focus":[["Shelf","온라인에서 매대의 역할을 하는 첫 화면과 제품 카드 구조를 정의했습니다."],["Compare","제품별 차이가 빠르게 읽히도록 정보 항목과 시각 위계를 정리했습니다."],["Operate","신제품 추가와 프로모션 운영에 맞춰 반복 가능한 웹 모듈을 설계했습니다."]],"osHeadline":"Brand OS built to keep the system running after launch.","osCopy":"웹에서는 제품의 차이와 브랜드의 태도가 동시에 보여야 합니다. KRK는 카드, 비교 정보, 스토리 모듈, CTA 흐름을 정리해 제품군이 늘어나도 유지되는 구조를 만들었습니다.","osBullets":["Core brand direction translated into repeatable operating modules","Social, detail-page, and campaign outputs aligned under one voice","Expandable guidelines for ongoing content production"],"logoType":"Brand-specific logotype and structured product typography.","voiceNote":"Clear, direct, and operationally consistent."}];
       const params = new URLSearchParams(window.location.search);
       const fallback = cases.find(function (item) { return item.id === 'balance-b'; }) || cases[0];
       const current = cases.find(function (item) { return item.id === params.get('case'); }) || fallback;
