@@ -330,7 +330,26 @@
         <p>From 0 to 1, then 1 to 10.<br/>Food brand consulting studio.</p>
       </section>
 
-      
+      <nav class="category-bar" aria-label="Work categories">
+        <button class="category-button is-active" type="button" data-category="All">All</button>
+        <button class="category-button" type="button" data-category="Branding">Branding</button>
+        <button class="category-button" type="button" data-category="Package">Package</button>
+        <button class="category-button" type="button" data-category="Web">Web</button>
+        <button class="category-button" type="button" data-category="Campaign">Campaign</button>
+        <div class="view-toggle" id="viewToggle" aria-label="Work view">
+          <button class="view-current" id="viewCurrent" type="button" aria-label="Change work view" aria-haspopup="true" aria-expanded="false">
+            <span class="icon-slide" aria-hidden="true"></span>
+          </button>
+          <div class="view-menu" id="viewMenu" role="menu" aria-label="Work view options">
+            <button class="view-option is-active" type="button" data-view="slider" role="menuitemradio" aria-label="Slide view" aria-checked="true">
+              <span class="icon-slide" aria-hidden="true"></span>
+            </button>
+            <button class="view-option" type="button" data-view="grid" role="menuitemradio" aria-label="Grid view" aria-checked="false">
+              <span class="icon-grid" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+            </button>
+          </div>
+        </div>
+      </nav>
 
       <section class="slide-stage" id="slideStage">
         <div class="slide-pager"><span class="count" id="slideCount">01 / 01</span></div>
