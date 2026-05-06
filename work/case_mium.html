@@ -1,0 +1,1120 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Work Detail | KRK.TEAM</title>
+    <link rel="stylesheet" href="../assets/krk-tokens.css" />
+    <style>
+      /* Case · Mium — page-specific styles only.
+         Tokens, reset, topbar (white-on-dark default), footer
+         live in ../assets/krk-tokens.css */
+
+      :root {
+        --bg:      #f5ede3;
+        --paper:   #fbf8f3;
+        --dark:    #1f1915;
+        --dark-2:  #2c241f;
+        --accent:  #cab08b;
+        --warm:    #efe3d2;
+      }
+      html { scroll-behavior: smooth; }
+      body {
+        background:
+          radial-gradient(circle at top left, rgba(255,255,255,.45), transparent 28%),
+          linear-gradient(180deg, #f6efe6 0%, #f2e7da 48%, #f4ece3 100%);
+      }
+      ::selection { background: var(--ink); color: var(--paper); }
+
+      .topbar {
+        background: rgba(20,17,15,.14);
+        backdrop-filter: blur(18px) saturate(140%);
+        -webkit-backdrop-filter: blur(18px) saturate(140%);
+      }
+
+
+      .fade-in {
+        opacity: 0;
+        transform: translateY(22px);
+        transition: opacity .7s ease, transform .7s ease;
+      }
+      .fade-in.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .delay-1 { transition-delay: .08s; }
+      .delay-2 { transition-delay: .16s; }
+      .delay-3 { transition-delay: .24s; }
+
+      .container {
+        width: 100%;
+        max-width: var(--max);
+        margin: 0 auto;
+        padding: 0 var(--pad-x);
+      }
+      section { position: relative; }
+
+      .hero {
+        position: relative;
+        min-height: 100svh;
+        color: #fff;
+        background: #161311;
+      }
+      .hero-media {
+        position: absolute;
+        inset: 0;
+      }
+      .hero-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center center;
+      }
+      .hero-overlay {
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(180deg, rgba(0,0,0,.15) 0%, rgba(0,0,0,.18) 18%, rgba(0,0,0,.52) 100%),
+          linear-gradient(90deg, rgba(0,0,0,.24) 0%, rgba(0,0,0,.02) 55%, rgba(0,0,0,.18) 100%);
+      }
+      .hero-inner {
+        position: relative;
+        z-index: 2;
+        min-height: 100svh;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 132px var(--pad-x) 58px;
+      }
+      .hero-kicker {
+        margin: 0 0 18px;
+        color: rgba(255,255,255,.72);
+        font-family: var(--en);
+        font-size: 11px;
+        font-weight: 760;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+      }
+      .hero-kicker:empty { display: none; }
+      .hero-title {
+        margin: 0;
+        max-width: 12ch;
+        font-family: var(--serif);
+        font-size: clamp(54px, 9vw, 138px);
+        font-weight: 300;
+        line-height: .95;
+        letter-spacing: -.02em;
+      }
+      .hero-subtitle {
+        margin: 24px 0 0;
+        max-width: 34ch;
+        color: rgba(255,255,255,.84);
+        font-size: clamp(16px, 1.8vw, 24px);
+        line-height: 1.65;
+      }
+
+      .overview {
+        padding: 92px 0 84px;
+      }
+      .overview-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+        align-items: start;
+      }
+      .section-label {
+        margin: 0;
+        font-family: var(--en);
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: 0;
+        color: #000;
+      }
+      .overview-copy {
+        margin: 0;
+        max-width: 58ch;
+        color: var(--ink-2);
+        font-size: 15px;
+        line-height: 1.2;
+      }
+      .meta-row {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1px;
+        margin-top: 34px;
+        background: rgba(22,19,17,.08);
+      }
+      .meta-item {
+        background: transparent;
+        padding: 22px 22px 24px;
+      }
+      .meta-label {
+        display: block;
+        margin-bottom: 14px;
+        color: var(--ink-3);
+        font-family: var(--en);
+        font-size: 11px;
+        font-weight: 760;
+        letter-spacing: .16em;
+        text-transform: uppercase;
+      }
+      .meta-value {
+        display: block;
+        color: var(--ink);
+        font-family: var(--en);
+        font-size: 14px;
+        font-weight: 640;
+        line-height: 1.3;
+        white-space: nowrap;
+      }
+
+      .stage-dark {
+        background:
+          radial-gradient(circle at top left, rgba(255,255,255,.06), transparent 28%),
+          linear-gradient(180deg, #211a15 0%, #1a1511 100%);
+        color: #fff;
+      }
+      .stage-dark .section-label,
+      .stage-dark h2,
+      .stage-dark .deck-title,
+      .stage-dark .desktop-title { color: #fff; }
+      .stage-dark .section-copy,
+      .stage-dark .focus-copy,
+      .stage-dark .desktop-copy,
+      .stage-dark .os-copy,
+      .stage-dark .phone-copy,
+      .stage-dark .guide-copy { color: rgba(255,255,255,.72); }
+      .stage-dark .eyebrow { color: rgba(255,255,255,.58); }
+
+      .carousel-section {
+        padding: 84px 0 94px;
+      }
+      .section-head {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        align-items: start;
+        margin-bottom: 34px;
+      }
+      .eyebrow {
+        margin: 0 0 14px;
+        font-family: var(--en);
+        font-size: 11px;
+        font-weight: 760;
+        letter-spacing: .16em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+      }
+      .section-copy {
+        margin: 0;
+        max-width: 52ch;
+        color: var(--ink-2);
+        font-size: 15px;
+        line-height: 1.2;
+      }
+      .carousel-frame {
+        margin-left: calc(var(--pad-x) * -1);
+        margin-right: calc(var(--pad-x) * -1);
+        overflow: hidden;
+      }
+      .carousel-track {
+        display: flex;
+        gap: 18px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        padding: 0 var(--pad-x);
+        scrollbar-width: none;
+      }
+      .carousel-track::-webkit-scrollbar { display: none; }
+      .carousel-slide {
+        flex: 0 0 min(26vw, 420px);
+        aspect-ratio: 4 / 5;
+        overflow: hidden;
+        scroll-snap-align: center;
+        background: rgba(255,255,255,.08);
+      }
+      .carousel-slide img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .focus-section {
+        padding: 70px 0 24px;
+      }
+      .focus-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+        margin-top: 28px;
+      }
+      .focus-card {
+        min-height: 300px;
+        padding: 42px 42px 38px;
+        border: 1px solid rgba(255,255,255,.12);
+        background: rgba(255,255,255,.02);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+      }
+      .focus-index {
+        margin: 0 0 70px;
+        color: rgba(255,255,255,.46);
+        font-family: var(--en);
+        font-size: 12px;
+        font-weight: 760;
+        letter-spacing: .18em;
+      }
+      .focus-title {
+        margin: 0 0 24px;
+        color: #fff;
+        font-family: var(--en);
+        font-size: 18px;
+        font-weight: 760;
+        letter-spacing: 0;
+        line-height: 1.06;
+      }
+      .focus-text {
+        margin: 0;
+        max-width: 24ch;
+        color: rgba(255,255,255,.72);
+        font-size: 14px;
+        line-height: 1.9;
+      }
+
+      .instagram-section {
+        padding: 94px 0;
+      }
+      .instagram-grid {
+        display: grid;
+        grid-template-columns: minmax(220px, 268px) minmax(0, 1fr);
+        gap: 26px;
+        align-items: start;
+      }
+      .phone-wrap {
+        display: grid;
+        place-items: center;
+      }
+      .instagram-visuals {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 220px));
+        gap: 18px;
+        justify-content: start;
+      }
+      .story-card {
+        overflow: hidden;
+        border-radius: 24px;
+        aspect-ratio: 9 / 16;
+        background: rgba(255,255,255,.08);
+      }
+      .story-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .instagram-copy {
+        margin-top: 34px;
+        display: grid;
+        gap: 8px;
+      }
+      .phone-frame {
+        width: min(268px, 52vw);
+        border-radius: 42px;
+        padding: 14px;
+        background: #111;
+        box-shadow: 0 32px 80px rgba(0,0,0,.26);
+      }
+      .phone-notch {
+        width: 92px;
+        height: 18px;
+        border-radius: 999px;
+        background: #111;
+        margin: 0 auto 8px;
+      }
+      .phone-screen {
+        position: relative;
+        aspect-ratio: 9 / 19.5;
+        border-radius: 28px;
+        overflow: hidden;
+        background: #d7cab9;
+      }
+      .ig-screen {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transition: opacity .55s ease;
+      }
+      .ig-screen.active { opacity: 1; }
+      .ig-screen img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .phone-ui {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 14px 16px;
+        pointer-events: none;
+      }
+      .phone-top,
+      .phone-bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: #fff;
+        font-family: var(--en);
+      }
+      .phone-top span {
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(0,0,0,.28);
+        backdrop-filter: blur(8px);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .04em;
+      }
+      .phone-bottom div {
+        display: flex;
+        gap: 8px;
+      }
+      .phone-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.32);
+      }
+      .phone-dot.active { background: #fff; }
+      .phone-copy { display: none; }
+      .desktop-title {
+        margin: 0;
+        font-family: var(--en);
+        font-size: 25px;
+        font-weight: 730;
+      }
+      .desktop-copy {
+        margin: 0;
+        color: rgba(255,255,255,.7);
+        font-size: 14px;
+        line-height: 1.2;
+      }
+
+      .fullbleed {
+        padding: 0;
+        background: #000;
+      }
+      .fullbleed img {
+        width: 100%;
+        height: min(100svh, 920px);
+        object-fit: cover;
+      }
+
+      .module-section {
+        padding: 94px 0;
+      }
+      .module-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+      }
+      .module-card {
+        overflow: hidden;
+        background: rgba(255,255,255,.62);
+        box-shadow: 0 18px 56px rgba(62,39,22,.08);
+      }
+      .module-image {
+        aspect-ratio: 4 / 4.8;
+      }
+      .module-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .module-body {
+        padding: 24px 22px 26px;
+      }
+      .module-kicker {
+        margin: 0 0 12px;
+        color: var(--ink-3);
+        font-family: var(--en);
+        font-size: 10px;
+        font-weight: 760;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+      }
+      .module-title {
+        margin: 0 0 10px;
+        font-family: var(--en);
+        font-size: 22px;
+        font-weight: 720;
+        letter-spacing: -.02em;
+      }
+      .module-copy {
+        margin: 0;
+        color: var(--ink-2);
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .os-section {
+        padding: 94px 0 100px;
+      }
+      .os-grid {
+        display: grid;
+        grid-template-columns: minmax(0, .72fr) minmax(520px, 1.28fr);
+        gap: 26px;
+        align-items: stretch;
+      }
+      .social-post,
+      .ops-panel {
+        border-radius: 28px;
+        overflow: hidden;
+        background: rgba(255,255,255,.72);
+        box-shadow: 0 22px 64px rgba(44,28,14,.08);
+      }
+      .social-post {
+        width: min(100%, 420px);
+        justify-self: center;
+      }
+      .social-head {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 14px;
+        align-items: center;
+        padding: 18px 22px;
+        border-bottom: 1px solid var(--rule);
+        background: rgba(255,255,255,.9);
+      }
+      .social-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: linear-gradient(180deg, #1d2f58 0%, #7b633f 100%);
+      }
+      .social-name {
+        font-family: var(--en);
+        font-size: 18px;
+        font-weight: 700;
+      }
+      .social-menu {
+        display: flex;
+        gap: 5px;
+      }
+      .social-menu span {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: rgba(22,19,17,.74);
+      }
+      .social-media {
+        position: relative;
+        aspect-ratio: 1 / 1;
+        overflow: hidden;
+      }
+      .os-screen {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transition: opacity .55s ease;
+      }
+      .os-screen.active { opacity: 1; }
+      .os-screen img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .social-foot {
+        padding: 16px 22px 22px;
+        background: #fff;
+      }
+      .social-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+      }
+      .social-icons {
+        display: flex;
+        gap: 12px;
+      }
+      .social-icon {
+        width: 24px;
+        height: 24px;
+        border: 2px solid var(--ink);
+        border-radius: 50%;
+      }
+      .social-icon.arrow {
+        border-radius: 0;
+        border: 0;
+        width: 18px;
+        height: 18px;
+        border-top: 2px solid var(--ink);
+        border-right: 2px solid var(--ink);
+        transform: rotate(45deg);
+        margin-top: 2px;
+      }
+      .social-save {
+        width: 18px;
+        height: 18px;
+        border: 2px solid var(--ink);
+      }
+      .social-dots {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      .social-dots span {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: rgba(22,19,17,.18);
+      }
+      .social-dots span.active { background: #2e78c9; }
+      .social-caption {
+        font-size: 15px;
+        line-height: 1.6;
+      }
+
+      .ops-panel {
+        width: 100%;
+        padding: 32px 30px;
+      }
+      .os-title {
+        margin: 0 0 12px;
+        font-family: var(--en);
+        font-size: 30px;
+        font-weight: 730;
+        letter-spacing: -.02em;
+      }
+      .os-copy {
+        margin: 0 0 26px;
+        color: var(--ink-2);
+        font-size: 15px;
+        line-height: 1.76;
+      }
+      .ops-list {
+        display: grid;
+        gap: 12px;
+        margin: 0 0 28px;
+        padding: 0;
+        list-style: none;
+      }
+      .ops-list li {
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: rgba(22,19,17,.05);
+        color: var(--ink-2);
+        font-size: 14px;
+        line-height: 1.65;
+      }
+      .notion-card {
+        border: 1px solid var(--rule);
+        border-radius: 22px;
+        overflow: hidden;
+        background: #fff;
+      }
+      .notion-head,
+      .notion-row {
+        display: grid;
+        grid-template-columns: 1.8fr .9fr .9fr;
+      }
+      .notion-head div,
+      .notion-row div {
+        padding: 11px 14px;
+        border-right: 1px solid rgba(22,19,17,.08);
+        border-bottom: 1px solid rgba(22,19,17,.08);
+        font-family: var(--en);
+        font-size: 12px;
+      }
+      .notion-head div:last-child,
+      .notion-row div:last-child { border-right: 0; }
+      .notion-head div {
+        background: #f6f3ee;
+        color: var(--ink-3);
+        font-size: 10px;
+        font-weight: 760;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+      }
+      .notion-row div {
+        color: var(--ink-2);
+      }
+      .notion-tag {
+        display: inline-flex;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: rgba(22,19,17,.08);
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .guide-section {
+        padding: 0 0 100px;
+      }
+      .guide-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1px;
+        background: rgba(22,19,17,.08);
+      }
+      .guide-card {
+        min-height: 280px;
+        padding: 34px 30px 36px;
+        background: transparent;
+      }
+      .guide-title {
+        margin: 0 0 28px;
+        font-family: var(--en);
+        font-size: 11px;
+        font-weight: 760;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+      }
+      .color-list {
+        display: grid;
+        gap: 12px;
+      }
+      .color-chip {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .color-chip span {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        border: 1px solid rgba(22,19,17,.08);
+      }
+      .color-chip strong {
+        display: block;
+        font-family: var(--en);
+        font-size: 12px;
+      }
+      .color-chip small {
+        color: var(--ink-3);
+        font-family: ui-monospace, monospace;
+        font-size: 11px;
+      }
+      .logo-mark {
+        margin: 0 0 18px;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(52px, 7vw, 88px);
+        font-weight: 400;
+        line-height: .92;
+      }
+      .guide-copy {
+        margin: 0;
+        color: var(--ink-2);
+        font-size: 14px;
+        line-height: 1.45;
+      }
+      .voice-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 0 0 18px;
+      }
+      .voice-list span {
+        padding: 7px 11px;
+        border-radius: 999px;
+        background: rgba(22,19,17,.06);
+        color: var(--ink-2);
+        font-family: var(--en);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      @media (max-width: 1080px) {
+        .overview-grid,
+        .section-head,
+        .os-grid { grid-template-columns: 1fr; }
+        .meta-row,
+        .focus-grid,
+        .module-grid,
+        .guide-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .instagram-grid { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 760px) {
+        .topbar { background: rgba(20,17,15,.28); }
+        .hero-inner { padding-top: 104px; padding-bottom: 34px; }
+        .hero-title { max-width: 10ch; }
+        .overview,
+        .carousel-section,
+        .focus-section,
+        .instagram-section,
+        .module-section,
+        .os-section { padding: 62px 0; }
+        .meta-row,
+        .focus-grid,
+        .module-grid,
+        .guide-grid,
+        .instagram-visuals { grid-template-columns: 1fr; }
+        .carousel-slide { flex-basis: 72vw; }
+        .phone-frame { width: min(248px, 64vw); }
+        .meta-value { white-space: normal; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <nav class="topbar-menu left">
+        <a href="../service.html">Service</a>
+        <a class="is-active" href="index.html">Work</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <a class="topbar-logo" href="../index.html" aria-label="KRK home">
+        <img src="../assets/krk-logo.svg" alt="KRK" />
+      </a>
+      <div class="topbar-right">
+        <span class="lang">
+          <span>KR</span>&nbsp;<span class="dim">/ EN</span>
+        </span>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-media"><img id="heroImage" src="" alt="" /></div>
+        <div class="hero-overlay"></div>
+        <div class="hero-inner">
+          <p class="hero-kicker fade-in" id="heroKicker"></p>
+          <h1 class="hero-title fade-in delay-1" id="heroTitle"></h1>
+          <p class="hero-subtitle fade-in delay-2" id="heroSubtitle"></p>
+        </div>
+      </section>
+
+      <section class="overview">
+        <div class="container">
+          <div class="overview-grid fade-in">
+            <h2 class="section-label">Project Overview</h2>
+            <p class="overview-copy" id="overviewCopy"></p>
+          </div>
+          <div class="meta-row fade-in delay-1" id="metaRow"></div>
+        </div>
+      </section>
+
+      <section class="carousel-section stage-dark">
+        <div class="container">
+          <div class="section-head fade-in">
+            <div>
+              <p class="eyebrow">Brand Campaign</p>
+            </div>
+            <p class="section-copy">브랜드 컨셉 이미지는 여백 없이 크게 보여주고, 자동 슬라이드로 감도와 장면의 흐름을 이어갑니다.</p>
+          </div>
+        </div>
+        <div class="carousel-frame fade-in delay-1">
+          <div class="carousel-track" id="conceptTrack"></div>
+        </div>
+      </section>
+
+      <section class="focus-section stage-dark">
+        <div class="container">
+          <div class="section-head fade-in">
+            <div>
+              <p class="eyebrow">Focus</p>
+            </div>
+            <p class="section-copy">MIUM의 선물 인상, 미역국의 온기, 그리고 마음을 전하는 식탁 장면까지 한 흐름으로 설계했습니다.</p>
+          </div>
+          <div class="focus-grid" id="focusGrid"></div>
+        </div>
+      </section>
+
+      <section class="instagram-section stage-dark">
+        <div class="container">
+          <div class="section-head fade-in">
+            <div>
+              <p class="eyebrow">Instagram</p>
+              <h2 class="section-label">Slides that feel ready to publish.</h2>
+            </div>
+            <p class="section-copy">피드, 릴스 커버, 라이프스타일 컷이 하나의 톤으로 연결되도록 인스타그램 화면 안에서 결과물을 보여줍니다.</p>
+          </div>
+          <div class="instagram-grid">
+            <div class="phone-wrap fade-in">
+              <div class="phone-frame">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                  <div id="igScreens"></div>
+                  <div class="phone-ui">
+                    <div class="phone-top">
+                      <span id="igHandle">@balance.b</span>
+                      <span id="igSeries">Brand Story</span>
+                    </div>
+                    <div class="phone-bottom">
+                      <div id="igDots"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p class="phone-copy" id="igCopy"></p>
+            </div>
+            <div class="instagram-visuals fade-in delay-1" id="storyGrid"></div>
+          </div>
+          <div class="instagram-copy fade-in delay-1">
+            <p class="desktop-title">Brand images move into social scenes and recurring content themes.</p>
+            <p class="desktop-copy">정적인 패키지 컷에서 끝나지 않고, 루틴과 피부감, 재료감, 사용 장면이 순차적으로 넘어가며 브랜드 세계관을 만드는 방향입니다.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="fullbleed fade-in">
+        <img id="fullBleedImage" src="" alt="" />
+      </section>
+
+      <section class="module-section">
+        <div class="container">
+          <div class="section-head fade-in">
+            <div>
+              <p class="eyebrow">Output Modules</p>
+              <h2 class="section-label">From shelf scene to operating asset.</h2>
+            </div>
+            <p class="section-copy">브랜드 감도를 설명하는 장면부터 실제 운영에 쓰이는 결과물까지, 하나의 흐름 안에서 보여주고 운영할 수 있게 만듭니다.</p>
+          </div>
+          <div class="module-grid" id="moduleGrid"></div>
+        </div>
+      </section>
+
+      <section class="os-section">
+        <div class="container">
+          <div class="section-head fade-in">
+            <div>
+              <p class="eyebrow">Brand OS</p>
+              <h2 class="section-label">The operating layer behind the brand.</h2>
+            </div>
+            <p class="section-copy" id="osCopyTop"></p>
+          </div>
+          <div class="os-grid">
+            <div class="social-post fade-in">
+              <div class="social-head">
+                <div class="social-avatar"></div>
+                <div class="social-name" id="osHandle">balance.b</div>
+                <div class="social-menu"><span></span><span></span><span></span></div>
+              </div>
+              <div class="social-media" id="osScreens"></div>
+              <div class="social-foot">
+                <div class="social-actions">
+                  <div class="social-icons">
+                    <span class="social-icon"></span>
+                    <span class="social-icon"></span>
+                    <span class="social-icon arrow"></span>
+                  </div>
+                  <span class="social-save"></span>
+                </div>
+                <div class="social-dots" id="osDots"></div>
+                <div class="social-caption" id="osCaption"></div>
+              </div>
+            </div>
+            <div class="ops-panel fade-in delay-1">
+              <h3 class="os-title" id="osTitle"></h3>
+              <p class="os-copy" id="osCopy"></p>
+              <ul class="ops-list" id="opsList"></ul>
+              <div class="notion-card">
+                <div class="notion-head"><div>Module</div><div>Status</div><div>Format</div></div>
+                <div class="notion-row"><div>Instagram Calendar</div><div><span class="notion-tag">Ready</span></div><div>Weekly</div></div>
+                <div class="notion-row"><div>Detail Page Story</div><div><span class="notion-tag">Live</span></div><div>Web</div></div>
+                <div class="notion-row"><div>Prompt Library</div><div><span class="notion-tag">AI</span></div><div>Ops</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="guide-section">
+        <div class="container">
+          <div class="guide-grid" id="guideGrid"></div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="bottom-logo" id="contact">
+      <img src="../assets/krk-logo.svg" alt="KRK" />
+      <div class="bottom-info">
+        <span>©KRK. All rights reserved.</span>
+        <a href="mailto:contact@krk.team">contact@krk.team</a>
+      </div>
+    </footer>
+
+    <script>
+      const cases = [{"id": "mium", "name": "Mium", "en": "MIUM", "label": "", "category": "Gift Wellness", "period": "2026", "scope": "Brand Positioning, Package, Gift Set, Detail Page", "lead": "MIUM은 산모와 생일자를 위한 프리미엄 미역국 브랜드입니다. KRK는 회복과 축하의 마음이 동시에 전해지도록, 미역국을 하나의 기프트 경험으로 번역했습니다.", "systemTitle": "돌봄의 식사를 선물의 언어로 재구성했습니다.", "systemDesc": "MIUM은 단순한 간편식이 아니라 마음을 전하는 선물로 읽혀야 했습니다. KRK는 올리브 톤의 파우치, 담백한 테이블 장면, 기프트 박스의 존재감을 하나의 정제된 흐름으로 연결해 프리미엄 미역국 브랜드의 인상을 만들었습니다.", "images": ["../assets/mium-01.jpeg", "../assets/mium-02.jpeg", "../assets/mium-03.jpeg", "../assets/mium-04.jpeg"], "palette": ["#8E9879", "#B7BBAA", "#E9E2D5", "#6D745D"], "keywords": ["Premium Gift", "Seaweed Soup", "Postpartum Care", "Birthday Ritual"], "process": [["Gift Positioning", "산후 회복과 생일 상차림이라는 두 맥락을 동시에 담기 위해, 제품을 음식이 아닌 마음을 건네는 선물 포지션으로 정리했습니다."], ["Package & Gift Set", "파우치 단품과 선물 박스가 같은 브랜드 밀도를 유지하도록 패키지 톤과 정보 위계를 단정하게 맞췄습니다."], ["Table Ritual", "그릇, 리넨, 우드 스푼이 함께 보이는 장면을 통해 한국적인 식탁의 조용한 온기와 프리미엄 감도를 함께 보여줬습니다."]], "modules": [["Positioning Strategy", "산모와 생일자 모두에게 어울리는 선물 맥락을 정의하고, 미역국을 회복과 축하의 식사라는 감정 언어로 재배치했습니다."], ["Visual Strategy", "세이지 그린 파우치, 따뜻한 패브릭, 절제된 테이블 소품, 기프트 박스 구성을 통해 MIUM의 정갈한 프리미엄 톤을 고정했습니다."], ["Brand OS AI", "상세페이지, 시즌성 선물 캠페인, 인스타그램, 운영 문구까지 확장 가능한 구조를 만들고 AI로 반복 가능한 콘텐츠 흐름을 설계했습니다."]], "results": [["Gift", "산후조리·생일 선물 포지션 정리"], ["04", "제품/패키지/기프트 이미지 세트"], ["Ritual", "식탁 장면 중심 상세 흐름"], ["AI", "선물 시즌 운영용 문장 확장 기준"]], "slogan": "A warm gift for recovery and celebration.", "heroSubtitle": "A premium seaweed soup brand positioned for postpartum care and meaningful birthdays.", "overview": "MIUM is a premium seaweed soup brand positioned as a thoughtful gift for new mothers and birthdays. KRK translated care, recovery, and celebration into a calm visual system where pouch, soup scene, gift set, and Brand OS assets all move with the same quiet warmth.", "heroImage": "../assets/mium-04.jpeg", "fullBleedImage": "../assets/mium-01.jpeg", "conceptSlides": ["../assets/mium-04.jpeg", "../assets/mium-01.jpeg", "../assets/mium-02.jpeg", "../assets/mium-03.jpeg", "../assets/mium-01.jpeg", "../assets/mium-04.jpeg"], "instagramSlides": ["../assets/mium-03.jpeg", "../assets/mium-01.jpeg", "../assets/mium-02.jpeg", "../assets/mium-04.jpeg"], "moduleImages": ["../assets/mium-04.jpeg", "../assets/mium-01.jpeg", "../assets/mium-03.jpeg"], "frameImage": "../assets/mium-04.jpeg", "focus": [["Gift First Impression", "파우치 단품과 기프트 박스의 대비를 활용해 MIUM이 음식이 아닌 선물로 먼저 읽히도록 설계했습니다."], ["Soup Warmth", "미역국이 담긴 그릇과 테이블 질감을 함께 보여줘, 제품의 따뜻함과 한국적인 식사 감각을 자연스럽게 전달합니다."], ["Care Ritual", "산후 회복과 생일 상차림에 어울리는 장면을 통해 MIUM이 특별한 날의 마음을 전하는 브랜드임을 보여줍니다."]], "osHeadline": "Brand OS that extends from gift imagery to seasonal operation.", "osCopy": "선물 패키지, 상세페이지, 시즌 캠페인, 인스타그램 운영까지 MIUM의 감도를 유지하며 반복 가능한 콘텐츠 구조를 보여줍니다.", "osBullets": ["Gift-season campaign directions and recurring content themes", "Detail page structure aligned with care, recovery, and celebration", "AI-ready operating guide for captions, gifting prompts, and seasonal planning"], "logoType": "A restrained serif wordmark paired with soft packaging typography for a premium gift tone.", "voiceNote": "Warm, sincere, calm, and quietly celebratory. The brand speaks with care rather than urgency.", "igWideImage": "../assets/mium-04.jpeg"}];
+      const params = new URLSearchParams(window.location.search);
+      const fallback = cases.find(function (item) { return item.id === 'mium'; }) || cases[0];
+      const current = cases.find(function (item) { return item.id === params.get('case'); }) || fallback;
+
+      function setText(id, value) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = value || '';
+      }
+
+      function setImage(id, src, alt) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.src = src || '';
+        el.alt = alt || '';
+      }
+
+      document.title = current.en + ' | KRK Work Detail';
+      setText('heroKicker', current.label);
+      setText('heroTitle', current.slogan || current.en);
+      setText('heroSubtitle', current.heroSubtitle || current.lead);
+      setText('overviewCopy', current.overview || current.systemDesc || current.lead);
+      setText('osCopyTop', current.osCopy || current.systemDesc || '');
+      setText('osTitle', current.osHeadline || 'Brand OS');
+      setText('osCopy', current.osCopy || current.systemDesc || '');
+      setText('osHandle', current.id.replace(/-/g, '.'));
+      setText('osCaption', current.name + ' 브랜딩 · 패키지 · 한 호흡으로.');
+      setText('igHandle', '@' + current.id.replace(/-/g, '.'));
+
+      setImage('heroImage', current.heroImage || current.images[0], current.name + ' hero');
+      setImage('fullBleedImage', current.fullBleedImage || current.images[0], current.name + ' concept image');
+      document.getElementById('metaRow').innerHTML = [
+        ['Client', current.name],
+        ['Category', current.category],
+        ['Period', current.period],
+        ['Scope', current.scope]
+      ].map(function (pair) {
+        return [
+          '<div class="meta-item">',
+          '<span class="meta-label">' + pair[0] + '</span>',
+          '<span class="meta-value">' + pair[1] + '</span>',
+          '</div>'
+        ].join('');
+      }).join('');
+      document.getElementById('conceptTrack').innerHTML = (current.conceptSlides || current.images || []).slice(0, 6).map(function (src, index) {
+        return '<div class="carousel-slide fade-in delay-' + Math.min(index, 3) + '"><img src="' + src + '" alt="' + current.name + ' concept ' + (index + 1) + '" /></div>';
+      }).join('');
+
+      var focusItems = current.focus && current.focus.length ? current.focus : current.process;
+      document.getElementById('focusGrid').innerHTML = focusItems.map(function (item, index) {
+        return [
+          '<article class="focus-card fade-in delay-' + Math.min(index, 2) + '">',
+          '<p class="focus-index">0' + (index + 1) + '</p>',
+          '<h3 class="focus-title">' + item[0] + '</h3>',
+          '<p class="focus-text">' + item[1] + '</p>',
+          '</article>'
+        ].join('');
+      }).join('');
+
+      var igSlides = current.instagramSlides && current.instagramSlides.length ? current.instagramSlides : current.images;
+      document.getElementById('igScreens').innerHTML = igSlides.map(function (src, index) {
+        return '<div class="ig-screen' + (index === 0 ? ' active' : '') + '"><img src="' + src + '" alt="' + current.name + ' instagram ' + (index + 1) + '" /></div>';
+      }).join('');
+      document.getElementById('igDots').innerHTML = igSlides.map(function (_, index) {
+        return '<span class="phone-dot' + (index === 0 ? ' active' : '') + '"></span>';
+      }).join('');
+      document.getElementById('storyGrid').innerHTML = igSlides.slice(0, 2).map(function (src, index) {
+        return '<div class="story-card"><img src="' + src + '" alt="' + current.name + ' story ' + (index + 1) + '" /></div>';
+      }).join('');
+
+      document.getElementById('osScreens').innerHTML = igSlides.map(function (src, index) {
+        return '<div class="os-screen' + (index === 0 ? ' active' : '') + '"><img src="' + src + '" alt="' + current.name + ' brand os ' + (index + 1) + '" /></div>';
+      }).join('');
+      document.getElementById('osDots').innerHTML = igSlides.map(function (_, index) {
+        return '<span class="' + (index === 0 ? 'active' : '') + '"></span>';
+      }).join('');
+
+      var moduleImages = current.moduleImages && current.moduleImages.length ? current.moduleImages : current.images;
+      var moduleItems = current.modules && current.modules.length ? current.modules.map(function (item) { return [item[0], item[2] || item[1]]; }) : focusItems;
+      document.getElementById('moduleGrid').innerHTML = moduleItems.map(function (item, index) {
+        return [
+          '<article class="module-card fade-in delay-' + Math.min(index, 2) + '">',
+          '<div class="module-image"><img src="' + moduleImages[index % moduleImages.length] + '" alt="' + item[0] + '" /></div>',
+          '<div class="module-body">',
+          '<p class="module-kicker">Focus 0' + (index + 1) + '</p>',
+          '<h3 class="module-title">' + item[0] + '</h3>',
+          '<p class="module-copy">' + item[1] + '</p>',
+          '</div>',
+          '</article>'
+        ].join('');
+      }).join('');
+
+      document.getElementById('opsList').innerHTML = (current.osBullets || []).map(function (line) {
+        return '<li>' + line + '</li>';
+      }).join('');
+
+      document.getElementById('guideGrid').innerHTML = [
+        '<article class="guide-card fade-in">',
+        '<h3 class="guide-title">Color</h3>',
+        '<div class="color-list">',
+        (current.palette || []).map(function (color) {
+          return [
+            '<div class="color-chip">',
+            '<span style="background:' + color + '"></span>',
+            '<div><strong>' + color + '</strong><small>KRK palette</small></div>',
+            '</div>'
+          ].join('');
+        }).join(''),
+        '</div>',
+        '</article>',
+        '<article class="guide-card fade-in delay-1">',
+        '<h3 class="guide-title">Logotype</h3>',
+        '<p class="logo-mark">' + current.name + '</p>',
+        '<p class="guide-copy">' + (current.logoType || '') + '</p>',
+        '</article>',
+        '<article class="guide-card fade-in delay-2">',
+        '<h3 class="guide-title">Voice</h3>',
+        '<div class="voice-list">',
+        (current.keywords || []).map(function (word) {
+          return '<span>' + word + '</span>';
+        }).join(''),
+        '</div>',
+        '<p class="guide-copy">' + (current.voiceNote || '') + '</p>',
+        '</article>'
+      ].join('');
+
+      var revealEls = Array.prototype.slice.call(document.querySelectorAll('.fade-in'));
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12 });
+      revealEls.forEach(function (el) { observer.observe(el); });
+
+      (function () {
+        var track = document.getElementById('conceptTrack');
+        if (!track) return;
+        var slides = Array.prototype.slice.call(track.querySelectorAll('.carousel-slide'));
+        if (slides.length < 2) return;
+        var idx = 0;
+        setInterval(function () {
+          idx = (idx + 1) % slides.length;
+          track.scrollTo({ left: slides[idx].offsetLeft - 20, behavior: 'smooth' });
+        }, 3800);
+      })();
+
+      (function () {
+        var screens = Array.prototype.slice.call(document.querySelectorAll('.ig-screen'));
+        var dots = Array.prototype.slice.call(document.querySelectorAll('.phone-dot'));
+        if (screens.length < 2) return;
+        var cur = 0;
+        setInterval(function () {
+          screens[cur].classList.remove('active');
+          dots[cur].classList.remove('active');
+          cur = (cur + 1) % screens.length;
+          screens[cur].classList.add('active');
+          dots[cur].classList.add('active');
+        }, 2200);
+      })();
+
+      (function () {
+        var screens = Array.prototype.slice.call(document.querySelectorAll('.os-screen'));
+        var dots = Array.prototype.slice.call(document.querySelectorAll('#osDots span'));
+        if (screens.length < 2) return;
+        var cur = 0;
+        setInterval(function () {
+          screens[cur].classList.remove('active');
+          dots[cur].classList.remove('active');
+          cur = (cur + 1) % screens.length;
+          screens[cur].classList.add('active');
+          dots[cur].classList.add('active');
+        }, 2600);
+      })();
+    </script>
+  </body>
+</html>

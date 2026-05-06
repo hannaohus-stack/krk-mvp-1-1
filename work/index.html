@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Work | KRK.TEAM</title>
+    <link rel="stylesheet" href="../assets/krk-tokens.css" />
+    <style>
+      /* Work · page-specific styles only.
+         Tokens, reset, topbar, button, footer live in ../assets/krk-tokens.css */
+
+      .view-toggle {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        margin-left: auto;
+      }
+      .view-current,
+      .view-option {
+        width: 28px;
+        height: 28px;
+        display: inline-grid;
+        place-items: center;
+        color: var(--ink-3);
+        transition: color .16s ease, opacity .16s ease;
+      }
+      .view-current:hover,
+      .view-toggle.is-open .view-current,
+      .view-option:hover,
+      .view-option.is-active { color: var(--ink); }
+      .view-menu {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        z-index: 70;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px;
+        border-radius: 8px;
+        background: rgba(255,255,255,.94);
+        box-shadow: 0 14px 36px rgba(0,0,0,.08);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(-4px);
+        transition: opacity .16s ease, transform .16s ease;
+      }
+      .view-toggle.is-open .view-menu {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(0);
+      }
+      .icon-grid, .icon-slide {
+        position: relative;
+        display: block;
+        width: 18px;
+        height: 18px;
+      }
+      .icon-grid span {
+        position: absolute;
+        width: 7px;
+        height: 7px;
+        border: 2px solid currentColor;
+        border-radius: 2px;
+      }
+      .icon-grid span:nth-child(1) { left: 0; top: 0; }
+      .icon-grid span:nth-child(2) { right: 0; top: 0; }
+      .icon-grid span:nth-child(3) { left: 0; bottom: 0; }
+      .icon-grid span:nth-child(4) { right: 0; bottom: 0; }
+      .icon-slide::before, .icon-slide::after {
+        content: "";
+        position: absolute;
+        top: 2px; bottom: 2px;
+        width: 9px;
+        border: 2px solid currentColor;
+        border-radius: 2px;
+      }
+      .icon-slide::before { left: 1px; }
+      .icon-slide::after { right: 1px; background: var(--bg); }
+
+      main {
+        width: 100%;
+        max-width: var(--max);
+        margin: 0 auto;
+        padding: 92px var(--pad-x) 56px;
+      }
+      .work-intro {
+        display: grid;
+        place-items: center;
+        min-height: 88px;
+        padding: 12px 0 24px;
+        text-align: center;
+      }
+      .work-intro p {
+        margin: 0;
+        color: var(--ink-3);
+        font-family: var(--en);
+        font-size: 9px;
+        font-weight: 600;
+        line-height: 1.45;
+        text-transform: uppercase;
+      }
+
+      .category-bar {
+        position: relative;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin: 0 0 42px;
+        padding: 0;
+        background: transparent;
+      }
+      .category-button {
+        min-width: 78px;
+        border: 1px solid rgba(22,19,17,.12);
+        border-radius: 999px;
+        padding: 7px 13px;
+        color: var(--ink-3);
+        font-family: var(--en);
+        font-size: 11px;
+        font-weight: 500;
+        transition: color 180ms ease, border-color 180ms ease, background 180ms ease;
+      }
+      .category-button:hover, .category-button.is-active {
+        border-color: var(--ink);
+        background: var(--ink);
+        color: var(--bg);
+      }
+
+      /* ── Slide stage (chaeum-style absolute carousel) ── */
+      .slide-stage {
+        position: relative;
+        height: clamp(560px, 78vh, 820px);
+        margin: 0 0 40px;
+        overflow: hidden;
+      }
+      .slide-pager {
+        position: absolute;
+        z-index: 20;
+        top: 6px;
+        left: 50%;
+        display: flex;
+        width: 300px;
+        transform: translateX(-50%);
+        align-items: center;
+        gap: 24px;
+        font-family: var(--en);
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: .14em;
+        color: var(--ink-3);
+      }
+      .slide-pager::before {
+        content: "";
+        height: 1px;
+        flex: 1;
+        background: var(--rule);
+      }
+      .slide-pager .count {
+        flex: 0 0 auto;
+        font-variant-numeric: tabular-nums;
+        color: var(--ink-2);
+      }
+      .slide-pager .count em {
+        font-style: normal;
+        color: var(--ink);
+      }
+      .slide-rail {
+        position: relative;
+        height: 100%;
+        touch-action: pan-y;
+        user-select: none;
+      }
+      .slide-card {
+        position: absolute;
+        top: 56px;
+        left: 50%;
+        width: clamp(290px, 32vw, 440px);
+        cursor: grab;
+        transform: translateX(-50%);
+      }
+      .slide-rail.dragging .slide-card { cursor: grabbing; }
+      .slide-label {
+        position: absolute;
+        z-index: 10;
+        top: 24px;
+        left: 50%;
+        margin: 0;
+        transform: translateX(-50%);
+        white-space: nowrap;
+        font-family: var(--en);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.26em;
+        text-transform: uppercase;
+        color: #fff;
+        text-shadow: 0 1px 8px rgba(0,0,0,.38);
+      }
+      .slide-image {
+        position: relative;
+        aspect-ratio: 4 / 5.25;
+        overflow: hidden;
+        border-radius: 18px;
+        background: var(--soft);
+      }
+      .slide-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        user-select: none;
+        pointer-events: none;
+      }
+
+      /* ── Grid view (alt) ── */
+      .grid-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: clamp(10px, 1.3vw, 18px);
+        margin-top: 24px;
+      }
+      .grid-list[hidden] { display: none; }
+      .grid-card { display: block; }
+      .grid-image {
+        position: relative;
+        overflow: hidden;
+        aspect-ratio: 4 / 5;
+        background: var(--soft);
+        border-radius: 18px;
+      }
+      .grid-image::after {
+        content: "";
+        position: absolute;
+        inset: 0 0 auto;
+        height: 62px;
+        background: rgba(255,255,255,.82);
+        opacity: 0;
+        transform: translateY(-100%);
+        transition: opacity 300ms ease, transform 520ms cubic-bezier(.19,1,.22,1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+      .grid-image img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 900ms cubic-bezier(.19,1,.22,1), filter 500ms ease;
+      }
+      .grid-card:hover img {
+        transform: scale(1.045);
+        filter: saturate(.92) brightness(.94);
+      }
+      .grid-card:hover .grid-image::after {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .hover-title {
+        position: absolute;
+        z-index: 2;
+        top: 16px;
+        left: 18px;
+        max-width: calc(100% - 36px);
+        color: var(--ink);
+        font-family: var(--kr);
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.2;
+        letter-spacing: -.01em;
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: opacity 300ms ease, transform 520ms cubic-bezier(.19,1,.22,1);
+        pointer-events: none;
+      }
+      .grid-card:hover .hover-title {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .grid-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 12px 2px 0;
+        font-family: var(--en);
+        font-size: 12px;
+        color: var(--ink-2);
+      }
+      .grid-meta span:first-child { color: var(--ink); font-weight: 600; }
+
+      @media (max-width: 980px) {
+        .grid-list { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 720px) {
+        .view-current,
+        .view-option { width: 24px; height: 24px; }
+        .view-menu { top: calc(100% + 6px); gap: 6px; padding: 5px; }
+        main { padding-top: 58px; }
+        .work-intro { min-height: 44px; padding: 4px 0 10px; }
+        .category-bar { margin-bottom: 26px; overflow-x: auto; scrollbar-width: none; }
+        .category-bar::-webkit-scrollbar { display: none; }
+        .category-button { flex: 0 0 auto; }
+        .slide-stage { height: clamp(440px, 72vh, 640px); margin-top: 4px; }
+        .slide-pager { width: min(230px, calc(100vw - 56px)); gap: 16px; }
+        .slide-card { width: min(72vw, 340px); top: 48px; }
+        .slide-label { font-size: 10px; top: 18px; }
+        .grid-meta { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar is-light">
+      <nav class="topbar-menu left">
+        <a href="../service.html">Service</a>
+        <a class="is-active" href="index.html">Work</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <a class="topbar-logo" href="../index.html" aria-label="KRK home">
+        <img src="../assets/krk-logo.svg" alt="KRK" />
+      </a>
+      <div class="topbar-right">
+        <span class="lang">
+          <span>KR</span>&nbsp;<span class="dim">/ EN</span>
+        </span>
+      </div>
+    </header>
+
+    <main>
+      <section class="work-intro">
+        <p>From 0 to 1, then 1 to 10.<br/>Food brand consulting studio.</p>
+      </section>
+
+      <nav class="category-bar" aria-label="Work categories">
+        <button class="category-button is-active" type="button" data-category="All">All</button>
+        <button class="category-button" type="button" data-category="Branding">Branding</button>
+        <button class="category-button" type="button" data-category="Package">Package</button>
+        <button class="category-button" type="button" data-category="Web">Web</button>
+        <button class="category-button" type="button" data-category="Campaign">Campaign</button>
+        <div class="view-toggle" id="viewToggle" aria-label="Work view">
+          <button class="view-current" id="viewCurrent" type="button" aria-label="Change work view" aria-haspopup="true" aria-expanded="false">
+            <span class="icon-slide" aria-hidden="true"></span>
+          </button>
+          <div class="view-menu" id="viewMenu" role="menu" aria-label="Work view options">
+            <button class="view-option is-active" type="button" data-view="slider" role="menuitemradio" aria-label="Slide view" aria-checked="true">
+              <span class="icon-slide" aria-hidden="true"></span>
+            </button>
+            <button class="view-option" type="button" data-view="grid" role="menuitemradio" aria-label="Grid view" aria-checked="false">
+              <span class="icon-grid" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <section class="slide-stage" id="slideStage">
+        <div class="slide-pager"><span class="count" id="slideCount">01 / 01</span></div>
+        <div class="slide-rail" id="slideRail"></div>
+      </section>
+
+      <section class="grid-list" id="gridList" hidden></section>
+
+      <footer class="bottom-logo" id="contact">
+        <img src="../assets/krk-logo.svg" alt="KRK" />
+        <div class="bottom-info">
+          <span>©KRK. All rights reserved.</span>
+          <a href="mailto:contact@krk.team">contact@krk.team</a>
+        </div>
+      </footer>
+    </main>
+
+    <script>
+      const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+      const works = [
+        { id: 'case_balanceb', link: 'case_balanceb.html', name: 'Balance B', en: 'Balance B', cat: 'Package', img: '../assets/balance-b-01.jpeg' },
+        { id: 'case_mium', link: 'case_mium.html', name: 'Mium', en: 'Mium', cat: 'Branding', img: '../assets/mium-01.jpeg' },
+        { id: 'case-urbanpure', link: 'case-urbanpure.html', name: 'UrbanPure', en: 'UrbanPure', cat: 'Campaign', img: '../assets/urbanpure-01.png' },
+      ];
+
+      const slideRail = document.getElementById('slideRail');
+      const slideStage = document.getElementById('slideStage');
+      const slideCount = document.getElementById('slideCount');
+      const gridList = document.getElementById('gridList');
+      const buttons = Array.from(document.querySelectorAll('.category-button'));
+      const viewToggle = document.getElementById('viewToggle');
+      const viewCurrent = document.getElementById('viewCurrent');
+      const viewOptions = Array.from(document.querySelectorAll('.view-option'));
+
+      let currentView = 'slider';
+      let currentCategory = 'All';
+      let currentIndex = 0;
+      let dragX = 0;
+      let isDragging = false;
+      let pointerState = { startX: 0, startedAt: 0, moved: false, pointerId: null, card: null };
+
+      function getVisible() {
+        return works.filter((w) => currentCategory === 'All' || w.cat === currentCategory);
+      }
+
+      function buildSlideRail() {
+        const visible = getVisible();
+        slideRail.innerHTML = visible.map((w, i) => `
+          <article class="slide-card" data-slide-index="${i}" data-id="${w.id}" data-link="${w.link}">
+            <p class="slide-label">Case Study ${String(i + 1).padStart(2, '0')}</p>
+            <div class="slide-image">
+              <img src="${w.img}" alt="${w.name}" draggable="false" />
+            </div>
+          </article>
+        `).join('');
+      }
+
+      function buildGrid() {
+        const visible = getVisible();
+        gridList.innerHTML = visible.map((w) => `
+          <a class="grid-card" href="${w.link}" data-category="${w.cat}">
+            <div class="grid-image">
+              <span class="hover-title">${w.name}</span>
+              <img src="${w.img}" alt="${w.name}" />
+            </div>
+            <div class="grid-meta"><span>${w.en}</span><span>${w.cat}</span></div>
+          </a>
+        `).join('');
+      }
+
+      function renderSlideTransform() {
+        const visible = getVisible();
+        const total = visible.length;
+        slideCount.innerHTML = total
+          ? `<em>${String(currentIndex + 1).padStart(2, '0')}</em> / ${String(total).padStart(2, '0')}`
+          : '00 / 00';
+
+        slideRail.classList.toggle('dragging', isDragging);
+
+        slideRail.querySelectorAll('.slide-card').forEach((card) => {
+          const idx = Number(card.dataset.slideIndex);
+          const offset = idx - currentIndex;
+          const distance = clamp(Math.abs(offset), 0, 2);
+          const isActive = offset === 0;
+          const inView = Math.abs(offset) <= 2;
+          card.style.opacity = inView ? (isActive ? 1 : 0.42 - distance * 0.08) : 0;
+          card.style.filter = isActive ? 'blur(0px) saturate(1)' : `blur(${1.6 + distance * 0.9}px) saturate(.78)`;
+          card.style.transform = `translateX(calc(-50% + ${offset * 64}% + ${dragX}px)) translateY(${isActive ? 0 : 30 + distance * 10}px) scale(${isActive ? 1 : 0.93 - distance * 0.025})`;
+          card.style.zIndex = isActive ? 30 : 10 - distance;
+          card.style.pointerEvents = inView ? 'auto' : 'none';
+          card.style.transition = isDragging
+            ? 'none'
+            : 'opacity 560ms ease, filter 720ms ease, transform 920ms cubic-bezier(.19,1,.22,1)';
+        });
+      }
+
+      function moveSlide(direction) {
+        const total = getVisible().length;
+        dragX = 0;
+        isDragging = false;
+        currentIndex = direction === 'next'
+          ? Math.min(currentIndex + 1, Math.max(total - 1, 0))
+          : Math.max(currentIndex - 1, 0);
+        renderSlideTransform();
+      }
+
+      function getViewIcon(view) {
+        return view === 'grid'
+          ? '<span class="icon-grid" aria-hidden="true"><span></span><span></span><span></span><span></span></span>'
+          : '<span class="icon-slide" aria-hidden="true"></span>';
+      }
+
+      function setViewMenu(open) {
+        viewToggle.classList.toggle('is-open', open);
+        viewCurrent.setAttribute('aria-expanded', String(open));
+      }
+
+      function applyView(view) {
+        currentView = view;
+        slideStage.hidden = view !== 'slider';
+        gridList.hidden = view !== 'grid';
+        viewCurrent.innerHTML = getViewIcon(view);
+        viewCurrent.setAttribute('aria-label', view === 'grid' ? 'Current view: Grid' : 'Current view: Slide');
+        viewOptions.forEach((btn) => {
+          const active = btn.dataset.view === view;
+          btn.classList.toggle('is-active', active);
+          btn.setAttribute('aria-checked', String(active));
+        });
+        setViewMenu(false);
+        if (view === 'slider') {
+          requestAnimationFrame(renderSlideTransform);
+        }
+      }
+
+      function applyCategory(cat) {
+        currentCategory = cat;
+        buttons.forEach((btn) => btn.classList.toggle('is-active', btn.dataset.category === cat));
+        currentIndex = 0;
+        buildSlideRail();
+        buildGrid();
+        if (currentView === 'slider') {
+          requestAnimationFrame(renderSlideTransform);
+        }
+      }
+
+      slideRail.addEventListener('pointerdown', (event) => {
+        if (event.button > 0) return;
+        pointerState = {
+          startX: event.clientX,
+          startedAt: performance.now(),
+          moved: false,
+          pointerId: event.pointerId,
+          card: event.target.closest('[data-id]')
+        };
+        slideRail.setPointerCapture(event.pointerId);
+        isDragging = true;
+      });
+      slideRail.addEventListener('pointermove', (event) => {
+        if (!isDragging || pointerState.pointerId !== event.pointerId) return;
+        const rawDistance = event.clientX - pointerState.startX;
+        pointerState.moved = Math.abs(rawDistance) > 8;
+        dragX = Math.sign(rawDistance) * Math.min(Math.abs(rawDistance), 260);
+        renderSlideTransform();
+      });
+      slideRail.addEventListener('pointerup', (event) => {
+        if (!isDragging || pointerState.pointerId !== event.pointerId) return;
+        const distance = event.clientX - pointerState.startX;
+        const elapsed = Math.max(performance.now() - pointerState.startedAt, 1);
+        const velocity = distance / elapsed;
+        const shouldSwipe = Math.abs(distance) > 82 || Math.abs(velocity) > 0.42;
+        slideRail.releasePointerCapture(event.pointerId);
+
+        if (!pointerState.moved) {
+          isDragging = false;
+          dragX = 0;
+          const card = pointerState.card || event.target.closest('[data-id]');
+          if (card) {
+            const idx = Number(card.dataset.slideIndex);
+            if (idx === currentIndex) {
+              window.location.href = card.dataset.link;
+            } else {
+              currentIndex = idx;
+            }
+          }
+          renderSlideTransform();
+          return;
+        }
+        if (shouldSwipe) moveSlide(distance < 0 ? 'next' : 'prev');
+        else {
+          isDragging = false;
+          dragX = 0;
+          renderSlideTransform();
+        }
+      });
+      slideRail.addEventListener('pointercancel', () => {
+        isDragging = false;
+        dragX = 0;
+        renderSlideTransform();
+      });
+
+      buttons.forEach((btn) => btn.addEventListener('click', () => applyCategory(btn.dataset.category)));
+      viewCurrent.addEventListener('click', (event) => {
+        event.stopPropagation();
+        setViewMenu(!viewToggle.classList.contains('is-open'));
+      });
+      viewOptions.forEach((btn) => btn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        applyView(btn.dataset.view);
+      }));
+      document.addEventListener('click', (event) => {
+        if (!viewToggle.contains(event.target)) setViewMenu(false);
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') setViewMenu(false);
+      });
+      window.addEventListener('resize', () => renderSlideTransform());
+      const topbar = document.querySelector('.topbar');
+      const syncTopbar = () => {
+        if (!topbar) return;
+        topbar.classList.toggle('scrolled', window.scrollY > 8);
+      };
+      syncTopbar();
+      window.addEventListener('scroll', syncTopbar, { passive: true });
+
+      buildSlideRail();
+      buildGrid();
+      renderSlideTransform();
+    </script>
+  </body>
+</html>

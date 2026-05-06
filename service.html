@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Service | KRK.TEAM</title>
+    <link rel="stylesheet" href="assets/krk-tokens.css" />
+    <style>
+      /* Service · page-specific styles only.
+         Tokens, reset, topbar, button, footer live in assets/krk-tokens.css
+         This page uses the warm editorial bg (--bg-warm). */
+
+      :root { --bg: var(--bg-warm); }
+
+      body {
+        background:
+          radial-gradient(circle at top left, rgba(255,255,255,.7), transparent 24%),
+          linear-gradient(180deg, #f6f0e8 0%, var(--bg) 100%);
+      }
+
+      main { position: relative; z-index: 1; }
+      .section {
+        width: 100%;
+        max-width: var(--max);
+        margin: 0 auto;
+        padding: clamp(84px, 12vw, 150px) var(--pad-x) clamp(64px, 8vw, 110px);
+      }
+      .sec-head {
+        display: grid;
+        gap: 16px;
+        justify-items: center;
+        text-align: center;
+        margin-bottom: clamp(34px, 5vw, 68px);
+      }
+      .sec-ttl {
+        margin: 0;
+        font-family: var(--serif);
+        font-weight: 300;
+        font-size: clamp(26px, 4vw, 62px);
+        line-height: .98;
+        letter-spacing: -.04em;
+      }
+      .sec-sub {
+        margin: 0;
+        max-width: 50ch;
+        color: var(--ink-2);
+        font-size: 15px;
+        line-height: 1.6;
+      }
+
+      .hero {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: clamp(140px,18vh,220px) var(--pad-x) clamp(86px,10vw,140px);
+        text-align: center;
+      }
+      .hero-inner { display: grid; gap: 28px; justify-items: center; }
+      .hero-title {
+        margin: 0;
+        font-family: var(--serif);
+        font-weight: 300;
+        font-size: clamp(60px, 12vw, 180px);
+        line-height: .92;
+        letter-spacing: -.05em;
+      }
+      .hero-title .line { display: block; }
+      .b-char {
+        display: inline-block;
+        animation: blur-breath var(--dur,3s) ease-in-out var(--delay,0s) infinite;
+        will-change: filter;
+      }
+      @keyframes blur-breath {
+        0%,100% { filter: blur(0); }
+        50% { filter: blur(var(--amp,4px)); }
+      }
+      .hero-sub {
+        margin: 0;
+        max-width: 34ch;
+        color: var(--ink-2);
+        font-size: 16px;
+        line-height: 1.65;
+      }
+
+      .services-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .service-card {
+        aspect-ratio: 4 / 5;
+        padding: 28px 24px;
+        background: var(--panel);
+        border: 1px solid rgba(22,19,17,.06);
+        border-radius: 6px;
+        box-shadow: 0 14px 36px rgba(54,36,22,.04);
+        display: grid;
+        align-content: start;
+        gap: 20px;
+      }
+      .service-body { display: grid; gap: 12px; }
+      .service-name {
+        margin: 0;
+        font-family: var(--en);
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: -.03em;
+      }
+      .service-copy {
+        margin: 0;
+        color: var(--ink-2);
+        font-size: 15px;
+        line-height: 1.6;
+      }
+
+      .works-stage {
+        display: grid;
+        justify-items: center;
+        gap: 18px;
+      }
+      .works-collage {
+        width: min(920px, 88vw);
+        position: relative;
+        overflow: hidden;
+        padding: 12px 0 18px;
+      }
+      .works-track {
+        display: flex;
+        gap: 20px;
+        width: max-content;
+        animation: worksSlide 24s linear infinite;
+      }
+      .work-panel {
+        position: relative;
+        overflow: hidden;
+        border-radius: 18px;
+        background: rgba(255,255,255,.72);
+        box-shadow: 0 18px 60px rgba(54,36,22,.08);
+        transition: transform .35s cubic-bezier(.19,1,.22,1);
+        width: min(260px, 28vw);
+        aspect-ratio: 4 / 5;
+      }
+      .work-panel:hover { transform: translateY(-6px); }
+      .work-panel img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      @keyframes worksSlide {
+        from { transform: translateX(0); }
+        to { transform: translateX(calc(-50% - 10px)); }
+      }
+
+      .campaign-grid {
+        display: grid;
+        grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+        gap: 22px;
+        align-items: start;
+      }
+      .feed-pair {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+      .feed-card {
+        background: #fff;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+      }
+      .feed-head {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 10px;
+        align-items: center;
+        padding: 12px 14px;
+        border-bottom: 1px solid rgba(22,19,17,.08);
+      }
+      .feed-avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2b3950, #aa8d68);
+      }
+      .feed-name {
+        font-size: 13px;
+        font-weight: 700;
+        color: #0b0b0b;
+      }
+      .feed-more { font-size: 18px; color: rgba(0,0,0,.6); }
+      .feed-media { aspect-ratio: 4 / 5; overflow: hidden; }
+      .feed-media img { width: 100%; height: 100%; object-fit: cover; }
+      .feed-caption { display: none; }
+
+      .browser-mock {
+        background: rgba(255,255,255,.9);
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+      }
+      .browser-bar {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(0,0,0,.08);
+        background: rgba(248,248,248,.95);
+      }
+      .browser-dots { display: inline-flex; gap: 6px; }
+      .browser-dots span {
+        width: 10px; height: 10px; border-radius: 50%;
+        background: rgba(0,0,0,.15);
+      }
+      .browser-url {
+        flex: 1;
+        max-width: 360px;
+        margin: 0 auto;
+        padding: 6px 14px;
+        border-radius: 999px;
+        background: rgba(0,0,0,.06);
+        text-align: center;
+        color: rgba(0,0,0,.45);
+        font-size: 11px;
+      }
+      .browser-scroll {
+        height: min(74vh, 760px);
+        overflow: hidden;
+        position: relative;
+      }
+      .browser-scroll-track {
+        display: grid;
+        gap: 18px;
+        padding: 22px;
+        animation: browserScroll 16s linear infinite alternate;
+      }
+      .browser-shot {
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 32px rgba(54,36,22,.06);
+      }
+      .browser-shot img {
+        width: 100%;
+        aspect-ratio: 16 / 10;
+        object-fit: cover;
+      }
+      .browser-shot-copy {
+        padding: 18px;
+        display: grid;
+        gap: 10px;
+      }
+      .browser-shot-copy h3 {
+        margin: 0;
+        font-family: var(--serif);
+        font-size: 32px;
+        font-weight: 300;
+        line-height: 1;
+        letter-spacing: -.04em;
+      }
+      .browser-line {
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(0,0,0,.08);
+      }
+      .browser-line.short { width: 56%; }
+      .browser-line.mid { width: 74%; }
+      @keyframes browserScroll {
+        0% { transform: translateY(0); }
+        100% { transform: translateY(-34%); }
+      }
+
+      .os-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.16fr) minmax(280px, .84fr);
+        gap: 22px;
+        align-items: start;
+      }
+      .notion-card {
+        background: rgba(255,255,255,.82);
+        border: 1px solid rgba(22,19,17,.08);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+      }
+      .notion-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        border-bottom: 1px solid rgba(22,19,17,.08);
+      }
+      .notion-title {
+        font-family: var(--serif);
+        font-size: 28px;
+        font-weight: 300;
+        letter-spacing: -.04em;
+      }
+      .notion-tag {
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: rgba(22,19,17,.06);
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--ink-2);
+      }
+      .notion-props {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        border-bottom: 1px solid rgba(22,19,17,.08);
+      }
+      .notion-prop {
+        padding: 18px 24px;
+        border-right: 1px solid rgba(22,19,17,.08);
+      }
+      .notion-prop:last-child { border-right: 0; }
+      .notion-key {
+        margin-bottom: 8px;
+        color: var(--ink-3);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+      }
+      .notion-val {
+        color: var(--ink-2);
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+      .notion-prompt {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        padding: 16px 24px;
+        background: rgba(22,19,17,.04);
+      }
+      .notion-ai {
+        flex-shrink: 0;
+        padding: 4px 8px;
+        border-radius: 4px;
+        background: #1f1b18;
+        color: #fff;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .08em;
+      }
+      .notion-q {
+        color: var(--ink-2);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .ig-mock {
+        background: #fff;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+      }
+      .ig-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        border-bottom: 1px solid rgba(0,0,0,.08);
+      }
+      .ig-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2b3950, #aa8d68);
+      }
+      .ig-username {
+        font-size: 13px;
+        font-weight: 700;
+        color: #0b0b0b;
+      }
+      .ig-more { margin-left: auto; font-size: 18px; color: rgba(0,0,0,.64); }
+      .ig-slides {
+        position: relative;
+        aspect-ratio: 1 / 1;
+        overflow: hidden;
+        background: #eee;
+      }
+      .ig-slide {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transition: opacity .45s ease;
+      }
+      .ig-slide.active { opacity: 1; }
+      .ig-slide img { width: 100%; height: 100%; object-fit: cover; }
+      .ig-dots {
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+        padding: 10px 0 4px;
+      }
+      .ig-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: rgba(0,0,0,.18);
+      }
+      .ig-dot.active { background: #5d88b2; }
+      .ig-caption {
+        padding: 8px 14px 16px;
+        color: #0b0b0b;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      .how-steps {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: clamp(20px, 3vw, 44px);
+      }
+      .how-step {
+        display: grid;
+        justify-items: center;
+        text-align: center;
+        gap: 18px;
+      }
+      .how-no {
+        color: rgba(22,19,17,.2);
+        font-family: var(--serif);
+        font-size: clamp(60px, 7vw, 92px);
+        line-height: 1;
+      }
+      .how-rule { width: 120px; height: 1px; background: rgba(22,19,17,.14); }
+      .how-step h3 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -.03em;
+      }
+      .how-step p {
+        margin: 0;
+        max-width: 26ch;
+        color: var(--ink-2);
+        font-size: 15px;
+        line-height: 1.7;
+      }
+
+      .cta-links {
+        display: grid;
+        gap: 14px;
+        justify-items: center;
+        text-align: center;
+        padding: clamp(90px, 12vw, 160px) var(--pad-x) clamp(80px, 10vw, 120px);
+      }
+      .cta-link {
+        position: relative;
+        font-family: var(--serif);
+        font-size: clamp(34px, 6vw, 88px);
+        font-weight: 300;
+        line-height: .96;
+        letter-spacing: -.04em;
+        transition: color .18s ease, transform .18s ease;
+      }
+      .cta-link::after {
+        display: none;
+      }
+      .cta-link:hover {
+        color: rgba(22,19,17,.6);
+        transform: translateY(-1px);
+      }
+      .cta-link:hover::after { transform: scaleX(1); }
+
+      .reveal { opacity: 0; transform: translateY(24px); transition: opacity .8s ease, transform .8s ease; }
+      .reveal.in { opacity: 1; transform: none; }
+
+      @media (max-width: 980px) {
+        .services-grid,
+        .how-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .campaign-grid,
+        .os-grid { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 760px) {
+        .services-grid,
+        .how-steps,
+        .feed-pair,
+        .notion-props { grid-template-columns: 1fr; }
+        .section { padding-top: 72px; padding-bottom: 72px; }
+        .works-collage { width: 100%; }
+        .works-track { gap: 14px; }
+        .work-panel { width: min(210px, 54vw); }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar is-light is-warm">
+      <nav class="topbar-menu left">
+        <a class="is-active" href="service.html">Service</a>
+        <a href="work/index.html">Work</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <a class="topbar-logo" href="index.html" aria-label="KRK home">
+        <img src="assets/krk-logo.svg" alt="KRK" />
+      </a>
+      <div class="topbar-right">
+        <span class="lang">
+          <span>KR</span>&nbsp;<span class="dim">/ EN</span>
+        </span>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-inner">
+          <h1 class="hero-title">
+            <span class="line" data-blur-text>Food brands,</span>
+            <span class="line" data-blur-text>end-to-end.</span>
+          </h1>
+          <p class="hero-sub">아이디어부터 출시, 운영까지. 식품 브랜드의 첫 문장과 매대 위의 장면을 한 호흡으로 연결합니다.</p>
+        </div>
+      </section>
+
+      <section class="section reveal">
+        <header class="sec-head">
+          <h2 class="sec-ttl">Our Services.</h2>
+          <p class="sec-sub">전략부터 패키지, 웹과 캠페인, 그리고 Brand OS까지. 식품 브랜드가 실제로 운영될 수 있는 구조를 만듭니다.</p>
+        </header>
+        <div class="services-grid">
+          <article class="service-card">
+            <div class="service-body">
+              <h3 class="service-name">Branding</h3>
+              <p class="service-copy">브랜드의 포지셔닝, 톤, 카테고리 언어를 정리해 식품 브랜드의 첫 인상을 또렷하게 세웁니다.</p>
+            </div>
+          </article>
+          <article class="service-card">
+            <div class="service-body">
+              <h3 class="service-name">Package</h3>
+              <p class="service-copy">사쉐, 박스, 병, 상세 정보 구조까지 제품이 실제 매대 위에서 읽히는 방식을 설계합니다.</p>
+            </div>
+          </article>
+          <article class="service-card">
+            <div class="service-body">
+              <h3 class="service-name">Web</h3>
+              <p class="service-copy">랜딩, 상세페이지, 전환 흐름을 정리해 브랜드가 온라인에서 같은 결로 이어지도록 만듭니다.</p>
+            </div>
+          </article>
+          <article class="service-card">
+            <div class="service-body">
+              <h3 class="service-name">Campaign</h3>
+              <p class="service-copy">인스타그램, 시즌 캠페인, 운영 문장까지 확장해 출시 이후의 콘텐츠 리듬을 준비합니다.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section reveal">
+        <header class="sec-head">
+          <h2 class="sec-ttl">Works.</h2>
+          <p class="sec-sub">브랜드의 첫 장면과 디지털 전개를 카드처럼 겹쳐 보여주며, KRK의 작업 결을 한눈에 읽을 수 있게 정리합니다.</p>
+        </header>
+        <div class="works-stage">
+          <div class="works-collage" aria-label="work previews">
+            <div class="works-track">
+              <div class="work-panel"><img src="assets/balance-b-01.jpeg" alt="Balance B preview" /></div>
+              <div class="work-panel"><img src="assets/balance-b-03.jpeg" alt="Balance B package preview" /></div>
+              <div class="work-panel"><img src="assets/balance-b-05.png" alt="Balance B lifestyle preview" /></div>
+              <div class="work-panel"><img src="assets/balance-b-06.png" alt="Balance B routine preview" /></div>
+              <div class="work-panel"><img src="assets/balance-b-01.jpeg" alt="Balance B preview" /></div>
+              <div class="work-panel"><img src="assets/balance-b-03.jpeg" alt="Balance B package preview" /></div>
+              <div class="work-panel"><img src="assets/balance-b-05.png" alt="Balance B lifestyle preview" /></div>
+              <div class="work-panel"><img src="assets/balance-b-06.png" alt="Balance B routine preview" /></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section reveal">
+        <header class="sec-head">
+          <h2 class="sec-ttl">One brand,<br />every shelf.</h2>
+          <p class="sec-sub">인스타그램 피드와 랜딩페이지가 따로 놀지 않도록, 같은 톤의 이미지와 장면으로 브랜드 세계관을 이어갑니다.</p>
+        </header>
+        <div class="campaign-grid">
+          <div class="feed-pair">
+            <article class="feed-card">
+              <div class="feed-head">
+                <span class="feed-avatar"></span>
+                <span class="feed-name">krk.team</span>
+                <span class="feed-more">···</span>
+              </div>
+              <div class="feed-media"><img src="assets/balance-b-04.png" alt="" /></div>
+            </article>
+            <article class="feed-card">
+              <div class="feed-head">
+                <span class="feed-avatar"></span>
+                <span class="feed-name">krk.team</span>
+                <span class="feed-more">···</span>
+              </div>
+              <div class="feed-media"><img src="assets/balance-b-06.png" alt="" /></div>
+            </article>
+          </div>
+          <div class="browser-mock">
+            <div class="browser-bar">
+              <span class="browser-dots"><span></span><span></span><span></span></span>
+              <span class="browser-url">krk.team/work/case_balanceb</span>
+            </div>
+            <div class="browser-scroll">
+              <div class="browser-scroll-track">
+                <article class="browser-shot">
+                  <img src="assets/balance-b-03.jpeg" alt="" />
+                  <div class="browser-shot-copy">
+                    <h3>Balance B</h3>
+                    <span class="browser-line mid"></span>
+                    <span class="browser-line short"></span>
+                  </div>
+                </article>
+                <article class="browser-shot">
+                  <img src="assets/balance-b-01.jpeg" alt="" />
+                  <div class="browser-shot-copy">
+                    <h3>Product Story</h3>
+                    <span class="browser-line mid"></span>
+                    <span class="browser-line short"></span>
+                  </div>
+                </article>
+                <article class="browser-shot">
+                  <img src="assets/balance-b-05.png" alt="" />
+                  <div class="browser-shot-copy">
+                    <h3>Routine Visuals</h3>
+                    <span class="browser-line mid"></span>
+                    <span class="browser-line short"></span>
+                  </div>
+                </article>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section reveal">
+        <header class="sec-head">
+          <h2 class="sec-ttl">Brand OS.<br />AI로 운영하는 브랜드.</h2>
+          <p class="sec-sub">노션 안의 운영 기준과 인스타그램 안의 반복 가능한 장면을 연결해, 브랜드가 매번 처음부터 다시 설명되지 않도록 만듭니다.</p>
+        </header>
+        <div class="os-grid">
+          <article class="notion-card">
+            <div class="notion-head">
+              <span class="notion-title">Balance B Brand OS</span>
+              <span class="notion-tag">LIVE</span>
+            </div>
+            <div class="notion-props">
+              <div class="notion-prop">
+                <div class="notion-key">Voice</div>
+                <div class="notion-val">calm · grounded · sensory</div>
+              </div>
+              <div class="notion-prop">
+                <div class="notion-key">Visual Cue</div>
+                <div class="notion-val">white box · dark sachet · warm skin tone</div>
+              </div>
+              <div class="notion-prop">
+                <div class="notion-key">Content Flow</div>
+                <div class="notion-val">feed · detail page · campaign prompt</div>
+              </div>
+            </div>
+            <div class="notion-prompt">
+              <span class="notion-ai">AI</span>
+              <span class="notion-q">“이번 주 인스타그램 포스트 3개를 Balance B 톤으로 작성해줘.”</span>
+            </div>
+          </article>
+
+          <article class="ig-mock">
+            <div class="ig-header">
+              <span class="ig-avatar"></span>
+              <span class="ig-username">balance.b</span>
+              <span class="ig-more">···</span>
+            </div>
+            <div class="ig-slides">
+              <div class="ig-slide active"><img src="assets/balance-b-04.png" alt="" /></div>
+              <div class="ig-slide"><img src="assets/balance-b-05.png" alt="" /></div>
+              <div class="ig-slide"><img src="assets/balance-b-06.png" alt="" /></div>
+              <div class="ig-slide"><img src="assets/balance-b-07.jpeg" alt="" /></div>
+            </div>
+            <div class="ig-dots">
+              <span class="ig-dot active"></span>
+              <span class="ig-dot"></span>
+              <span class="ig-dot"></span>
+              <span class="ig-dot"></span>
+            </div>
+            <div class="ig-caption"><strong>balance.b</strong> 브랜드 가이드가 콘텐츠 운영 장면으로 바로 이어지도록 설계합니다.</div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section reveal">
+        <header class="sec-head">
+          <h2 class="sec-ttl">From recipe<br />to retail.</h2>
+          <p class="sec-sub">처음 대화에서 제품의 언어를 정하고, 패키지와 상세페이지, 운영 자산까지 한 번에 연결합니다.</p>
+        </header>
+        <div class="how-steps">
+          <article class="how-step">
+            <span class="how-no">01</span>
+            <span class="how-rule"></span>
+            <h3>Define</h3>
+            <p>브랜드가 어떤 카테고리의 어떤 순간에 선택되어야 하는지 먼저 정리합니다.</p>
+          </article>
+          <article class="how-step">
+            <span class="how-no">02</span>
+            <span class="how-rule"></span>
+            <h3>Design</h3>
+            <p>패키지, 상세페이지, 이미지, 문장을 같은 톤으로 설계해 브랜드의 첫 장면을 만듭니다.</p>
+          </article>
+          <article class="how-step">
+            <span class="how-no">03</span>
+            <span class="how-rule"></span>
+            <h3>Operate</h3>
+            <p>Brand OS를 통해 인스타그램, 시즌 캠페인, 반복 문장을 운영 가능한 자산으로 연결합니다.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="cta-links reveal">
+        <a class="cta-link" href="work/index.html">Work</a>
+        <a class="cta-link" href="mailto:contact@krk.team">Contact Us</a>
+      </section>
+
+      <footer class="bottom-logo" id="contact">
+        <img src="assets/krk-logo.svg" alt="KRK" />
+        <div class="bottom-info">
+          <span>©KRK. All rights reserved.</span>
+          <a href="mailto:contact@krk.team">contact@krk.team</a>
+        </div>
+      </footer>
+    </main>
+
+    <script>
+      document.querySelectorAll('[data-blur-text]').forEach((el) => {
+        const frag = document.createDocumentFragment();
+        [...el.textContent].forEach((ch) => {
+          if (/\s/.test(ch)) {
+            frag.appendChild(document.createTextNode(ch));
+            return;
+          }
+          const span = document.createElement('span');
+          span.className = 'b-char';
+          span.textContent = ch;
+          span.style.setProperty('--amp', `${1.5 + Math.random() * 6}px`);
+          span.style.setProperty('--dur', `${2.8 + Math.random() * 3.2}s`);
+          span.style.setProperty('--delay', `${(Math.random() * 2.5).toFixed(2)}s`);
+          frag.appendChild(span);
+        });
+        el.textContent = '';
+        el.appendChild(frag);
+      });
+
+      const topbar = document.querySelector('.topbar');
+      const revealEls = document.querySelectorAll('.reveal');
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('in');
+            io.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1 });
+      revealEls.forEach((el) => io.observe(el));
+
+      const syncTopbar = () => {
+        if (!topbar) return;
+        topbar.classList.toggle('scrolled', window.scrollY > 8);
+      };
+      syncTopbar();
+      window.addEventListener('scroll', syncTopbar, { passive: true });
+
+      (function () {
+        const slides = Array.from(document.querySelectorAll('.ig-slide'));
+        const dots = Array.from(document.querySelectorAll('.ig-dot'));
+        if (slides.length < 2) return;
+        let cur = 0;
+        setInterval(() => {
+          slides[cur].classList.remove('active');
+          dots[cur].classList.remove('active');
+          cur = (cur + 1) % slides.length;
+          slides[cur].classList.add('active');
+          dots[cur].classList.add('active');
+        }, 2200);
+      })();
+    </script>
+  </body>
+</html>
