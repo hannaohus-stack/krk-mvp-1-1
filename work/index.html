@@ -331,11 +331,11 @@
       </section>
 
       <nav class="category-bar" aria-label="Work categories">
-        <button class="category-button is-active" type="button" data-category="All">All</button>
-        <button class="category-button" type="button" data-category="Branding">Branding</button>
-        <button class="category-button" type="button" data-category="Package">Package</button>
-        <button class="category-button" type="button" data-category="Web">Web</button>
-        <button class="category-button" type="button" data-category="Campaign">Campaign</button>
+        
+        
+        
+        
+        
         <div class="view-toggle" id="viewToggle" aria-label="Work view">
           <button class="view-current" id="viewCurrent" type="button" aria-label="Change work view" aria-haspopup="true" aria-expanded="false">
             <span class="icon-slide" aria-hidden="true"></span>
@@ -399,25 +399,49 @@
       function buildSlideRail() {
         const visible = getVisible();
         slideRail.innerHTML = visible.map((w, i) => `
-          <article class="slide-card" data-slide-index="${i}" data-id="${w.id}" data-link="${w.link}">
-            <p class="slide-label"> ${String(i + 1).padStart(2, '0')}</p>
-            <div class="slide-image">
-              <img src="${w.img}" alt="${w.name}" draggable="false" />
-            </div>
-          </article>
-        `).join('');
-      }
+          
+<a class="slide-card" href="case_balanceb.html">
+  <span class="slide-label">Balance B</span>
+  <div class="slide-image">
+    <img src="../assets/balance-b-01.jpeg" alt="Balance B">
+  </div>
+</a>
 
-      function buildGrid() {
-        const visible = getVisible();
-        gridList.innerHTML = visible.map((w) => `
-          <a class="grid-card" href="${w.link}" data-category="${w.cat}">
-            <div class="grid-image">
-              <span class="hover-title">${w.name}</span>
-              <img src="${w.img}" alt="${w.name}" />
-            </div>
-            <div class="grid-meta"><span>${w.en}</span><span>${w.cat}</span></div>
-          </a>
+<a class="slide-card" href="case_mium.html">
+  <span class="slide-label">MIUM</span>
+  <div class="slide-image">
+    <img src="../assets/mium-01.jpeg" alt="MIUM">
+  </div>
+</a>
+
+<a class="slide-card" href="case-urbanpure.html">
+  <span class="slide-label">UrbanPure</span>
+  <div class="slide-image">
+    <img src="../assets/urbanpure-01.png" alt="UrbanPure">
+  </div>
+</a>
+
+<a class="slide-card" href="#" data-coming-soon>
+  <span class="slide-label">Deokhwa Myungran</span>
+  <div class="slide-image">
+    <img src="../assets/deokhwa-myungran.jpeg" alt="Deokhwa Myungran">
+  </div>
+</a>
+
+<a class="slide-card" href="#" data-coming-soon>
+  <span class="slide-label">Hongshinae</span>
+  <div class="slide-image">
+    <img src="../assets/hongshinae.jpeg" alt="Hongshinae">
+  </div>
+</a>
+
+<a class="slide-card" href="#" data-coming-soon>
+  <span class="slide-label">The Butter Pantry</span>
+  <div class="slide-image">
+    <img src="../assets/the-butter-pantry.jpeg" alt="The Butter Pantry">
+  </div>
+</a>
+
         `).join('');
       }
 

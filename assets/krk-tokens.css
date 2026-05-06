@@ -637,3 +637,34 @@ body.work-page .work-categories{
   opacity:.55;
   transform:translateY(-2px);
 }
+
+/* Final work page corrections */
+button:has(+ button),
+.work-filter,
+.work-categories,
+.category-bar,
+.filter-bar,
+[class*="filter"],
+[class*="category"]{
+  display:none !important;
+}
+
+.slide-label{
+  text-transform:none !important;
+}
+
+.floating-consult{
+  min-width:0 !important;
+  width:auto !important;
+  height:auto !important;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  color:#111 !important;
+  font:800 18px/1 "Pretendard Variable","Pretendard",system-ui,sans-serif !important;
+  text-decoration:none !important;
+}
