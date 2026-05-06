@@ -405,3 +405,40 @@ img, svg { display: block; max-width: 100%; }
      sync();
      window.addEventListener('scroll', sync, { passive: true });
    ============================================================ */
+
+.floating-consult{
+  position:fixed;
+  right:24px;
+  bottom:24px;
+  z-index:9999;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:132px;
+  height:52px;
+  padding:0 22px;
+  border-radius:999px;
+  border:none;
+  background:#fff;
+  color:#111;
+  font:700 16px/1 "Pretendard Variable","Pretendard",system-ui,sans-serif;
+  text-decoration:none;
+  box-shadow:0 10px 28px rgba(0,0,0,.12);
+  transition:transform .18s ease, background .18s ease, color .18s ease, box-shadow .18s ease;
+}
+.floating-consult:hover{
+  transform:translateY(-2px);
+  background:#111;
+  color:#fff;
+  box-shadow:0 14px 34px rgba(0,0,0,.18);
+}
+@media (max-width:720px){
+  .floating-consult{
+    right:14px;
+    bottom:14px;
+    min-width:118px;
+    height:46px;
+    padding:0 18px;
+    font-size:15px;
+  }
+}
