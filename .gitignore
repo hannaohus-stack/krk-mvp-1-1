@@ -1,6 +1,5 @@
 node_modules/
 checker/node_modules/
-checker/dist/
 checker/*.tsbuildinfo
 .DS_Store
 .env
