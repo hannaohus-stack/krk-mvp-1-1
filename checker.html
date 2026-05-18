@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KRK - AI 라벨 분석기</title>
+  <link rel="stylesheet" href="checker.css">
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tesseract.js for OCR -->
+  <script src="https://unpkg.com/tesseract.js@v4/dist/tesseract.min.js"></script>
+  <!-- html2pdf for download -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+  <!-- Header -->
+  <header class="checker-header">
+    <div class="header-left">
+      <h1>🔍 AI 라벨 분석기</h1>
+      <p>라벨 시안을 올리면 식약처 리스크 포인트를 찾아드립니다</p>
+    </div>
+    <div class="header-right">
+      <span class="status-badge" id="statusBadge">대기중</span>
+      <button onclick="window.location.href='dashboard.html'" class="btn-secondary">대시보드</button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="checker-container">
+    
+    <!-- 좌측: 업로드 & OCR -->
+    <div class="checker-upload-panel">
+      
+      <!-- 이미지 업로드 -->
+      <div class="upload-card">
+        <h3>📸 이미지 업로드</h3>
+        <p class="card-description">라벨 사진을 올려주세요</p>
+        
+        <div class="upload-area" onclick="document.getElementById('imageInput').click()">
+          <div class="upload-content">
+            <span class="upload-icon">📷</span>
+            <p>사진을 여기에 드래그하거나<br>클릭해서 선택하세요</p>
+            <span class="upload-hint">JPG, PNG (5MB 이하)</span>
+          </div>
+          <input type="file" id="imageInput" accept="image/*" hidden>
+        </div>
+        
+        <!-- 업로드된 이미지 미리보기 -->
+        <div id="imagePreviewContainer" style="display: none;">
+          <div class="preview-wrapper">
+            <img id="uploadedImage" src="" alt="Uploaded" class="preview-image">
+          </div>
+          <button type="button" class="btn-secondary" onclick="resetImage()">다른 사진 선택</button>
+          <button type="button" class="btn-primary" onclick="startOCR()" id="analyzeBtn">분석 시작</button>
+        </div>
+      </div>
+      
+      <!-- OCR 진행상황 -->
+      <div id="ocrProgress" style="display: none;">
+        <div class="progress-card">
+          <h3>⏳ 텍스트 추출 중...</h3>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <p id="progressText">처리 중: 0%</p>
+        </div>
+      </div>
+      
+    </div>
+    
+    <!-- 우측: 분석 결과 -->
+    <div class="checker-result-panel">
+      
+      <!-- OCR 추출 텍스트 -->
+      <div class="result-card">
+        <h3>📖 추출된 텍스트</h3>
+        <div class="ocr-text-container">
+          <textarea id="ocrText" class="ocr-text" readonly placeholder="이미지를 분석하면 추출된 텍스트가 여기에 표시됩니다"></textarea>
+          <button type="button" class="btn-secondary btn-copy" onclick="copyOCRText()">복사</button>
+        </div>
+      </div>
+      
+      <!-- 위험 등급 -->
+      <div class="result-card">
+        <h3>⚠️ 위험 등급</h3>
+        <div class="risk-level" id="riskLevel">
+          <div class="risk-badge risk-pending">대기중</div>
+          <p id="riskMessage">이미지를 분석해주세요</p>
+        </div>
+      </div>
+      
+      <!-- 분석 결과 상세 -->
+      <div class="result-card">
+        <h3>🔎 분석 결과</h3>
+        <div id="analysisResult" class="analysis-result">
+          <p class="empty-text">아직 분석 결과가 없습니다</p>
+        </div>
+      </div>
+      
+      <!-- 다운로드 & 액션 -->
+      <div class="result-card action-card">
+        <h3>📥 내보내기</h3>
+        <button type="button" class="btn-primary" onclick="downloadReport()" id="downloadBtn" disabled>📄 리포트 다운로드</button>
+        <button type="button" class="btn-success" onclick="goToCreator()" id="editBtn" disabled>✏️ 라벨 수정하기</button>
+        <button type="button" class="btn-secondary" onclick="resetAnalysis()">초기화</button>
+      </div>
+      
+    </div>
+    
+  </div>
+
+  <!-- Scripts -->
+  <script src="checker.js"></script>
+</body>
+</html>

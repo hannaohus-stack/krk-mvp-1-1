@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="KRK - 라벨부터 신고까지, 한 곳에서">
+  <title>KRK - 라벨 생성</title>
+  
+  <!-- Pretendard 폰트 -->
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #F0F4F8 0%, #E3EDF7 100%);
+      min-height: 100vh;
+      padding: 24px;
+      color: #1A2B4C;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* ==================== 헤더 ==================== */
+    .header {
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 24px;
+      padding: 32px;
+      margin-bottom: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+    }
+
+    .header-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1A2B4C;
+    }
+
+    .back-btn {
+      padding: 8px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(26, 43, 76, 0.2);
+      background: transparent;
+      color: #1A2B4C;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .back-btn:hover {
+      background: rgba(26, 43, 76, 0.05);
+    }
+
+    /* ==================== 메인 콘텐츠 ==================== */
+    .content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .section {
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1A2B4C;
+      margin-bottom: 24px;
+    }
+
+    /* ==================== 폼 요소 ==================== */
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #7A8FA3;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(26, 43, 76, 0.1);
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(10px);
+      font-family: 'Pretendard', sans-serif;
+      font-size: 14px;
+      color: #1A2B4C;
+      transition: all 0.3s;
+    }
+
+    input[type="text"]::placeholder,
+    textarea::placeholder {
+      color: #7A8FA3;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #B8D4FF;
+      box-shadow: 0 0 0 3px rgba(184, 212, 255, 0.2);
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    /* ==================== 재료 리스트 ==================== */
+    .ingredients-list {
+      margin-top: 24px;
+    }
+
+    .ingredient-item {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+      padding: 12px;
+      background: rgba(184, 212, 255, 0.1);
+      border: 1px solid rgba(184, 212, 255, 0.2);
+      border-radius: 12px;
+    }
+
+    .ingredient-item input {
+      flex: 2;
+    }
+
+    .ingredient-item input:last-of-type {
+      flex: 1;
+    }
+
+    .ingredient-remove {
+      padding: 8px 12px;
+      background: rgba(244, 67, 54, 0.1);
+      border: 1px solid rgba(244, 67, 54, 0.2);
+      border-radius: 8px;
+      color: #F44336;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .ingredient-remove:hover {
+      background: rgba(244, 67, 54, 0.2);
+    }
+
+    .add-ingredient-btn {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(184, 212, 255, 0.2);
+      border: 1px dashed rgba(184, 212, 255, 0.3);
+      border-radius: 12px;
+      color: #B8D4FF;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .add-ingredient-btn:hover {
+      background: rgba(184, 212, 255, 0.3);
+      border-color: rgba(184, 212, 255, 0.4);
+    }
+
+    /* ==================== 배합비 표시 ==================== */
+    .composition-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .composition-table th {
+      background: rgba(184, 212, 255, 0.1);
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      color: #1A2B4C;
+      border-bottom: 1px solid rgba(184, 212, 255, 0.2);
+    }
+
+    .composition-table td {
+      padding: 12px;
+      border-bottom: 1px solid rgba(26, 43, 76, 0.05);
+      color: #4A5F7F;
+    }
+
+    .composition-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .percentage {
+      font-weight: 600;
+      color: #1A2B4C;
+    }
+
+    /* ==================== 라벨 미리보기 ==================== */
+    .preview-section {
+      background: rgba(255, 255, 255, 0.7);
+      border: 2px solid rgba(26, 43, 76, 0.1);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .preview-label {
+      font-size: 12px;
+      color: #7A8FA3;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .preview-box {
+      background: white;
+      border: 2px solid #1A2B4C;
+      border-radius: 8px;
+      padding: 24px;
+      text-align: center;
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .preview-product-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1A2B4C;
+      margin-bottom: 16px;
+    }
+
+    .preview-ingredients {
+      font-size: 12px;
+      color: #4A5F7F;
+      line-height: 1.6;
+      text-align: left;
+      margin-bottom: 16px;
+    }
+
+    .preview-empty {
+      color: #7A8FA3;
+      font-size: 13px;
+    }
+
+    /* ==================== 버튼 ==================== */
+    .button-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 32px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 14px 24px;
+      border-radius: 12px;
+      border: none;
+      font-family: 'Pretendard', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, rgba(26, 43, 76, 0.9), rgba(26, 43, 76, 0.8));
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, rgba(26, 43, 76, 1), rgba(26, 43, 76, 0.9));
+      box-shadow: 0 8px 20px rgba(26, 43, 76, 0.2);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.4);
+      color: #1A2B4C;
+      border: 1px solid rgba(26, 43, 76, 0.15);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.6);
+    }
+
+    /* ==================== 정보 메시지 ==================== */
+    .info-message {
+      background: rgba(33, 150, 243, 0.05);
+      border: 1px solid rgba(33, 150, 243, 0.1);
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 13px;
+      color: #1565C0;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    /* 반응형 */
+    @media (max-width: 1024px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .ingredient-item {
+        flex-direction: column;
+      }
+
+      .ingredient-item input {
+        width: 100%;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+
+      .section {
+        padding: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 헤더 -->
+    <div class="header">
+      <h1 class="header-title">🏷️ 라벨 생성</h1>
+      <button class="back-btn" onclick="goBack()">← 뒤로가기</button>
+    </div>
+
+    <!-- 메인 콘텐츠 -->
+    <div class="content">
+      <!-- 좌측: 입력 폼 -->
+      <div class="section">
+        <h2 class="section-title">제품 정보</h2>
+
+        <div class="info-message">
+          💡 제품명과 재료를 입력하면 자동으로 배합비를 계산합니다.
+        </div>
+
+        <!-- 제품명 -->
+        <div class="form-group">
+          <label>제품명 *</label>
+          <input type="text" id="productName" placeholder="예: 고추장 볶음면" required>
+        </div>
+
+        <!-- 제품 설명 -->
+        <div class="form-group">
+          <label>제품 설명</label>
+          <textarea id="productDesc" placeholder="제품에 대한 간단한 설명"></textarea>
+        </div>
+
+        <!-- 재료 입력 -->
+        <div class="form-group">
+          <label>재료 *</label>
+          <div class="ingredients-list" id="ingredientsList">
+            <div class="ingredient-item">
+              <input type="text" class="ingredient-name" placeholder="재료명" value="고추" required>
+              <input type="number" class="ingredient-amount" placeholder="중량" value="100" min="0.01" step="0.01" required>
+              <button class="ingredient-remove" onclick="removeIngredient(this)">제거</button>
+            </div>
+            <div class="ingredient-item">
+              <input type="text" class="ingredient-name" placeholder="재료명" value="소금" required>
+              <input type="number" class="ingredient-amount" placeholder="중량" value="50" min="0.01" step="0.01" required>
+              <button class="ingredient-remove" onclick="removeIngredient(this)">제거</button>
+            </div>
+          </div>
+          <button class="add-ingredient-btn" onclick="addIngredient()">+ 재료 추가</button>
+        </div>
+      </div>
+
+      <!-- 우측: 미리보기 & 배합비 -->
+      <div class="section">
+        <h2 class="section-title">배합비 & 미리보기</h2>
+
+        <!-- 배합비 테이블 -->
+        <div style="margin-bottom: 24px;">
+          <div style="font-size: 12px; color: #7A8FA3; text-transform: uppercase; margin-bottom: 8px; font-weight: 600;">배합비</div>
+          <table class="composition-table" id="compositionTable">
+            <thead>
+              <tr>
+                <th>재료명</th>
+                <th style="width: 100px;">중량(g)</th>
+                <th style="width: 80px;">함유율(%)</th>
+              </tr>
+            </thead>
+            <tbody id="compositionBody">
+              <tr>
+                <td>고추</td>
+                <td>100</td>
+                <td class="percentage">66.67%</td>
+              </tr>
+              <tr>
+                <td>소금</td>
+                <td>50</td>
+                <td class="percentage">33.33%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 라벨 미리보기 -->
+        <div class="preview-section">
+          <div class="preview-label">라벨 미리보기</div>
+          <div class="preview-box">
+            <div class="preview-product-name" id="previewName">고추장 볶음면</div>
+            <div class="preview-ingredients" id="previewIngredients">
+              고추 66.67%<br>
+              소금 33.33%
+            </div>
+          </div>
+        </div>
+
+        <!-- 버튼 -->
+        <div class="button-group">
+          <button class="btn btn-primary" onclick="saveLabel()">💾 저장</button>
+          <button class="btn btn-secondary" onclick="downloadLabel()">⬇️ 다운로드</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 재료 추가
+    function addIngredient() {
+      const list = document.getElementById('ingredientsList');
+      const item = document.createElement('div');
+      item.className = 'ingredient-item';
+      item.innerHTML = `
+        <input type="text" class="ingredient-name" placeholder="재료명" required>
+        <input type="number" class="ingredient-amount" placeholder="중량" value="0" min="0.01" step="0.01" required>
+        <button class="ingredient-remove" onclick="removeIngredient(this)">제거</button>
+      `;
+      list.appendChild(item);
+      updateComposition();
+    }
+
+    // 재료 제거
+    function removeIngredient(btn) {
+      btn.parentElement.remove();
+      updateComposition();
+    }
+
+    // 배합비 업데이트
+    function updateComposition() {
+      const ingredients = document.querySelectorAll('.ingredient-item');
+      let totalWeight = 0;
+      const data = [];
+
+      ingredients.forEach(item => {
+        const name = item.querySelector('.ingredient-name').value;
+        const amount = parseFloat(item.querySelector('.ingredient-amount').value) || 0;
+        if (name && amount > 0) {
+          data.push({ name, amount });
+          totalWeight += amount;
+        }
+      });
+
+      // 배합비 테이블 업데이트
+      const tbody = document.getElementById('compositionBody');
+      tbody.innerHTML = data.map(ing => {
+        const percentage = ((ing.amount / totalWeight) * 100).toFixed(2);
+        return `
+          <tr>
+            <td>${ing.name}</td>
+            <td>${ing.amount}</td>
+            <td class="percentage">${percentage}%</td>
+          </tr>
+        `;
+      }).join('');
+
+      // 미리보기 업데이트
+      const previewName = document.getElementById('productName').value || '제품명';
+      document.getElementById('previewName').textContent = previewName;
+
+      const previewHTML = data.map(ing => {
+        const percentage = ((ing.amount / totalWeight) * 100).toFixed(2);
+        return `${ing.name} ${percentage}%`;
+      }).join('<br>');
+
+      document.getElementById('previewIngredients').innerHTML = previewHTML || '<span class="preview-empty">재료를 입력해주세요</span>';
+    }
+
+    // 실시간 업데이트 (입력 변경 시)
+    document.addEventListener('input', (e) => {
+      if (e.target.classList.contains('ingredient-name') || 
+          e.target.classList.contains('ingredient-amount') ||
+          e.target.id === 'productName') {
+        updateComposition();
+      }
+    });
+
+    // 저장
+    function saveLabel() {
+      const productName = document.getElementById('productName').value;
+      if (!productName) {
+        alert('제품명을 입력해주세요');
+        return;
+      }
+
+      const ingredients = [];
+      document.querySelectorAll('.ingredient-item').forEach(item => {
+        const name = item.querySelector('.ingredient-name').value;
+        const amount = parseFloat(item.querySelector('.ingredient-amount').value);
+        if (name && amount) {
+          ingredients.push({ name, amount });
+        }
+      });
+
+      // localStorage에 저장
+      const labelData = {
+        name: productName,
+        desc: document.getElementById('productDesc').value,
+        ingredients: ingredients,
+        date: new Date().toLocaleDateString('ko-KR')
+      };
+
+      let recentWorks = JSON.parse(localStorage.getItem('krk_recent_works') || '[]');
+      recentWorks.unshift(labelData);
+      if (recentWorks.length > 10) recentWorks.pop();
+      localStorage.setItem('krk_recent_works', JSON.stringify(recentWorks));
+
+      // 사용 횟수 감소
+      const user = JSON.parse(localStorage.getItem('krk_user') || '{}');
+      if (!user.isPremium && user.usageRemaining > 0) {
+        user.usageRemaining--;
+        localStorage.setItem('krk_user', JSON.stringify(user));
+      }
+
+      alert('라벨이 저장되었습니다!');
+    }
+
+    // 다운로드
+    function downloadLabel() {
+      const productName = document.getElementById('productName').value;
+      if (!productName) {
+        alert('제품명을 입력해주세요');
+        return;
+      }
+
+      // 간단한 텍스트 파일로 다운로드
+      const content = `
+KRK 라벨 생성 결과
+==================
+
+제품명: ${productName}
+설명: ${document.getElementById('productDesc').value || '-'}
+
+배합비:
+${Array.from(document.querySelectorAll('#compositionBody tr')).map(tr => {
+  const cells = tr.querySelectorAll('td');
+  return `${cells[0].textContent}: ${cells[1].textContent}g (${cells[2].textContent})`;
+}).join('\n')}
+
+생성일: ${new Date().toLocaleDateString('ko-KR')}
+      `;
+
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `${productName}_라벨.txt`;
+      link.click();
+    }
+
+    // 뒤로가기
+    function goBack() {
+      window.history.back();
+    }
+
+    // 초기화
+    updateComposition();
+  </script>
+</body>
+</html>

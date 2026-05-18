@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KRK — Wellness & F&B Branding</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Jost:wght@200;300;400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg:       #F7F4EE;
+      --btn:      #C8D1CA;
+      --btn-hover:#b8c3bb;
+      --text:     #3B312D;
+      --accent:   #55624E;
+      --muted:    #8a7f78;
+      --border:   rgba(59,49,45,0.10);
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 0 0 60px 0;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 420px;
+      padding: 72px 28px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      opacity: 0;
+      animation: fadeUp 0.9s cubic-bezier(0.22,1,0.36,1) 0.1s forwards;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── HERO ── */
+    .hero {
+      margin-bottom: 36px;
+    }
+
+    /* 로고 이미지 */
+    .logo-img {
+      display: block;
+      height: clamp(40px, 10vw, 52px);
+      width: auto;
+      margin-bottom: 18px;
+      object-fit: contain;
+      object-position: left center;
+    }
+
+    .tagline {
+      font-family: 'Jost', sans-serif;
+      font-weight: 200;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .sub-tagline {
+      font-family: 'Jost', sans-serif;
+      font-weight: 200;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      width: 32px;
+      height: 1px;
+      background: var(--border);
+      margin: 28px 0;
+    }
+
+    /* ── DESCRIPTION ── */
+    .description {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-weight: 300;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--muted);
+      margin-bottom: 36px;
+      letter-spacing: 0.01em;
+    }
+
+    /* ── PREVIEW IMAGE ── */
+    .preview {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: var(--btn);
+      border-radius: 6px;
+      margin-bottom: 44px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 이미지가 없을 때 보여지는 배경 그라디언트 */
+    .preview::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(135deg, rgba(85,98,78,0.08) 0%, transparent 60%),
+        linear-gradient(315deg, rgba(59,49,45,0.06) 0%, transparent 50%);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* 실제 이미지 */
+    .preview-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+    }
+
+    /* 이미지 없을 때 폴백 텍스트 */
+    .preview-fallback {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: 36px;
+      letter-spacing: 0.12em;
+      color: rgba(59,49,45,0.25);
+      z-index: 2;
+      position: relative;
+    }
+
+    /* ── BUTTONS ── */
+    .buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--btn);
+      color: var(--text);
+      text-decoration: none;
+      padding: 16px 22px;
+      border-radius: 100px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition:
+        background 0.25s ease,
+        border-color 0.25s ease,
+        transform 0.2s ease;
+      opacity: 0;
+      animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) forwards;
+    }
+
+    .btn:nth-child(1) { animation-delay: 0.35s; }
+    .btn:nth-child(2) { animation-delay: 0.45s; }
+    .btn:nth-child(3) { animation-delay: 0.55s; }
+    .btn:nth-child(4) { animation-delay: 0.65s; }
+
+    .btn:hover {
+      background: var(--btn-hover);
+      border-color: rgba(59,49,45,0.08);
+      transform: translateX(3px);
+    }
+
+    .btn:active {
+      transform: translateX(1px) scale(0.995);
+    }
+
+    .btn-label {
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      font-size: 13.5px;
+      letter-spacing: 0.06em;
+      color: var(--text);
+    }
+
+    .btn-arrow {
+      font-family: 'Jost', sans-serif;
+      font-weight: 200;
+      font-size: 16px;
+      color: var(--accent);
+      transition: transform 0.2s ease;
+      line-height: 1;
+    }
+
+    .btn:hover .btn-arrow {
+      transform: translateX(3px);
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      margin-top: 48px;
+      font-family: 'Jost', sans-serif;
+      font-weight: 200;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(59,49,45,0.3);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- HERO -->
+    <div class="hero">
+      <!-- KRK 로고 PNG -->
+      <img src="logo.png" alt="KRK" class="logo-img" />
+      <div class="tagline">Wellness &amp; F&amp;B Branding</div>
+      <div class="sub-tagline">AI Brand Operating System</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- DESCRIPTION -->
+    <p class="description">
+      웰니스·식품 브랜드를 위한<br />
+      AI-native creative direction system
+    </p>
+
+    <!-- PROJECT PREVIEW IMAGE -->
+    <!-- 이미지 교체 시: src="원하는_이미지_경로" 로 변경 -->
+    <div class="preview">
+      <img
+        src=""
+        alt="KRK Featured Work"
+        class="preview-img"
+        onerror="this.style.display='none'"
+      />
+      <span class="preview-fallback" id="previewFallback">KRK</span>
+    </div>
+
+    <!-- BUTTONS -->
+    <div class="buttons">
+      <a href="https://krk.team/work/index.html" class="btn" target="_blank" rel="noopener">
+        <span class="btn-label">Selected Works</span>
+        <span class="btn-arrow">→</span>
+      </a>
+      <a href="https://krk.team/service-v2.html" class="btn" target="_blank" rel="noopener">
+        <span class="btn-label">Brand OS</span>
+        <span class="btn-arrow">→</span>
+      </a>
+      <a href="https://open.kakao.com/o/sSbV2tvi" class="btn" target="_blank" rel="noopener">
+        <span class="btn-label">Chat Contact</span>
+        <span class="btn-arrow">→</span>
+      </a>
+      <a href="https://www.instagram.com/director.ian.krk/" class="btn" target="_blank" rel="noopener">
+        <span class="btn-label">Instagram</span>
+        <span class="btn-arrow">→</span>
+      </a>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">© KRK Studio</div>
+
+  </div>
+
+  <script>
+    // 프리뷰 이미지가 로드되면 폴백 텍스트 숨기기
+    const previewImg = document.querySelector('.preview-img');
+    const fallback = document.getElementById('previewFallback');
+    if (previewImg && previewImg.src && previewImg.src !== window.location.href) {
+      previewImg.addEventListener('load', () => {
+        if (fallback) fallback.style.display = 'none';
+      });
+    }
+  </script>
+</body>
+</html>

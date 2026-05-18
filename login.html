@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KRK - 로그인</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --color-bg-light: #F0F4F8;
+      --color-bg-base: #E3EDF7;
+      --color-accent-glow: #B8D4FF;
+      --color-text-dark: #1A2B4C;
+      --color-text-light: #4A5F7F;
+      --color-text-lighter: #7A8FA3;
+      --color-success: #4CAF50;
+      --color-warning: #FF9800;
+      --color-error: #F44336;
+      --color-info: #2196F3;
+      --font-primary: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-weight-regular: 400;
+      --font-weight-medium: 500;
+      --font-weight-semibold: 600;
+      --font-weight-bold: 700;
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+      --spacing-lg: 24px;
+      --spacing-xl: 32px;
+      --spacing-2xl: 48px;
+      --radius-xs: 8px;
+      --radius-sm: 12px;
+      --radius-md: 16px;
+      --radius-lg: 20px;
+      --radius-xl: 24px;
+      --shadow-xs: 0 2px 8px rgba(31, 38, 135, 0.03);
+      --shadow-sm: 0 6px 24px rgba(31, 38, 135, 0.05);
+      --shadow-md: 0 8px 32px rgba(31, 38, 135, 0.07);
+      --shadow-lg: 0 12px 40px rgba(31, 38, 135, 0.12);
+      --transition-normal: 0.3s ease;
+    }
+
+    body {
+      font-family: var(--font-primary);
+      color: var(--color-text-light);
+      background-color: var(--color-bg-light);
+      background-image: 
+        radial-gradient(circle at 0% 0%, hsla(210, 50%, 93%, 1) 0, transparent 50%), 
+        radial-gradient(circle at 100% 0%, hsla(212, 60%, 88%, 1) 0, transparent 50%),
+        radial-gradient(circle at 50% 100%, hsla(214, 40%, 95%, 1) 0, transparent 50%);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ==================== 네비게이션 ==================== */
+    nav {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(15px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+      padding: var(--spacing-lg) var(--spacing-xl);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: var(--shadow-xs);
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      transition: all var(--transition-normal);
+    }
+
+    .logo-img {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 4px rgba(26, 43, 76, 0.1));
+      transition: all var(--transition-normal);
+    }
+
+    .logo:hover .logo-img {
+      filter: drop-shadow(0 4px 8px rgba(26, 43, 76, 0.15)) brightness(1.05);
+      transform: scale(1.08);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: var(--spacing-xl);
+      list-style: none;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: var(--color-text-dark);
+      font-weight: var(--font-weight-semibold);
+      font-size: 14px;
+      transition: color var(--transition-normal);
+    }
+
+    .nav-links a:hover {
+      color: var(--color-info);
+    }
+
+    /* ==================== 메인 콘텐츠 ==================== */
+    .main-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--spacing-2xl) var(--spacing-xl);
+    }
+
+    .form-container {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .form-header {
+      text-align: center;
+      margin-bottom: var(--spacing-2xl);
+    }
+
+    .form-header h1 {
+      font-size: 32px;
+      font-weight: var(--font-weight-bold);
+      color: var(--color-text-dark);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .form-header p {
+      font-size: 16px;
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-dark);
+      line-height: 1.6;
+    }
+
+    /* ==================== 버튼 그룹 ==================== */
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .btn {
+      padding: 14px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-weight: var(--font-weight-bold);
+      cursor: pointer;
+      transition: all var(--transition-normal);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-family: var(--font-primary);
+      width: 100%;
+      height: auto;
+    }
+
+    /* Kakao 버튼 */
+    .btn-kakao {
+      background: #FFE812;
+      color: #333;
+      border: 1px solid rgba(255, 232, 18, 0.3);
+    }
+
+    .btn-kakao:hover {
+      background: #FFCB00;
+      box-shadow: 0 8px 20px rgba(255, 200, 0, 0.3);
+      transform: translateY(-2px);
+    }
+
+    /* 이메일 버튼 */
+    .btn-email {
+      background: white;
+      color: var(--color-info);
+      border: 2px solid var(--color-info);
+    }
+
+    .btn-email:hover {
+      background: var(--color-info);
+      color: white;
+      box-shadow: 0 8px 20px rgba(33, 150, 243, 0.2);
+      transform: translateY(-2px);
+    }
+
+    /* 아이콘 스타일 */
+    .btn-icon {
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+    }
+
+    /* ==================== 로딩 및 에러 ==================== */
+    #loading {
+      text-align: center;
+      padding: var(--spacing-lg);
+      display: none;
+    }
+
+    #loading p {
+      color: var(--color-text-light);
+      font-weight: var(--font-weight-semibold);
+    }
+
+    #error {
+      background: rgba(244, 67, 54, 0.1);
+      border: 1px solid rgba(244, 67, 54, 0.3);
+      border-radius: var(--radius-sm);
+      padding: var(--spacing-lg);
+      color: var(--color-error);
+      margin-bottom: var(--spacing-xl);
+      display: none;
+      font-size: 14px;
+      font-weight: var(--font-weight-semibold);
+    }
+
+    /* 약관 텍스트 */
+    .terms-text {
+      text-align: center;
+      font-size: 12px;
+      color: var(--color-text-lighter);
+      margin-bottom: var(--spacing-xl);
+      line-height: 1.6;
+    }
+
+    .terms-text a {
+      color: var(--color-info);
+      text-decoration: none;
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .terms-text a:hover {
+      text-decoration: underline;
+    }
+
+    /* ==================== 푸터 ==================== */
+    footer {
+      background: linear-gradient(135deg, rgba(26, 43, 76, 0.9), rgba(26, 43, 76, 0.75));
+      color: white;
+      padding: var(--spacing-xl);
+      text-align: center;
+      margin-top: auto;
+    }
+
+    footer p {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    /* ==================== 반응형 ==================== */
+    @media (max-width: 768px) {
+      .form-container {
+        max-width: 100%;
+      }
+
+      .form-header h1 {
+        font-size: 24px;
+      }
+
+      .nav-links {
+        display: none;
+      }
+    }
+  </style>
+
+</head>
+<body>
+  <!-- 네비게이션 -->
+  <nav>
+    <div class="nav-container">
+      <a href="index.html" class="logo">
+        <img src="logo.png" alt="KRK Logo" class="logo-img">
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html#features">기능</a></li>
+        <li><a href="index.html#pricing">요금</a></li>
+        <li><a href="index.html#about">회사</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- 메인 콘텐츠 -->
+
+  <div class="main-content">
+    <div class="form-container">
+      <div class="form-header">
+        <h1>식품라벨 자동화</h1>
+        <p>카카오로 시작하여 규제 준수를 간편하게</p>
+      </div>
+
+```
+  <!-- 에러 메시지 -->
+  <div id="error"></div>
+
+  <!-- 로딩 상태 -->
+  <div id="loading">
+    <p>로그인 중...</p>
+  </div>
+
+  <!-- 로그인/가입 버튼 -->
+  <div class="btn-group">
+    <!-- Kakao 로그인 버튼 -->
+    <button id="kakao-login-btn" class="btn btn-kakao">
+      <span class="btn-icon">💬</span>
+      카카오로 시작
+    </button>
+
+    <!-- 이메일 가입 버튼 -->
+    <button class="btn btn-email" onclick="window.location.href='signup.html'">
+      <span class="btn-icon">✉️</span>
+      이메일로 시작
+    </button>
+  </div>
+
+  <!-- 약관 텍스트 -->
+  <div class="terms-text">
+    로그인하면 <a href="terms.html">이용약관</a>과<br>
+    <a href="privacy.html">개인정보 처리방침</a>에 동의합니다
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- 푸터 -->
+
+  <footer>
+    <p>&copy; 2026 KRK. All rights reserved. | Powered by Chaeum</p>
+  </footer>
+
+  <script>
+    // Kakao SDK 초기화
+    const KAKAO_JS_KEY = 'b1ff009e23c24515065c5a3d54585dae';
+    const API_URL = 'http://localhost:5001';
+    
+    Kakao.init(KAKAO_JS_KEY);
+
+    // Kakao 로그인 버튼 클릭
+    document.getElementById('kakao-login-btn').addEventListener('click', function() {
+      Kakao.Auth.loginWithPopup({
+        success: function(authObj) {
+          Kakao.API.request({
+            url: '/v2/user/me',
+            success: function(res) {
+              const userData = {
+                kakaoId: res.id,
+                nickname: res.kakao_account.profile.nickname,
+                email: res.kakao_account.email,
+                profileImageUrl: res.kakao_account.profile.profile_image_url
+              };
+
+              loginToBackend(userData);
+            },
+            fail: function(error) {
+              showError('사용자 정보를 가져올 수 없습니다');
+            }
+          });
+        },
+        fail: function(error) {
+          showError('카카오 로그인에 실패했습니다');
+        }
+      });
+    });
+
+    // 백엔드 로그인
+    async function loginToBackend(userData) {
+      const loading = document.getElementById('loading');
+      const errorDiv = document.getElementById('error');
+      
+      loading.style.display = 'block';
+      errorDiv.style.display = 'none';
+
+      try {
+        const response = await fetch(`${API_URL}/api/auth/kakao`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(userData)
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          localStorage.setItem('krk_session', 'true');
+          localStorage.setItem('authToken', data.token);
+          localStorage.setItem('krk_user', JSON.stringify({
+            id: data.user.id,
+            email: data.user.email,
+            nickname: data.user.nickname,
+            company: data.user.company_name || '회사명',
+            isPremium: data.user.plan !== 'LITE',
+            usageQuota: 3,
+            usageRemaining: 3
+          }));
+          
+          window.location.href = 'dashboard.html';
+        } else {
+          showError(data.error || '로그인에 실패했습니다');
+        }
+      } catch (error) {
+        console.warn('백엔드 연결 실패, 로컬 모드로 진행:', error);
+        localStorage.setItem('krk_session', 'true');
+        localStorage.setItem('krk_user', JSON.stringify({
+          id: 'test_user',
+          email: userData.email,
+          nickname: userData.nickname,
+          company: '테스트 회사',
+          isPremium: false,
+          usageQuota: 3,
+          usageRemaining: 3
+        }));
+        window.location.href = 'dashboard.html';
+      }
+    }
+
+    function showError(message) {
+      document.getElementById('error').textContent = message;
+      document.getElementById('error').style.display = 'block';
+      document.getElementById('loading').style.display = 'none';
+    }
+  </script>
+
+</body>
+</html>

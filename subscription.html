@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="KRK - 라벨부터 신고까지, 한 곳에서">
+  <title>KRK - 구독 관리</title>
+  
+  <!-- Pretendard 폰트 -->
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #F0F4F8 0%, #E3EDF7 100%);
+      min-height: 100vh;
+      padding: 24px;
+      color: #1A2B4C;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* ==================== 헤더 ==================== */
+    .header {
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 24px;
+      padding: 32px;
+      margin-bottom: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1A2B4C;
+    }
+
+    .back-btn {
+      padding: 8px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(26, 43, 76, 0.2);
+      background: transparent;
+      color: #1A2B4C;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .back-btn:hover {
+      background: rgba(26, 43, 76, 0.05);
+    }
+
+    /* ==================== 섹션 ==================== */
+    .section {
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 24px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1A2B4C;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ==================== 플랜 정보 ==================== */
+    .plan-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px;
+      background: rgba(184, 212, 255, 0.1);
+      border: 1px solid rgba(184, 212, 255, 0.2);
+      border-radius: 16px;
+      margin-bottom: 16px;
+    }
+
+    .plan-details {
+      flex: 1;
+    }
+
+    .plan-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1A2B4C;
+      margin-bottom: 4px;
+    }
+
+    .plan-price {
+      font-size: 14px;
+      color: #4A5F7F;
+    }
+
+    .plan-status {
+      display: inline-block;
+      padding: 6px 12px;
+      background: rgba(76, 175, 80, 0.2);
+      border: 1px solid rgba(76, 175, 80, 0.3);
+      border-radius: 8px;
+      color: #4CAF50;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* ==================== 정보 행 ==================== */
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(26, 43, 76, 0.05);
+    }
+
+    .info-row:last-child {
+      border-bottom: none;
+    }
+
+    .info-label {
+      font-size: 14px;
+      color: #4A5F7F;
+      font-weight: 600;
+    }
+
+    .info-value {
+      font-size: 14px;
+      color: #1A2B4C;
+      font-weight: 600;
+    }
+
+    /* ==================== 액션 버튼 ==================== */
+    .action-btn {
+      width: 100%;
+      padding: 14px 24px;
+      border-radius: 12px;
+      border: none;
+      font-family: 'Pretendard', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 12px;
+    }
+
+    .action-btn:last-child {
+      margin-bottom: 0;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, rgba(26, 43, 76, 0.9), rgba(26, 43, 76, 0.8));
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, rgba(26, 43, 76, 1), rgba(26, 43, 76, 0.9));
+      box-shadow: 0 8px 20px rgba(26, 43, 76, 0.2);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.4);
+      color: #1A2B4C;
+      border: 1px solid rgba(26, 43, 76, 0.15);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.6);
+    }
+
+    .btn-danger {
+      background: rgba(244, 67, 54, 0.1);
+      color: #F44336;
+      border: 1px solid rgba(244, 67, 54, 0.2);
+    }
+
+    .btn-danger:hover {
+      background: rgba(244, 67, 54, 0.2);
+      border-color: rgba(244, 67, 54, 0.3);
+    }
+
+    /* ==================== 주의 박스 ==================== */
+    .warning-box {
+      background: rgba(244, 67, 54, 0.05);
+      border: 1px solid rgba(244, 67, 54, 0.2);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 24px;
+    }
+
+    .warning-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #F44336;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .warning-text {
+      font-size: 12px;
+      color: #F44336;
+      line-height: 1.6;
+    }
+
+    /* ==================== 사용량 ==================== */
+    .usage-info {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .usage-card {
+      flex: 1;
+      min-width: 150px;
+      background: rgba(184, 212, 255, 0.1);
+      border: 1px solid rgba(184, 212, 255, 0.2);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .usage-label {
+      font-size: 12px;
+      color: #4A5F7F;
+      margin-bottom: 8px;
+    }
+
+    .usage-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1A2B4C;
+    }
+
+    /* 반응형 */
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .plan-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
+
+      .usage-info {
+        flex-direction: column;
+      }
+
+      .usage-card {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 헤더 -->
+    <div class="header">
+      <div class="header-left">
+        <h1 class="header-title">구독 관리</h1>
+      </div>
+      <button class="back-btn" onclick="goBack()">← 뒤로가기</button>
+    </div>
+
+    <!-- 현재 플랜 -->
+    <div class="section">
+      <h2 class="section-title">📋 현재 플랜</h2>
+      
+      <div class="plan-info">
+        <div class="plan-details">
+          <div class="plan-name" id="planName">FREE</div>
+          <div class="plan-price" id="planPrice">무료</div>
+        </div>
+        <span class="plan-status" id="planStatus">무료 플랜</span>
+      </div>
+
+      <div class="info-row">
+        <span class="info-label">플랜 시작일</span>
+        <span class="info-value" id="startDate">-</span>
+      </div>
+
+      <div class="info-row">
+        <span class="info-label">다음 결제일</span>
+        <span class="info-value" id="nextBillingDate">-</span>
+      </div>
+
+      <button class="action-btn btn-primary" onclick="goToUpgrade()" id="upgradeBtn" style="display: none; margin-top: 24px;">
+        STANDARD으로 업그레이드
+      </button>
+    </div>
+
+    <!-- 사용량 -->
+    <div class="section">
+      <h2 class="section-title">📊 사용량</h2>
+      <div class="usage-info">
+        <div class="usage-card">
+          <div class="usage-label">라벨 생성</div>
+          <div class="usage-value" id="labelUsage">3</div>
+        </div>
+        <div class="usage-card">
+          <div class="usage-label">라벨 진단</div>
+          <div class="usage-value" id="diagnoseUsage">1</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 청구 정보 -->
+    <div class="section">
+      <h2 class="section-title">💳 청구 정보</h2>
+      
+      <div class="info-row">
+        <span class="info-label">청구 이메일</span>
+        <span class="info-value" id="billingEmail">-</span>
+      </div>
+
+      <button class="action-btn btn-secondary" onclick="goToStripePortal()" id="cardBtn" style="display: none; margin-top: 16px;">
+        카드 정보 변경
+      </button>
+
+      <div style="margin-top: 16px; font-size: 12px; color: #7A8FA3;">
+        💡 카드 정보는 Stripe을 통해 안전하게 관리됩니다.
+      </div>
+    </div>
+
+    <!-- 구독 취소 -->
+    <div class="section">
+      <h2 class="section-title">⚠️ 구독 설정</h2>
+      
+      <div style="margin-bottom: 24px;">
+        <p style="font-size: 14px; color: #4A5F7F; margin-bottom: 16px;">
+          구독을 취소하면 현재 결제 주기 끝까지는 STANDARD 플랜을 이용할 수 있습니다.
+        </p>
+        <button class="action-btn btn-danger" onclick="cancelSubscription()" id="cancelBtn" style="display: none;">
+          구독 취소
+        </button>
+      </div>
+
+      <div class="warning-box">
+        <div class="warning-title">⚠️ 주의</div>
+        <div class="warning-text">
+          구독을 취소하면 현재 결제 주기가 끝난 후 자동으로 FREE 플랜으로 다운그레이드됩니다. 저장된 데이터는 유지됩니다.
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // 페이지 로드 시 플랜 정보 표시
+    window.addEventListener('load', () => {
+      const testMode = new URLSearchParams(window.location.search).get('test') === '1';
+      let user = localStorage.getItem('krk_user');
+      
+      if (!user && testMode) {
+        user = JSON.stringify({
+          id: 'test_user',
+          email: 'test@example.com',
+          company: '테스트 회사',
+          isPremium: false,
+          usageQuota: 3,
+          usageRemaining: 1,
+          createdAt: new Date().toISOString()
+        });
+      }
+
+      if (user) {
+        user = JSON.parse(user);
+        
+        // 플랜 정보 표시
+        const planName = document.getElementById('planName');
+        const planPrice = document.getElementById('planPrice');
+        const planStatus = document.getElementById('planStatus');
+        const upgradeBtn = document.getElementById('upgradeBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const cardBtn = document.getElementById('cardBtn');
+        const nextBillingDate = document.getElementById('nextBillingDate');
+        const startDate = document.getElementById('startDate');
+        const billingEmail = document.getElementById('billingEmail');
+
+        if (user.isPremium) {
+          planName.textContent = 'STANDARD';
+          planPrice.textContent = '₩49,900 / 월';
+          planStatus.textContent = '활성';
+          upgradeBtn.style.display = 'none';
+          cancelBtn.style.display = 'block';
+          cardBtn.style.display = 'block';
+
+          // 다음 결제일 계산
+          const nextBilling = new Date();
+          nextBilling.setMonth(nextBilling.getMonth() + 1);
+          nextBillingDate.textContent = nextBilling.toLocaleDateString('ko-KR');
+
+          // 사용량 무제한 표시
+          document.getElementById('labelUsage').textContent = '무제한';
+          document.getElementById('diagnoseUsage').textContent = '무제한';
+        } else {
+          planName.textContent = 'FREE';
+          planPrice.textContent = '무료';
+          planStatus.textContent = '무료 플랜';
+          upgradeBtn.style.display = 'block';
+          cancelBtn.style.display = 'none';
+          cardBtn.style.display = 'none';
+          nextBillingDate.textContent = '-';
+
+          // 사용량 표시
+          const usageRemaining = user.usageRemaining || 3;
+          const usageUsed = user.usageQuota - usageRemaining;
+          document.getElementById('labelUsage').textContent = usageUsed + ' / ' + user.usageQuota;
+        }
+
+        // 가입일 표시
+        if (user.createdAt) {
+          const createdDate = new Date(user.createdAt);
+          startDate.textContent = createdDate.toLocaleDateString('ko-KR');
+        } else {
+          startDate.textContent = new Date().toLocaleDateString('ko-KR');
+        }
+
+        // 청구 이메일
+        billingEmail.textContent = user.email;
+      }
+    });
+
+    function goBack() {
+      window.history.back();
+    }
+
+    function goToUpgrade() {
+      window.location.href = 'paywall.html';
+    }
+
+    function goToStripePortal() {
+      // 실제로는 Stripe Customer Portal로 이동
+      alert('Stripe 결제 포털로 이동합니다. (2025년 개발 예정)');
+    }
+
+    function cancelSubscription() {
+      if (confirm('정말로 구독을 취소하시겠습니까? 현재 결제 주기 끝까지는 STANDARD 플랜을 이용할 수 있습니다.')) {
+        // 테스트용: localStorage에서 프리미엄 제거
+        const user = JSON.parse(localStorage.getItem('krk_user') || '{}');
+        user.isPremium = false;
+        localStorage.setItem('krk_user', JSON.stringify(user));
+        
+        alert('구독이 취소되었습니다.');
+        location.reload();
+      }
+    }
+  </script>
+</body>
+</html>
