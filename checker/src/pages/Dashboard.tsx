@@ -131,9 +131,9 @@ export default function Dashboard() {
   const totalCount  = history.length
   const recent      = history.slice(0, 5)
 
-  const handleGo = (_type?: WorkRecord['type']) => {
-    setHistory(addRecord('creator'))
-    navigate('/creator')
+  const handleGo = (type: WorkRecord['type'] = 'creator') => {
+    setHistory(addRecord(type))
+    navigate(type === 'checker' ? '/checker' : '/creator')
   }
 
   return (
@@ -168,6 +168,7 @@ export default function Dashboard() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <ActionCard type="checker" onClick={() => { setHistory(addRecord('checker')); navigate('/checker') }} />
             <ActionCard type="creator" onClick={() => handleGo('creator')} />
           </div>
         </section>
