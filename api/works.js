@@ -49,7 +49,7 @@ function transformPage(page) {
 
   return {
     id: slug || page.id,
-    link: slug ? `${slug}.html` : "#",
+    link: slug ? `/work/${slug}` : "#",
     slug,
     name: krName,           // 한글
     en: enName,             // 영문
