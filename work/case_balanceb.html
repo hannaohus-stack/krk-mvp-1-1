@@ -469,7 +469,7 @@
 
       .ig-card {
         flex: 0 0 auto;
-        width: clamp(240px, 28vw, 300px);
+        width: clamp(200px, 22vw, 260px);
         background: #fff;
         border-radius: 12px;
         overflow: hidden;
@@ -673,7 +673,9 @@
       .wf-visual {
         display: flex;
         align-items: center;
+        justify-content: center;   /* 전체를 중앙 정렬 */
         gap: 0;
+        width: 100%;
       }
 
       /* 왼쪽: 제품 카드 + 노드 */
@@ -688,7 +690,7 @@
         border-radius: 12px;
         padding: 10px;
         box-shadow: 0 8px 28px rgba(26,24,22,.08);
-        width: clamp(120px, 14vw, 170px);
+        width: clamp(130px, 15vw, 180px);
         aspect-ratio: 3 / 4;
         overflow: hidden;
         flex-shrink: 0;
@@ -706,14 +708,13 @@
         z-index: 1;
       }
 
-      /* 연결선 (수평) */
+      /* 연결선 (수평) — 고정 길이 */
       .wf-connector {
-        flex: 1;
+        width: 48px;
+        flex-shrink: 0;
         height: 1px;
         background: var(--ink);
         opacity: .2;
-        min-width: 24px;
-        max-width: 56px;
       }
 
       /* 오른쪽: 노드 + 6장 그리드 */
@@ -729,7 +730,7 @@
         padding: 10px;
         box-shadow: 0 8px 28px rgba(26,24,22,.08);
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);   /* 3열로 변경 */
         gap: 5px;
       }
       .wf-refgrid > div {
@@ -737,7 +738,7 @@
         overflow: hidden;
         background: var(--paper-2);
         border-radius: 4px;
-        width: clamp(56px, 6.5vw, 80px);
+        width: clamp(52px, 5.5vw, 72px);
       }
       .wf-refgrid img {
         width: 100%; height: 100%; object-fit: cover;
