@@ -373,14 +373,13 @@
   <body>
     <header class="topbar is-light">
       <nav class="topbar-menu left">
-        <a href="../service-v2.html">Service</a>
+        <a href="../service.html">Service</a>
         <a class="is-active" href="index.html">Work</a>
-        <a class="make-label-btn make-label-mobile" href="https://checker.krk.team/" target="_blank">Make Label</a>
       </nav>
       <a class="topbar-logo" href="../index.html" aria-label="KRK home">
         <img src="../assets/krk-logo.svg" alt="KRK" />
       </a>
-      <div class="topbar-right"><a class="make-label-btn" href="https://checker.krk.team/" target="_blank">Make Label</a></div>
+      <div class="topbar-right"></div>
     </header>
 
     <main>
@@ -469,7 +468,6 @@
           <article class="slide-card" data-slide-index="${i}" data-id="${w.id}" data-link="${w.link}">
             <div class="slide-image">
               <img src="${w.thumb}" alt="${w.en}" draggable="false" ${i === 0 ? '' : 'loading="lazy"'} />
-              <p class="slide-label">${w.en}</p>
             </div>
           </article>
         `).join('');
@@ -501,22 +499,20 @@
 
         slideRail.classList.toggle('dragging', isDragging);
 
-        requestAnimationFrame(() => {
-          slideRail.querySelectorAll('.slide-card').forEach((card) => {
-            const idx = Number(card.dataset.slideIndex);
-            const offset = idx - currentIndex;
-            const distance = clamp(Math.abs(offset), 0, 2);
-            const isActive = offset === 0;
-            const inView = Math.abs(offset) <= 2;
-            card.style.opacity = inView ? (isActive ? 1 : 0.42 - distance * 0.08) : 0;
-            card.style.filter = isActive ? 'blur(0px) saturate(1)' : `blur(${1.6 + distance * 0.9}px) saturate(.78)`;
-            card.style.transform = `translateX(calc(-50% + ${offset * 64}% + ${dragX}px)) translateY(${isActive ? 0 : 30 + distance * 10}px) scale(${isActive ? 1 : 0.93 - distance * 0.025})`;
-            card.style.zIndex = isActive ? 30 : 10 - distance;
-            card.style.pointerEvents = inView ? 'auto' : 'none';
-            card.style.transition = isDragging
-              ? 'none'
-              : 'opacity 220ms ease, filter 280ms ease, transform 350ms cubic-bezier(.19,1,.22,1)';
-          });
+        slideRail.querySelectorAll('.slide-card').forEach((card) => {
+          const idx = Number(card.dataset.slideIndex);
+          const offset = idx - currentIndex;
+          const distance = clamp(Math.abs(offset), 0, 2);
+          const isActive = offset === 0;
+          const inView = Math.abs(offset) <= 2;
+          card.style.opacity = inView ? (isActive ? 1 : 0.42 - distance * 0.08) : 0;
+          card.style.filter = isActive ? 'blur(0px) saturate(1)' : `blur(${1.6 + distance * 0.9}px) saturate(.78)`;
+          card.style.transform = `translateX(calc(-50% + ${offset * 64}% + ${dragX}px)) translateY(${isActive ? 0 : 30 + distance * 10}px) scale(${isActive ? 1 : 0.93 - distance * 0.025})`;
+          card.style.zIndex = isActive ? 30 : 10 - distance;
+          card.style.pointerEvents = inView ? 'auto' : 'none';
+          card.style.transition = isDragging
+            ? 'none'
+            : 'opacity 560ms ease, filter 720ms ease, transform 920ms cubic-bezier(.19,1,.22,1)';
         });
       }
 
