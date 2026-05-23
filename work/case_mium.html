@@ -67,7 +67,7 @@
 
       .fade-in {
         opacity: 0;
-        transition: opacity 0.25s ease;
+        transition: opacity 1s ease;
       }
       .fade-in.visible { opacity: 1; }
 
@@ -543,14 +543,13 @@
     <!-- TOPBAR — case_mium.html 동일 구조 -->
     <header class="topbar">
       <nav class="topbar-menu left">
-        <a href="../service-v2.html">Service</a>
+        <a href="../service.html">Service</a>
         <a class="is-active" href="index.html">Work</a>
-        <a class="make-label-btn make-label-mobile" href="https://checker.krk.team/" target="_blank">Make Label</a>
       </nav>
       <a class="topbar-logo" href="../index.html" aria-label="KRK home">
         <img src="../assets/krk-logo.svg" alt="KRK" />
       </a>
-      <div class="topbar-right"><a class="make-label-btn" href="https://checker.krk.team/" target="_blank">Make Label</a></div>
+      <span aria-hidden="true"></span>
     </header>
 
     <main>
@@ -561,7 +560,7 @@
         </div>
         <div class="hero-overlay"></div>
         <div class="hero-inner">
-          <h1 class="hero-title" id="heroTitle"></h1>
+          <h1 class="hero-title fade-in" id="heroTitle"></h1>
         </div>
       </section>
 
@@ -569,8 +568,8 @@
       <section class="overview">
         <div class="container">
           <div class="overview-grid">
-            <div class="meta-list" id="metaList"></div>
-            <p class="overview-lead" id="overviewLead"></p>
+            <div class="meta-list fade-in" id="metaList"></div>
+            <p class="overview-lead fade-in" id="overviewLead"></p>
           </div>
         </div>
       </section>
@@ -582,7 +581,7 @@
             <h2 class="section-title" id="visualTitle"></h2>
           </div>
         </div>
-        <div class="carousel-frame">
+        <div class="carousel-frame fade-in">
           <div class="carousel-track" id="carouselTrack"></div>
         </div>
       </section>
@@ -679,32 +678,35 @@
         ],
         webHeadline: "Good ingredients, quietly prepared.",
         webSub: "Korean care culture, redesigned as a lifestyle object.",
-        heroImage: "../assets/mu-a-02.png",
+        heroImage: "../assets/mium-a-01.png",
         slides: [
-          "../assets/mu-a-01.png",
-          "../assets/mu-a-02.png",
-          "../assets/mu-a-03.png",
-          "../assets/mu-a-04.png",
-          "../assets/mu-a-05.png"
+          "../assets/mium-a-01.png",
+          "../assets/mium-a-02.png",
+          "../assets/mium-a-03.png",
+          "../assets/mium-a-04.png",
+          "../assets/mium-a-05.png",
+          "../assets/mium-m-01.png"
         ],
         igGrid: [
-          "../assets/mu-a-01.png",
-          "../assets/mu-a-02.png",
-          "../assets/mu-a-03.png",
-          "../assets/mu-m-01.png",
-          "../assets/mu-m-02.png",
-          "../assets/mu-m-03.png",
-          "../assets/mu-m-04.png",
-          "../assets/mu-p-01.png",
-          "../assets/mu-p-02.png"
+          "../assets/mium-a-01.png",
+          "../assets/mium-a-02.png",
+          "../assets/mium-a-03.png",
+          "../assets/mium-a-04.png",
+          "../assets/mium-a-05.png",
+          "../assets/mium-m-01.png",
+          "../assets/mium-m-02.png",
+          "../assets/mium-m-03.png",
+          "../assets/mium-m-04.png"
         ],
-        webImage: "",
-        wfAnchor: "../assets/mu-p-01.png",
+        webImage: "../assets/mium-m-01.png",
+        wfAnchor: "../assets/mium-a-01.png",
         wfRefs: [
-          "../assets/mu-a-01.png",
-          "../assets/mu-a-02.png",
-          "../assets/mu-m-02.png",
-          "../assets/mu-m-03.png"
+          "../assets/mium-a-02.png",
+          "../assets/mium-a-03.png",
+          "../assets/mium-a-04.png",
+          "../assets/mium-a-05.png",
+          "../assets/mium-m-01.png",
+          "../assets/mium-m-02.png"
         ]
       }];
 
@@ -768,7 +770,7 @@
             io.unobserve(e.target);
           }
         });
-      }, { threshold: 0.05 });
+      }, { threshold: 0.1 });
       document.querySelectorAll('.fade-in').forEach(el => io.observe(el));
 
       // Auto-scroll carousel
