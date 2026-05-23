@@ -67,7 +67,7 @@
 
       .fade-in {
         opacity: 0;
-        transition: opacity 0.25s ease;
+        transition: opacity 1s ease;
       }
       .fade-in.visible { opacity: 1; }
 
@@ -540,14 +540,13 @@
     <!-- TOPBAR -->
     <header class="topbar">
       <nav class="topbar-menu left">
-        <a href="../service-v2.html">Service</a>
+        <a href="../service.html">Service</a>
         <a class="is-active" href="index.html">Work</a>
-        <a class="make-label-btn make-label-mobile" href="https://checker.krk.team/" target="_blank">Make Label</a>
       </nav>
       <a class="topbar-logo" href="../index.html" aria-label="KRK home">
         <img src="../assets/krk-logo.svg" alt="KRK" />
       </a>
-      <div class="topbar-right"><a class="make-label-btn" href="https://checker.krk.team/" target="_blank">Make Label</a></div>
+      <span aria-hidden="true"></span>
     </header>
 
     <main>
@@ -558,7 +557,7 @@
         </div>
         <div class="hero-overlay"></div>
         <div class="hero-inner">
-          <h1 class="hero-title" id="heroTitle"></h1>
+          <h1 class="hero-title fade-in" id="heroTitle"></h1>
         </div>
       </section>
 
@@ -566,8 +565,8 @@
       <section class="overview">
         <div class="container">
           <div class="overview-grid">
-            <div class="meta-list" id="metaList"></div>
-            <p class="overview-lead" id="overviewLead"></p>
+            <div class="meta-list fade-in" id="metaList"></div>
+            <p class="overview-lead fade-in" id="overviewLead"></p>
           </div>
         </div>
       </section>
@@ -579,7 +578,7 @@
             <h2 class="section-title" id="visualTitle"></h2>
           </div>
         </div>
-        <div class="carousel-frame">
+        <div class="carousel-frame fade-in">
           <div class="carousel-track" id="carouselTrack"></div>
         </div>
       </section>
@@ -676,32 +675,35 @@
         ],
         webHeadline: "Three colors. One ritual.",
         webSub: "JINLEMON · OLITOMA · PEARAJI",
-        heroImage: "../assets/up-jl-m-01.png",
+        heroImage: "../assets/urbanpure-brand-01.png",
         slides: [
-          "../assets/up-jl-p-02.png",
-          "../assets/up-jl-p-03.png",
-          "../assets/up-ot-p-01.png",
-          "../assets/up-pj-p-01.png",
-          "../assets/up-all-p-01.png"
+          "../assets/urbanpure-a-01.png",
+          "../assets/urbanpure-a-02.png",
+          "../assets/urbanpure-a-03.png",
+          "../assets/urbanpure-m-01.png",
+          "../assets/urbanpure-m-02.png",
+          "../assets/urbanpure-m-03.png"
         ],
         igGrid: [
-          "../assets/up-jl-m-01.png",
-          "../assets/up-jl-m-02.png",
-          "../assets/up-jl-m-03.png",
-          "../assets/up-ot-m-01.png",
-          "../assets/up-jl-i-02.png",
-          "../assets/up-jl-i-03.png",
-          "../assets/up-ot-i-03.png",
-          "../assets/up-jl-p-03.png",
-          "../assets/up-all-p-01.png"
+          "../assets/urbanpure-a-01.png",
+          "../assets/urbanpure-m-01.png",
+          "../assets/urbanpure-p-01.png",
+          "../assets/urbanpure-a-02.png",
+          "../assets/urbanpure-m-02.png",
+          "../assets/urbanpure-p-02.png",
+          "../assets/urbanpure-a-03.png",
+          "../assets/urbanpure-m-03.png",
+          "../assets/urbanpure-brand-01.png"
         ],
-        webImage: "",
-        wfAnchor: "../assets/up-all-p-01.png",
+        webImage: "../assets/urbanpure-m-01.png",
+        wfAnchor: "../assets/urbanpure-brand-01.png",
         wfRefs: [
-          "../assets/up-jl-a-01.png",
-          "../assets/up-ot-a-01.png",
-          "../assets/up-pj-a-01.png",
-          "../assets/up-jl-p-03.png"
+          "../assets/urbanpure-p-01.png",
+          "../assets/urbanpure-p-02.png",
+          "../assets/urbanpure-p-03.png",
+          "../assets/urbanpure-a-01.png",
+          "../assets/urbanpure-a-02.png",
+          "../assets/urbanpure-a-03.png"
         ]
       }];
 
@@ -765,7 +767,7 @@
             io.unobserve(e.target);
           }
         });
-      }, { threshold: 0.05 });
+      }, { threshold: 0.1 });
       document.querySelectorAll('.fade-in').forEach(el => io.observe(el));
 
       // Auto-scroll carousel
