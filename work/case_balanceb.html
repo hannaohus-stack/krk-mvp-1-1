@@ -254,7 +254,7 @@
       .credits-cols {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 24px;
+        gap: 5px;
         margin-bottom: 24px;
       }
       .credits-col-label {
@@ -281,9 +281,9 @@
       }
       .credits-dir-vals {
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-start;
         align-items: center;
-        gap: 16px;
+        gap: 24px;
         margin-top: 10px;
       }
       .credits-director {
@@ -344,7 +344,7 @@
 
       /* Carousel section */
       .carousel-section {
-        padding: 80px 0 140px;
+        padding: 35px 0;
       }
 
       .section-head {
@@ -450,20 +450,30 @@
       .channel-ig {
         width: 100%;
         overflow: hidden;
+        margin-top: 50px;
+      }
+      /* IG 라벨: PC에서 카드 트랙(70% 중앙)과 정렬 */
+      .channel-ig .ch-label {
+        display: block;
+        width: 70%;
+        margin: 0 auto 50px;
+        padding: 0 20px;
+        box-sizing: border-box;
       }
 
-      /* PC: 중앙 정렬 그리드 */
+      /* PC: 3개 가로 1줄, 전체 70% 중앙 정렬 */
       .ig-cards-track {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
         gap: 16px;
-        padding: 0 var(--pad-x);
+        padding: 0 20px;
+        width: 70%;
+        margin: 0 auto;
+        box-sizing: border-box;
       }
 
       .ig-card {
-        flex: 0 0 auto;
-        width: clamp(200px, 20vw, 240px);
+        width: 100%;
         background: #fff;
         border-radius: 12px;
         overflow: hidden;
@@ -472,25 +482,27 @@
       }
       .ig-card:hover { transform: translateY(-3px); }
 
-      /* 모바일: 가로 스크롤 슬라이드 */
+      /* 모바일: 카드뉴스 풀스크린 슬라이드 */
       @media (max-width: 760px) {
         .ig-cards-track {
+          display: flex;
           flex-wrap: nowrap;
-          justify-content: flex-start;
           overflow-x: auto;
           scroll-snap-type: x mandatory;
           scrollbar-width: none;
           -webkit-overflow-scrolling: touch;
-          padding-bottom: 4px;
+          padding: 0;
+          gap: 0;
+          width: 100%;
+          margin: 0;
         }
         .ig-cards-track::-webkit-scrollbar { display: none; }
-        .ig-cards-track::after {
-          content: '';
-          flex: 0 0 var(--pad-x);
-        }
         .ig-card {
-          width: clamp(200px, 70vw, 260px);
+          flex: 0 0 100%;
+          width: 100%;
           scroll-snap-align: start;
+          border-radius: 0;
+          box-shadow: none;
         }
       }
       .ig-card-top {
@@ -627,6 +639,7 @@
          =========================================================== */
       .workflow {
         padding: 140px 0;
+        overflow-x: hidden;
       }
       .workflow-grid {
         display: grid;
@@ -689,7 +702,7 @@
         align-items: center;
         justify-content: center;
         gap: 0;
-        width: min(70vw, 900px);
+        width: 90vw;
         margin: 0 auto;
       }
 
@@ -705,7 +718,7 @@
         border-radius: 14px;
         padding: 14px;
         box-shadow: 0 8px 32px rgba(26,24,22,.09);
-        width: clamp(160px, 20vw, 240px);
+        width: clamp(100px, 11vw, 150px);
         aspect-ratio: 3 / 4;
         overflow: hidden;
         flex-shrink: 0;
@@ -754,7 +767,7 @@
         overflow: hidden;
         background: var(--paper-2);
         border-radius: 5px;
-        width: clamp(72px, 9vw, 120px);
+        width: clamp(110px, 14vw, 190px);
       }
       .wf-refgrid img {
         width: 100%; height: 100%; object-fit: cover;
@@ -774,7 +787,7 @@
           gap: 14px;
         }
         .wf-anchor {
-          width: min(52vw, 180px);
+          width: clamp(72px, 24vw, 110px);   /* 그리드 셀 1개와 동일 크기 */
         }
         /* 수직 연결선 */
         .wf-connector {
@@ -794,7 +807,7 @@
           grid-template-columns: repeat(3, 1fr);
         }
         .wf-refgrid > div {
-          width: clamp(72px, 22vw, 100px);
+          width: clamp(72px, 24vw, 110px);   /* 단일 카드와 동일 → 3열이라 그리드가 훨씬 큼 */
         }
       }
 
@@ -831,7 +844,7 @@
       @media (max-width: 1080px) {
         .overview-grid,
         .section-head { grid-template-columns: 1fr; gap: 40px; }
-        .channel-ig { width: 100%; max-width: 480px; }
+        .channel-ig { width: 100%; max-width: none; }
       }
       @media (max-width: 760px) {
         .overview, .channel-section, .workflow, .visual-section, .carousel-section { padding: 80px 0; }
@@ -844,9 +857,14 @@
           max-width: none;
           justify-self: stretch;
         }
+        .channel-ig .ch-label {
+          width: 100%;
+          margin: 0 0 50px;
+          padding: 0 10px 0 0;
+        }
         .web-caption { padding: 20px; }
-        .wf-visual { grid-template-columns: 1fr; gap: 20px; }
-        .wf-anchor { max-width: 200px; aspect-ratio: 4 / 3; }
+        .wf-visual { grid-template-columns: 1fr; }
+        .wf-anchor { max-width: 200px; }
 
         /* Overview — mobile 1단 재구조 */
         .overview { align-items: flex-start; padding: 80px 0 56px; }
@@ -995,11 +1013,12 @@
             </div>
           </div>
 
-          <!-- Instagram Feed — post card carousel -->
-          <div class="channel-ig channel-block fade-in">
-            <p class="ch-label" style="padding: 0 var(--pad-x); margin-bottom: 20px;">Instagram Feed</p>
-            <div class="ig-cards-track" id="igFeed"></div>
-          </div>
+        </div>
+
+        <!-- Instagram Feed — channel-inner 밖, full-width -->
+        <div class="channel-ig channel-block fade-in">
+          <p class="ch-label">Instagram Feed</p>
+          <div class="ig-cards-track" id="igFeed"></div>
         </div>
       </section>
 
@@ -1067,35 +1086,36 @@
         ],
         webHeadline: "Quiet wellness, every morning.",
         webSub: "Black sesame protein, redesigned as a daily ritual.",
-        heroImage: "../assets/balanceb-a-01.png",
-        slides: [
-          "../assets/balanceb-a-01.png",
-          "../assets/balanceb-a-02.png",
-          "../assets/balanceb-b-01.png",
-          "../assets/balanceb-b-02.png",
-          "../assets/balanceb-p-01.png",
-          "../assets/balanceb-p-02.png"
+        heroImage: "../assets/balanceb/Hero_balanceb.png",
+        sectionGrid: [
+          "../assets/balanceb/Section_balanceb_01.jpg",
+          "../assets/balanceb/Section_balanceb_02.jpg",
+          "../assets/balanceb/Section_balanceb_03.png",
+          "../assets/balanceb/Section_balanceb_04.jpg",
+          "../assets/balanceb/Section_balanceb_05.png"
+        ],
+        storyCards: [
+          "../assets/balanceb/Story_balanceb_01.png",
+          "../assets/balanceb/Story_balanceb_02.png",
+          "../assets/balanceb/Story_balanceb_03.png",
+          "../assets/balanceb/Story_balanceb_04.png",
+          "../assets/balanceb/Story_balanceb_05.png",
+          "../assets/balanceb/Story_balanceb_06.png"
         ],
         igGrid: [
-          "../assets/balanceb-a-01.png",
-          "../assets/balanceb-a-02.png",
-          "../assets/balanceb-b-01.png",
-          "../assets/balanceb-b-02.png",
-          "../assets/balanceb-p-01.png",
-          "../assets/balanceb-p-02.png",
-          "../assets/balanceb-m-01.png",
-          "../assets/balanceb-m-02.png",
-          "../assets/balanceb-m-03.png"
+          "../assets/balanceb/IG_balanceb_01.png",
+          "../assets/balanceb/IG_balanceb_02.png",
+          "../assets/balanceb/IG_balanceb_03.png"
         ],
-        webImage: "../assets/balanceb-m-01.png",
-        wfAnchor: "../assets/balanceb-p-01.png",
+        webImage: "",
+        wfAnchor: "../assets/balanceb/Anchor_balanceb.png",
         wfRefs: [
-          "../assets/balanceb-a-01.png",
-          "../assets/balanceb-a-02.png",
-          "../assets/balanceb-b-01.png",
-          "../assets/balanceb-p-02.png",
-          "../assets/balanceb-m-02.png",
-          "../assets/balanceb-m-03.png"
+          "../assets/balanceb/Ref_balanceb_01.png",
+          "../assets/balanceb/Ref_balanceb_02.png",
+          "../assets/balanceb/Ref_balanceb_03.png",
+          "../assets/balanceb/Ref_balanceb_04.png",
+          "../assets/balanceb/Ref_balanceb_05.png",
+          "../assets/balanceb/Ref_balanceb_06.png"
         ]
       }];
 
@@ -1143,8 +1163,8 @@
       setText('creditsDirector',  current.director);
       setText('creditsCopyright', current.copyright);
 
-      // 03 Visual — 2x1 / 1 / 2x1 layout (5 images)
-      const s = current.slides;
+      // 03 Visual — 2x1 / 1 / 2x1 layout (Section 5장)
+      const s = current.sectionGrid;
       setHTML('imageLayout', `
         <div class="image-row-2">
           <div class="image-cell"><img src="${s[0]}" alt="${current.name} 1" loading="lazy" /></div>
@@ -1159,8 +1179,8 @@
         </div>
       `);
 
-      // 04 Carousel
-      setHTML('carouselTrack', current.slides.map((src, i) =>
+      // 04 Carousel (Story 6장)
+      setHTML('carouselTrack', current.storyCards.map((src, i) =>
         `<div class="carousel-slide"><img src="${src}" alt="${current.name} ${i + 1}" /></div>`
       ).join(''));
 
@@ -1170,7 +1190,7 @@
       const svgComment = `<svg class="ig-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
       const svgShare = `<svg class="ig-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
       const svgBookmark = `<svg class="ig-card-bookmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
-      setHTML('igFeed', current.igGrid.slice(0, 6).map((src, i) =>
+      setHTML('igFeed', current.igGrid.slice(0, 3).map((src, i) =>
         `<div class="ig-card">
           <div class="ig-card-top">
             <div class="ig-card-profile">
