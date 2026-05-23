@@ -446,38 +446,53 @@
       .channel-copy .section-title {
         margin: 0;
       }
-      /* IG post cards — CircleSide style horizontal scroll */
+      /* IG post cards */
       .channel-ig {
         width: 100%;
         overflow: hidden;
       }
+
+      /* PC: 중앙 정렬 그리드 */
       .ig-cards-track {
         display: flex;
-        gap: 14px;
-        padding: 0 var(--pad-x) 4px;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        scrollbar-width: none;
-        -webkit-overflow-scrolling: touch;
-      }
-      .ig-cards-track::-webkit-scrollbar { display: none; }
-      /* 마지막 카드 뒤 여백 */
-      .ig-cards-track::after {
-        content: '';
-        flex: 0 0 var(--pad-x);
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 16px;
+        padding: 0 var(--pad-x);
       }
 
       .ig-card {
         flex: 0 0 auto;
-        width: clamp(200px, 22vw, 260px);
+        width: clamp(200px, 20vw, 240px);
         background: #fff;
         border-radius: 12px;
         overflow: hidden;
         box-shadow: 0 2px 20px rgba(26,24,22,.09);
-        scroll-snap-align: start;
         transition: transform .3s ease;
       }
       .ig-card:hover { transform: translateY(-3px); }
+
+      /* 모바일: 가로 스크롤 슬라이드 */
+      @media (max-width: 760px) {
+        .ig-cards-track {
+          flex-wrap: nowrap;
+          justify-content: flex-start;
+          overflow-x: auto;
+          scroll-snap-type: x mandatory;
+          scrollbar-width: none;
+          -webkit-overflow-scrolling: touch;
+          padding-bottom: 4px;
+        }
+        .ig-cards-track::-webkit-scrollbar { display: none; }
+        .ig-cards-track::after {
+          content: '';
+          flex: 0 0 var(--pad-x);
+        }
+        .ig-card {
+          width: clamp(200px, 70vw, 260px);
+          scroll-snap-align: start;
+        }
+      }
       .ig-card-top {
         display: flex;
         align-items: center;
@@ -615,9 +630,8 @@
       }
       .workflow-grid {
         display: grid;
-        grid-template-columns: 5fr 7fr;
-        gap: 80px;
-        align-items: center;
+        grid-template-columns: 1fr;
+        gap: 56px;
       }
       .wf-title {
         font-family: Georgia, "Times New Roman", serif;
@@ -669,76 +683,78 @@
         font-size: 12px;
       }
 
-      /* ── Node diagram (desktop: 수평 / mobile: 수직) ── */
+      /* ── Node diagram ── */
       .wf-visual {
         display: flex;
         align-items: center;
-        justify-content: center;   /* 전체를 중앙 정렬 */
+        justify-content: center;
         gap: 0;
-        width: 100%;
+        width: min(70vw, 900px);
+        margin: 0 auto;
       }
 
       /* 왼쪽: 제품 카드 + 노드 */
       .wf-anchor-wrap {
         display: flex;
         align-items: center;
-        gap: 16px;
+        gap: 20px;
         flex-shrink: 0;
       }
       .wf-anchor {
         background: #fff;
-        border-radius: 12px;
-        padding: 10px;
-        box-shadow: 0 8px 28px rgba(26,24,22,.08);
-        width: clamp(130px, 15vw, 180px);
+        border-radius: 14px;
+        padding: 14px;
+        box-shadow: 0 8px 32px rgba(26,24,22,.09);
+        width: clamp(160px, 20vw, 240px);
         aspect-ratio: 3 / 4;
         overflow: hidden;
         flex-shrink: 0;
       }
       .wf-anchor img {
-        width: 100%; height: 100%; object-fit: cover; border-radius: 6px;
+        width: 100%; height: 100%; object-fit: cover; border-radius: 8px;
       }
 
       /* 노드 점 */
       .wf-node {
-        width: 9px; height: 9px;
+        width: 10px; height: 10px;
         border-radius: 50%;
         background: var(--ink);
         flex-shrink: 0;
         z-index: 1;
       }
 
-      /* 연결선 (수평) — 고정 길이 */
+      /* 연결선 */
       .wf-connector {
-        width: 48px;
-        flex-shrink: 0;
+        flex: 1;
         height: 1px;
         background: var(--ink);
         opacity: .2;
+        min-width: 32px;
+        max-width: 80px;
       }
 
       /* 오른쪽: 노드 + 6장 그리드 */
       .wf-output-wrap {
         display: flex;
         align-items: center;
-        gap: 16px;
+        gap: 20px;
         flex-shrink: 0;
       }
       .wf-refgrid {
         background: #fff;
-        border-radius: 12px;
-        padding: 10px;
-        box-shadow: 0 8px 28px rgba(26,24,22,.08);
+        border-radius: 14px;
+        padding: 12px;
+        box-shadow: 0 8px 32px rgba(26,24,22,.09);
         display: grid;
-        grid-template-columns: repeat(3, 1fr);   /* 3열로 변경 */
-        gap: 5px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
       }
       .wf-refgrid > div {
         aspect-ratio: 1;
         overflow: hidden;
         background: var(--paper-2);
-        border-radius: 4px;
-        width: clamp(52px, 5.5vw, 72px);
+        border-radius: 5px;
+        width: clamp(72px, 9vw, 120px);
       }
       .wf-refgrid img {
         width: 100%; height: 100%; object-fit: cover;
@@ -814,10 +830,8 @@
          =========================================================== */
       @media (max-width: 1080px) {
         .overview-grid,
-        .section-head,
-        .workflow-grid { grid-template-columns: 1fr; gap: 40px; }
+        .section-head { grid-template-columns: 1fr; gap: 40px; }
         .channel-ig { width: 100%; max-width: 480px; }
-        .wf-visual { grid-template-columns: 120px 1fr; }
       }
       @media (max-width: 760px) {
         .overview, .channel-section, .workflow, .visual-section, .carousel-section { padding: 80px 0; }
@@ -1218,19 +1232,17 @@
         }, 4000);
       })();
 
-      // Auto-scroll: IG 피드 카드
+      // IG 피드: 모바일에서만 자동 슬라이드
       (function () {
+        if (window.innerWidth > 760) return;   // PC는 중앙 그리드, 슬라이드 없음
         const track = $('igFeed');
         if (!track) return;
         const cards = track.querySelectorAll('.ig-card');
         if (cards.length < 2) return;
         let idx = 0;
         let paused = false;
-
-        // 손으로 스크롤하면 잠시 멈춤
         track.addEventListener('pointerdown', () => { paused = true; });
         track.addEventListener('pointerup',   () => { setTimeout(() => { paused = false; }, 3000); });
-
         setInterval(() => {
           if (paused) return;
           idx = (idx + 1) % cards.length;
