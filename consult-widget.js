@@ -58,8 +58,14 @@
     .krk-c-trigger .dot {
       width: 7px; height: 7px;
       border-radius: 50%;
-      background: #1a1816;
+      background: #3ecf6b;
       flex-shrink: 0;
+      box-shadow: 0 0 0 2px rgba(62,207,107,.25);
+      animation: krk-dot-pulse 2.4s ease-in-out infinite;
+    }
+    @keyframes krk-dot-pulse {
+      0%, 100% { box-shadow: 0 0 0 2px rgba(62,207,107,.25); }
+      50%       { box-shadow: 0 0 0 4px rgba(62,207,107,.12); }
     }
 
     /* PANEL */
