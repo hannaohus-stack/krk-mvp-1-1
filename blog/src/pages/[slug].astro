@@ -1,0 +1,291 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content'
+import Base from '@/layouts/Base.astro'
+import Nav from '@/components/Nav.astro'
+import Footer from '@/components/Footer.astro'
+import Thumb from '@/components/Thumb.astro'
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts')
+  return posts.map(post => ({ params: { slug: post.slug }, props: { post } }))
+}
+
+interface Props { post: CollectionEntry<'posts'> }
+const { post } = Astro.props
+const { Content } = await post.render()
+
+const CAT_KO: Record<string, string> = {
+  label:      '라벨 기준',
+  ingredient: '원재료·알레르기',
+  packaging:  '분리배출·포장',
+  filing:     '품목제조보고',
+  cases:      '브랜드 사례',
+  updates:    'KRK 업데이트',
+}
+
+const allPosts = await getCollection('posts')
+const sorted = allPosts.sort((a, b) => b.data.num.localeCompare(a.data.num))
+const idx = sorted.findIndex(p => p.slug === post.slug)
+const prev = sorted[idx + 1]
+const next = sorted[idx - 1]
+---
+
+<Base
+  title={`${post.data.title} — KRK Checker 블로그`}
+  description={post.data.summary}
+  canonicalUrl={`https://blog.krk.team/${post.slug}`}
+>
+  <div class="page">
+    <Nav />
+
+    <!-- Article header -->
+    <header class="article-header">
+      <div class="header-inner">
+        <div class="header-meta">
+          <span class="header-num">{post.data.num}</span>
+          <span class="sep">·</span>
+          <span class="header-cat">{CAT_KO[post.data.cat]}</span>
+        </div>
+        <h1 class="article-title">{post.data.title}</h1>
+        <p class="article-summary">{post.data.summary}</p>
+        <div class="article-meta">
+          <span>{post.data.date}</span>
+          <span class="dot">·</span>
+          <span>{post.data.time}분</span>
+          <span class="dot">·</span>
+          <span class="src-label">기준</span>
+          {post.data.src.map((s, i) => (
+            <span>{i > 0 ? ', ' : ''}{s}</span>
+          ))}
+        </div>
+      </div>
+      <!-- Thumb (full width) -->
+      <div class="header-thumb">
+        <Thumb kind={post.data.thumb} tone="light" />
+      </div>
+    </header>
+
+    <!-- Article body -->
+    <main class="article-main">
+      <div class="article-grid">
+        <!-- Sidebar -->
+        <aside class="article-sidebar">
+          <div class="sidebar-sticky">
+            <div class="sidebar-label">이 글의 출처</div>
+            {post.data.src.map(s => (
+              <div class="sidebar-src">{s}</div>
+            ))}
+            <div class="sidebar-divider"></div>
+            <div class="sidebar-label">읽는 시간</div>
+            <div class="sidebar-time">{post.data.time}분</div>
+            <div class="sidebar-divider"></div>
+            <div class="sidebar-disclaimer">
+              이 글은 자율 점검을 돕기 위한 참고용입니다. 개별 제품에 대한 법률 자문이 아닙니다.
+            </div>
+          </div>
+        </aside>
+
+        <!-- Content -->
+        <article class="article-body krk-prose">
+          <Content />
+
+          <!-- Article-level CTA -->
+          <div class="article-cta">
+            <div class="article-cta-label">이 글의 기준대로 라벨을 점검해보고 싶다면</div>
+            <a href="https://checker.krk.team" class="article-cta-btn">
+              KRK Checker로 자율 점검 시작하기 →
+            </a>
+          </div>
+        </article>
+      </div>
+    </main>
+
+    <!-- Prev / Next -->
+    <nav class="pagination">
+      <div class="pagination-inner">
+        {prev ? (
+          <a href={`/${prev.slug}`} class="pager pager-prev">
+            <span class="pager-label">← 이전 글</span>
+            <span class="pager-title">{prev.data.title}</span>
+          </a>
+        ) : <div />}
+        {next ? (
+          <a href={`/${next.slug}`} class="pager pager-next">
+            <span class="pager-label">다음 글 →</span>
+            <span class="pager-title">{next.data.title}</span>
+          </a>
+        ) : <div />}
+      </div>
+    </nav>
+
+    <Footer />
+  </div>
+</Base>
+
+<style>
+  .page { display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* Header */
+  .article-header { padding-top: 70px; background: #fff; }
+  .header-inner {
+    max-width: 780px; margin: 0 auto;
+    padding: 64px 40px 32px;
+  }
+  .header-meta {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: rgba(10,10,11,0.45);
+    margin-bottom: 20px;
+  }
+  .header-num { color: #002D72; }
+  .sep { color: rgba(10,10,11,0.25); }
+  .article-title {
+    margin: 0 0 16px;
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.028em;
+    color: #0A0A0B;
+  }
+  .article-summary {
+    margin: 0 0 24px;
+    font-size: clamp(15px, 1.5vw, 17px);
+    color: rgba(10,10,11,0.65);
+    line-height: 1.65;
+    letter-spacing: -0.008em;
+  }
+  .article-meta {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: rgba(10,10,11,0.45);
+    letter-spacing: -0.005em;
+    padding-bottom: 32px;
+    border-bottom: 1px solid rgba(10,10,11,0.10);
+  }
+  .dot { color: rgba(10,10,11,0.25); }
+  .src-label { color: rgba(10,10,11,0.35); }
+  .header-thumb {
+    max-width: 1320px; margin: 0 auto;
+    padding: 0 40px;
+  }
+  .header-thumb > * { max-height: 480px; object-fit: cover; }
+
+  /* Body */
+  .article-main { flex: 1; padding: 64px 40px 96px; }
+  .article-grid {
+    max-width: 1120px; margin: 0 auto;
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 64px;
+    align-items: start;
+  }
+  .article-sidebar { }
+  .sidebar-sticky {
+    position: sticky; top: 90px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .sidebar-label {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: rgba(10,10,11,0.35);
+  }
+  .sidebar-src {
+    font-size: 12.5px;
+    color: rgba(10,10,11,0.65);
+    line-height: 1.5;
+    letter-spacing: -0.005em;
+  }
+  .sidebar-time {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 14px; font-weight: 600;
+    color: #0A0A0B;
+  }
+  .sidebar-divider {
+    height: 1px;
+    background: rgba(10,10,11,0.08);
+    margin: 4px 0;
+  }
+  .sidebar-disclaimer {
+    font-size: 11px;
+    color: rgba(10,10,11,0.40);
+    line-height: 1.65;
+    letter-spacing: -0.005em;
+    border-left: 2px solid rgba(10,10,11,0.12);
+    padding-left: 10px;
+  }
+  .article-body { max-width: 680px; }
+
+  /* Article CTA */
+  .article-cta {
+    margin-top: 56px;
+    padding: 28px 32px;
+    background: #F6F9FD;
+    border: 1px solid rgba(12,164,249,0.18);
+    border-left: 3px solid #0CA4F9;
+  }
+  .article-cta-label {
+    font-size: 14px;
+    color: rgba(10,10,11,0.65);
+    margin-bottom: 14px;
+    line-height: 1.5;
+    letter-spacing: -0.005em;
+  }
+  .article-cta-btn {
+    display: inline-block;
+    padding: 12px 20px;
+    background: #002D72; color: #fff;
+    text-decoration: none;
+    font-size: 13.5px; font-weight: 600;
+    letter-spacing: -0.005em;
+    transition: opacity 160ms;
+  }
+  .article-cta-btn:hover { opacity: 0.85; }
+
+  /* Pagination */
+  .pagination {
+    border-top: 1px solid rgba(10,10,11,0.10);
+    padding: 40px;
+  }
+  .pagination-inner {
+    max-width: 1120px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .pager {
+    display: flex; flex-direction: column; gap: 6px;
+    padding: 20px;
+    border: 1px solid rgba(10,10,11,0.10);
+    text-decoration: none; color: inherit;
+    transition: background 160ms;
+  }
+  .pager:hover { background: #FAFAFA; }
+  .pager-next { text-align: right; }
+  .pager-label {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: rgba(10,10,11,0.40);
+  }
+  .pager-title {
+    font-size: 14px; font-weight: 600;
+    color: #0A0A0B;
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .article-grid { grid-template-columns: 1fr; gap: 0; }
+    .article-sidebar { display: none; }
+  }
+  @media (max-width: 760px) {
+    .header-inner { padding: 40px 20px 24px; }
+    .header-thumb { padding: 0 20px; }
+    .article-main { padding: 40px 20px 64px; }
+    .pagination { padding: 28px 20px; }
+    .pagination-inner { grid-template-columns: 1fr; }
+    .pager-next { text-align: left; }
+  }
+</style>
