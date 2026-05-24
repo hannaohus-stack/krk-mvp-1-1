@@ -53,6 +53,28 @@
         font-weight: 520;
       }
       .topbar-menu.left { justify-self: start; }
+
+      /* Make Label */
+      .topbar-menu.left .topbar-make-label { display: none; }
+      .topbar-make-label {
+        opacity: 1 !important;
+        padding: 7px 14px;
+        border: 1px solid rgba(255,255,255,.55);
+        border-radius: 999px;
+        font-size: 12px !important;
+        letter-spacing: .02em;
+        color: rgba(255,255,255,.9) !important;
+        transition: background .18s ease, color .18s ease, border-color .18s ease !important;
+      }
+      .topbar-make-label:hover {
+        background: #fff;
+        color: var(--ink) !important;
+        border-color: #fff;
+      }
+      @media (max-width: 760px) {
+        .topbar-menu.right { display: none; }
+        .topbar-menu.left .topbar-make-label { display: inline-flex; }
+      }
       .topbar-menu.right { justify-self: end; }
       .topbar-menu a { color: rgba(255,255,255,.72); transition: color .18s ease; }
       .topbar-menu a:hover, .topbar-menu a.is-active { color: #fff; }
@@ -391,8 +413,8 @@
       .carousel-track::-webkit-scrollbar { display: none; }
       .carousel-slide {
         flex: 0 0 auto;
-        width: clamp(180px, 20vw, 280px);
-        aspect-ratio: 9 / 16;
+        width: clamp(280px, 32vw, 440px);
+        aspect-ratio: 4 / 5;
         scroll-snap-align: center;
         overflow: hidden;
         background: var(--paper-2);
@@ -508,26 +530,14 @@
       .ig-card-top {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        padding: 10px 14px;
-      }
-      .ig-card-profile {
-        display: flex;
-        align-items: center;
         gap: 8px;
+        padding: 10px 12px;
       }
       .ig-card-avatar {
-        width: 28px; height: 28px;
+        width: 26px; height: 26px;
         border-radius: 50%;
-        background: var(--ink);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
+        background: var(--accent);
         flex-shrink: 0;
-      }
-      .ig-card-avatar img {
-        width: 100%; height: 100%; object-fit: cover;
       }
       .ig-card-handle {
         font-family: var(--en);
@@ -535,12 +545,6 @@
         font-weight: 600;
         color: var(--ink);
         letter-spacing: 0;
-      }
-      .ig-card-more {
-        font-size: 16px;
-        color: var(--ink-3);
-        letter-spacing: .06em;
-        line-height: 1;
       }
       .ig-card-img {
         width: 100%;
@@ -555,17 +559,8 @@
       .ig-card-bottom {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        padding: 10px 14px 12px;
-      }
-      .ig-card-actions {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-      .ig-card-icon {
-        width: 20px; height: 20px;
-        opacity: .75;
+        justify-content: center;
+        padding: 8px 12px 10px;
       }
       .ig-card-dots {
         display: flex;
@@ -576,15 +571,11 @@
         width: 5px; height: 5px;
         border-radius: 50%;
         background: var(--ink-3);
-        opacity: .35;
+        opacity: .3;
       }
       .ig-card-dot.active {
-        background: #e8522a;
+        background: var(--accent);
         opacity: 1;
-      }
-      .ig-card-bookmark {
-        width: 18px; height: 18px;
-        opacity: .6;
       }
 
       .web-frame {
@@ -643,8 +634,9 @@
       }
       .workflow-grid {
         display: grid;
-        grid-template-columns: 1fr;
-        gap: 56px;
+        grid-template-columns: 5fr 7fr;
+        gap: 80px;
+        align-items: center;
       }
       .wf-title {
         font-family: Georgia, "Times New Roman", serif;
@@ -696,68 +688,29 @@
         font-size: 12px;
       }
 
-      /* ── Node diagram ── */
       .wf-visual {
-        display: flex;
+        position: relative;
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        gap: 28px;
         align-items: center;
-        justify-content: center;
-        gap: 0;
-        width: 90vw;
-        margin: 0 auto;
-      }
-
-      /* 왼쪽: 제품 카드 + 노드 */
-      .wf-anchor-wrap {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-        flex-shrink: 0;
       }
       .wf-anchor {
         background: #fff;
-        border-radius: 14px;
-        padding: 14px;
-        box-shadow: 0 8px 32px rgba(26,24,22,.09);
-        width: clamp(100px, 11vw, 150px);
+        border-radius: 12px;
+        padding: 12px;
+        box-shadow: 0 8px 28px rgba(26,24,22,.06);
         aspect-ratio: 3 / 4;
         overflow: hidden;
-        flex-shrink: 0;
       }
       .wf-anchor img {
-        width: 100%; height: 100%; object-fit: cover; border-radius: 8px;
-      }
-
-      /* 노드 점 */
-      .wf-node {
-        width: 10px; height: 10px;
-        border-radius: 50%;
-        background: var(--ink);
-        flex-shrink: 0;
-        z-index: 1;
-      }
-
-      /* 연결선 */
-      .wf-connector {
-        flex: 1;
-        height: 1px;
-        background: var(--ink);
-        opacity: .2;
-        min-width: 32px;
-        max-width: 80px;
-      }
-
-      /* 오른쪽: 노드 + 6장 그리드 */
-      .wf-output-wrap {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-        flex-shrink: 0;
+        width: 100%; height: 100%; object-fit: cover; border-radius: 6px;
       }
       .wf-refgrid {
         background: #fff;
-        border-radius: 14px;
+        border-radius: 12px;
         padding: 12px;
-        box-shadow: 0 8px 32px rgba(26,24,22,.09);
+        box-shadow: 0 8px 28px rgba(26,24,22,.06);
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 6px;
@@ -766,49 +719,10 @@
         aspect-ratio: 1;
         overflow: hidden;
         background: var(--paper-2);
-        border-radius: 5px;
-        width: clamp(110px, 14vw, 190px);
+        border-radius: 4px;
       }
       .wf-refgrid img {
         width: 100%; height: 100%; object-fit: cover;
-      }
-
-      /* ── 모바일: 수직 레이아웃 ── */
-      @media (max-width: 760px) {
-        .wf-visual {
-          flex-direction: column;
-          align-items: center;
-          gap: 0;
-        }
-        /* 제품 카드 + 아래 노드 */
-        .wf-anchor-wrap {
-          flex-direction: column;
-          align-items: center;
-          gap: 14px;
-        }
-        .wf-anchor {
-          width: clamp(72px, 24vw, 110px);   /* 그리드 셀 1개와 동일 크기 */
-        }
-        /* 수직 연결선 */
-        .wf-connector {
-          width: 1px;
-          height: 36px;
-          min-width: unset;
-          max-width: unset;
-          flex: none;
-        }
-        /* 노드 + 그리드 수직 */
-        .wf-output-wrap {
-          flex-direction: column;
-          align-items: center;
-          gap: 14px;
-        }
-        .wf-refgrid {
-          grid-template-columns: repeat(3, 1fr);
-        }
-        .wf-refgrid > div {
-          width: clamp(72px, 24vw, 110px);   /* 단일 카드와 동일 → 3열이라 그리드가 훨씬 큼 */
-        }
       }
 
       /* ===========================================================
@@ -843,8 +757,10 @@
          =========================================================== */
       @media (max-width: 1080px) {
         .overview-grid,
-        .section-head { grid-template-columns: 1fr; gap: 40px; }
+        .section-head,
+        .workflow-grid { grid-template-columns: 1fr; gap: 40px; }
         .channel-ig { width: 100%; max-width: none; }
+        .wf-visual { grid-template-columns: 120px 1fr; }
       }
       @media (max-width: 760px) {
         .overview, .channel-section, .workflow, .visual-section, .carousel-section { padding: 80px 0; }
@@ -864,7 +780,6 @@
         }
         .web-caption { padding: 20px; }
         .wf-visual { grid-template-columns: 1fr; }
-        .wf-anchor { max-width: 200px; }
 
         /* Overview — mobile 1단 재구조 */
         .overview { align-items: flex-start; padding: 80px 0 56px; }
@@ -907,11 +822,14 @@
       <nav class="topbar-menu left">
         <a href="../service.html">Service</a>
         <a class="is-active" href="index.html">Work</a>
+        <a class="topbar-make-label" href="https://checker.krk.team" target="_blank" rel="noopener">Make Label</a>
       </nav>
       <a class="topbar-logo" href="../index.html" aria-label="KRK home">
         <img src="../assets/krk-logo.svg" alt="KRK" />
       </a>
-      <span aria-hidden="true"></span>
+      <nav class="topbar-menu right">
+        <a class="topbar-make-label" href="https://checker.krk.team" target="_blank" rel="noopener">Make Label</a>
+      </nav>
     </header>
 
     <main>
@@ -1034,20 +952,10 @@
               <ul class="wf-checks" id="wfChecks"></ul>
             </div>
             <div class="wf-visual fade-in">
-              <!-- 노드 1: 제품 단일 이미지 -->
-              <div class="wf-anchor-wrap">
-                <div class="wf-anchor">
-                  <img id="wfAnchor" src="" alt="anchor product" />
-                </div>
-                <div class="wf-node"></div>
+              <div class="wf-anchor">
+                <img id="wfAnchor" src="" alt="anchor product" />
               </div>
-              <!-- 연결선 -->
-              <div class="wf-connector"></div>
-              <!-- 노드 2: 6장 확장 -->
-              <div class="wf-output-wrap">
-                <div class="wf-node"></div>
-                <div class="wf-refgrid" id="wfRefGrid"></div>
-              </div>
+              <div class="wf-refgrid" id="wfRefGrid"></div>
             </div>
           </div>
         </div>
@@ -1186,30 +1094,19 @@
 
       // 05 Channel — IG post cards
       const igHandle = '@' + current.id;
-      const svgHeart = `<svg class="ig-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
-      const svgComment = `<svg class="ig-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
-      const svgShare = `<svg class="ig-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
-      const svgBookmark = `<svg class="ig-card-bookmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
       setHTML('igFeed', current.igGrid.slice(0, 3).map((src, i) =>
         `<div class="ig-card">
           <div class="ig-card-top">
-            <div class="ig-card-profile">
-              <div class="ig-card-avatar">
-                <img src="../assets/krk-logo.svg" alt="KRK" style="filter:invert(1);padding:5px;" />
-              </div>
-              <span class="ig-card-handle">${igHandle}</span>
-            </div>
-            <span class="ig-card-more">···</span>
+            <div class="ig-card-avatar"></div>
+            <span class="ig-card-handle">${igHandle}</span>
           </div>
           <div class="ig-card-img"><img src="${src}" alt="" loading="lazy" /></div>
           <div class="ig-card-bottom">
-            <div class="ig-card-actions">${svgHeart}${svgComment}${svgShare}</div>
             <div class="ig-card-dots">
               <div class="ig-card-dot${i===0?' active':''}"></div>
               <div class="ig-card-dot"></div>
               <div class="ig-card-dot"></div>
             </div>
-            ${svgBookmark}
           </div>
         </div>`
       ).join(''));
