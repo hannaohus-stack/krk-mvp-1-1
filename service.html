@@ -68,11 +68,33 @@
         letter-spacing: -.01em;
       }
       .topbar-menu.left { justify-self: start; }
+      .topbar-menu.right { justify-self: end; }
       .topbar-menu a {
         color: var(--ink); opacity: .55;
         transition: opacity .18s ease;
       }
       .topbar-menu a:hover, .topbar-menu a.is-active { opacity: 1; }
+      /* Make Label 버튼 */
+      .topbar-make-label {
+        opacity: 1 !important;
+        padding: 7px 14px;
+        border: 1px solid var(--ink);
+        border-radius: 999px;
+        font-size: 12px !important;
+        letter-spacing: .02em;
+        transition: background .18s ease, color .18s ease !important;
+      }
+      .topbar-make-label:hover {
+        background: var(--ink);
+        color: var(--bg) !important;
+      }
+      /* PC: 왼쪽 메뉴의 Make Label 숨김 */
+      .topbar-menu.left .topbar-make-label { display: none; }
+      /* 모바일: 오른쪽 메뉴 숨기고 왼쪽 메뉴에 표시 */
+      @media (max-width: 760px) {
+        .topbar-menu.right { display: none; }
+        .topbar-menu.left .topbar-make-label { display: inline-flex; }
+      }
 
       /* ============================================================
          SECTION SYSTEM
@@ -1166,11 +1188,14 @@
       <nav class="topbar-menu left">
         <a class="is-active" href="service.html">Service</a>
         <a href="work/index.html">Work</a>
+        <a class="topbar-make-label" href="https://checker.krk.team" target="_blank" rel="noopener">Make Label</a>
       </nav>
       <a class="topbar-logo" href="index.html" aria-label="KRK home">
         <img src="assets/krk-logo.svg" alt="KRK" />
       </a>
-      <div aria-hidden="true"></div>
+      <nav class="topbar-menu right">
+        <a class="topbar-make-label" href="https://checker.krk.team" target="_blank" rel="noopener">Make Label</a>
+      </nav>
     </header>
 
     <main>
