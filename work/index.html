@@ -368,6 +368,27 @@
         .slide-label { font-size: 10px; top: 18px; }
         .grid-meta { display: none; }
       }
+
+      /* Make Label */
+      .topbar-menu.left .topbar-make-label { display: none; }
+      .topbar-menu.right { justify-self: end; }
+      .topbar-make-label {
+        opacity: 1 !important;
+        padding: 7px 14px;
+        border: 1px solid var(--ink, #1a1816);
+        border-radius: 999px;
+        font-size: 12px !important;
+        letter-spacing: .02em;
+        transition: background .18s ease, color .18s ease !important;
+      }
+      .topbar-make-label:hover {
+        background: var(--ink, #1a1816);
+        color: #fff !important;
+      }
+      @media (max-width: 760px) {
+        .topbar-menu.right { display: none; }
+        .topbar-menu.left .topbar-make-label { display: inline-flex; }
+      }
     </style>
   </head>
   <body>
@@ -375,11 +396,14 @@
       <nav class="topbar-menu left">
         <a href="../service.html">Service</a>
         <a class="is-active" href="index.html">Work</a>
+        <a class="topbar-make-label" href="https://checker.krk.team" target="_blank" rel="noopener">Make Label</a>
       </nav>
       <a class="topbar-logo" href="../index.html" aria-label="KRK home">
         <img src="../assets/krk-logo.svg" alt="KRK" />
       </a>
-      <div class="topbar-right"></div>
+      <nav class="topbar-menu right">
+        <a class="topbar-make-label" href="https://checker.krk.team" target="_blank" rel="noopener">Make Label</a>
+      </nav>
     </header>
 
     <main>
