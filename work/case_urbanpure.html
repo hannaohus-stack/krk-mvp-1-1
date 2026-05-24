@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Work Detail | KRK.TEAM</title>
+    <title>UrbanPure | KRK Work</title>
     <link rel="stylesheet" href="../assets/krk-tokens.css" />
     <style>
       :root {
@@ -17,7 +17,10 @@
         --line-soft: rgba(26,24,22,.06);
         --accent:  #b89968;
       }
-      html { scroll-behavior: smooth; }
+      html {
+        scroll-behavior: smooth;
+        scroll-snap-type: y proximity;
+      }
       body {
         background: var(--bg);
         color: var(--ink);
@@ -25,7 +28,7 @@
       ::selection { background: var(--ink); color: var(--paper); }
 
       /* ===========================================================
-         TOPBAR
+         TOPBAR — case_mium.html 구조 유지
          =========================================================== */
       .topbar {
         position: fixed;
@@ -50,6 +53,28 @@
         font-weight: 520;
       }
       .topbar-menu.left { justify-self: start; }
+
+      /* Make Label */
+      .topbar-menu.left .topbar-make-label { display: none; }
+      .topbar-make-label {
+        opacity: 1 !important;
+        padding: 7px 14px;
+        border: 1px solid rgba(255,255,255,.55);
+        border-radius: 999px;
+        font-size: 12px !important;
+        letter-spacing: .02em;
+        color: rgba(255,255,255,.9) !important;
+        transition: background .18s ease, color .18s ease, border-color .18s ease !important;
+      }
+      .topbar-make-label:hover {
+        background: #fff;
+        color: var(--ink) !important;
+        border-color: #fff;
+      }
+      @media (max-width: 760px) {
+        .topbar-menu.right { display: none; }
+        .topbar-menu.left .topbar-make-label { display: inline-flex; }
+      }
       .topbar-menu.right { justify-self: end; }
       .topbar-menu a { color: rgba(255,255,255,.72); transition: color .18s ease; }
       .topbar-menu a:hover, .topbar-menu a.is-active { color: #fff; }
@@ -89,6 +114,7 @@
         color: #fff;
         overflow: hidden;
         background: #2a2622;
+        scroll-snap-align: start;
       }
       .hero-media {
         position: absolute !important;
@@ -118,8 +144,10 @@
         height: 100%;
         display: flex;
         flex-direction: column;
-        justify-content: flex-end;
-        padding: 0 var(--pad-x) 64px;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 0 var(--pad-x);
         max-width: var(--max);
         margin: 0 auto;
       }
@@ -135,7 +163,7 @@
       .hero-title {
         margin: 0;
         font-family: Georgia, "Times New Roman", serif;
-        font-size: clamp(60px, 10vw, 168px);
+        font-size: 30px;
         font-weight: 300;
         line-height: .92;
         letter-spacing: -.025em;
@@ -147,12 +175,15 @@
          02 — PROJECT OVERVIEW
          =========================================================== */
       .overview {
-        padding: 140px 0;
+        display: flex;
+        align-items: center;
+        padding: clamp(100px, 13vh, 140px) 0 clamp(60px, 8vh, 96px);
+        scroll-snap-align: start;
       }
       .overview-grid {
         display: grid;
-        grid-template-columns: 5fr 7fr;
-        gap: 80px;
+        grid-template-columns: 40% 60%;
+        gap: 0;
         align-items: start;
       }
       .meta-list {
@@ -173,22 +204,125 @@
         font-weight: 700;
         letter-spacing: .22em;
         text-transform: uppercase;
-        color: var(--ink-3);
+        color: var(--ink);
         padding-top: 3px;
       }
       .meta-value {
-        font-size: 14px;
+        font-size: 16px;
         line-height: 1.55;
         color: var(--ink);
       }
       .overview-lead {
-        font-family: Georgia, "Times New Roman", serif;
-        font-weight: 300;
-        font-size: clamp(24px, 2.6vw, 36px);
-        line-height: 1.3;
-        letter-spacing: -.015em;
+        font-family: var(--kr), -apple-system, sans-serif;
+        font-weight: 400;
+        font-size: 18px;
+        line-height: 1.6;
+        letter-spacing: -.01em;
         color: var(--ink);
         margin: 0;
+      }
+      .overview-right {
+        display: flex;
+        flex-direction: column;
+        gap: 56px;
+      }
+
+      /* Mobile-only meta elements — hidden on desktop */
+      .meta-chips     { display: none; }
+      .meta-brandname { display: none; }
+
+      /* Desktop-only: category + year (left col) */
+      .desktop-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .desktop-meta-item {
+        font-family: var(--en);
+        font-size: 14px;
+        font-weight: 400;
+        letter-spacing: 0;
+        line-height: 1.5;
+        color: var(--ink);
+        margin: 0;
+      }
+
+      /* Desktop-only brand name (right column top) */
+      .desktop-brandname {
+        font-family: var(--en);
+        font-size: 18px;
+        font-weight: 400;
+        letter-spacing: 0;
+        line-height: 1;
+        color: var(--ink);
+        margin: 0;
+      }
+
+      /* Credits */
+      .credits {
+        padding-top: 32px;
+        border-top: 1px solid var(--line-soft);
+      }
+      .credits-heading {
+        font-family: var(--en);
+        font-size: 13px;
+        font-weight: 400;
+        letter-spacing: 0;
+        text-transform: none;
+        line-height: 0.85;
+        color: var(--ink);
+        margin: 0 0 24px;
+      }
+      .credits-cols {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 5px;
+        margin-bottom: 24px;
+      }
+      .credits-col-label {
+        font-family: var(--en);
+        font-size: 13px;
+        font-weight: 400;
+        letter-spacing: 0;
+        text-transform: none;
+        line-height: 0.85;
+        color: var(--ink);
+        margin: 0 0 8px;
+      }
+      .credits-col-value {
+        font-family: var(--en);
+        font-size: 13px;
+        font-weight: 400;
+        letter-spacing: 0;
+        line-height: 0.85;
+        color: var(--ink);
+        margin: 0;
+      }
+      .credits-dir {
+        padding-top: 20px;
+      }
+      .credits-dir-vals {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 24px;
+        margin-top: 10px;
+      }
+      .credits-director {
+        font-family: var(--en);
+        font-size: 13px;
+        font-weight: 400;
+        letter-spacing: 0;
+        line-height: 0.85;
+        color: var(--ink);
+      }
+      .credits-copyright {
+        font-family: var(--en);
+        font-size: 13px;
+        font-weight: 400;
+        letter-spacing: 0;
+        line-height: 0.85;
+        color: var(--ink);
       }
 
       /* ===========================================================
@@ -196,7 +330,45 @@
          =========================================================== */
       .visual-section {
         padding: 0 0 140px;
+        scroll-snap-align: none;
       }
+
+      /* Image layout: 2x1 / 1 / 2x1 */
+      .image-layout {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        width: 100%;
+      }
+      .image-row-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4px;
+      }
+      .image-row-2 .image-cell {
+        aspect-ratio: 3 / 4;
+      }
+      .image-row-1 .image-cell {
+        aspect-ratio: 16 / 7;
+      }
+      .image-cell {
+        overflow: hidden;
+        background: var(--paper-2);
+      }
+      .image-cell img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform .8s cubic-bezier(.22,1,.36,1);
+      }
+      .image-cell:hover img { transform: scale(1.03); }
+
+      /* Carousel section */
+      .carousel-section {
+        padding: 35px 0;
+      }
+
       .section-head {
         max-width: var(--max);
         margin: 0 auto 60px;
@@ -212,7 +384,7 @@
         font-weight: 700;
         letter-spacing: .22em;
         text-transform: uppercase;
-        color: var(--ink-3);
+        color: var(--ink);
         margin: 0;
       }
       .section-title {
@@ -255,6 +427,9 @@
       }
 
       /* ===========================================================
+         04 — INSTAGRAM + WEB
+         =========================================================== */
+      /* ===========================================================
          04 — CHANNEL: Web (top, large) + IG/Text (bottom split)
          =========================================================== */
       .channel-section {
@@ -280,7 +455,7 @@
         font-weight: 700;
         letter-spacing: .22em;
         text-transform: uppercase;
-        color: var(--ink-3);
+        color: var(--ink);
         margin: 0 0 16px;
       }
 
@@ -293,47 +468,114 @@
       .channel-copy .section-title {
         margin: 0;
       }
-      /* IG feed — centered, 2x */
+      /* IG post cards */
       .channel-ig {
-        width: clamp(520px, 56vw, 640px);
-        margin: 0 auto;
+        width: 100%;
+        overflow: hidden;
+        margin-top: 50px;
+      }
+      /* IG 라벨: PC에서 카드 트랙(70% 중앙)과 정렬 */
+      .channel-ig .ch-label {
+        display: block;
+        width: 70%;
+        margin: 0 auto 50px;
+        padding: 0 20px;
+        box-sizing: border-box;
       }
 
-      .ig-frame {
-        background: #fff;
-        border-radius: 4px;
-        overflow: hidden;
-        box-shadow: 0 1px 0 var(--line-soft);
-      }
-      .ig-bar {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 14px 16px;
-        border-bottom: 1px solid var(--line-soft);
-      }
-      .ig-avatar {
-        width: 30px; height: 30px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #c89e6b, #f4d8a8);
-      }
-      .ig-handle {
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--ink);
-      }
-      .ig-feed {
+      /* PC: 3개 가로 1줄, 전체 70% 중앙 정렬 */
+      .ig-cards-track {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 2px;
+        gap: 16px;
+        padding: 0 20px;
+        width: 70%;
+        margin: 0 auto;
+        box-sizing: border-box;
       }
-      .ig-cell {
-        aspect-ratio: 1;
+
+      .ig-card {
+        width: 100%;
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 20px rgba(26,24,22,.09);
+        transition: transform .3s ease;
+      }
+      .ig-card:hover { transform: translateY(-3px); }
+
+      /* 모바일: 카드뉴스 풀스크린 슬라이드 */
+      @media (max-width: 760px) {
+        .ig-cards-track {
+          display: flex;
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          scroll-snap-type: x mandatory;
+          scrollbar-width: none;
+          -webkit-overflow-scrolling: touch;
+          padding: 0;
+          gap: 0;
+          width: 100%;
+          margin: 0;
+        }
+        .ig-cards-track::-webkit-scrollbar { display: none; }
+        .ig-card {
+          flex: 0 0 100%;
+          width: 100%;
+          scroll-snap-align: start;
+          border-radius: 0;
+          box-shadow: none;
+        }
+      }
+      .ig-card-top {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+      }
+      .ig-card-avatar {
+        width: 26px; height: 26px;
+        border-radius: 50%;
+        background: var(--accent);
+        flex-shrink: 0;
+      }
+      .ig-card-handle {
+        font-family: var(--en);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--ink);
+        letter-spacing: 0;
+      }
+      .ig-card-img {
+        width: 100%;
+        aspect-ratio: 1 / 1;
         overflow: hidden;
         background: var(--paper-2);
       }
-      .ig-cell img {
+      .ig-card-img img {
         width: 100%; height: 100%; object-fit: cover;
+        display: block;
+      }
+      .ig-card-bottom {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 12px 10px;
+      }
+      .ig-card-dots {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .ig-card-dot {
+        width: 5px; height: 5px;
+        border-radius: 50%;
+        background: var(--ink-3);
+        opacity: .3;
+      }
+      .ig-card-dot.active {
+        background: var(--accent);
+        opacity: 1;
       }
 
       .web-frame {
@@ -384,10 +626,11 @@
       }
 
       /* ===========================================================
-         05 — WORKFLOW
+         05 — WORKFLOW (Image 3 reference style)
          =========================================================== */
       .workflow {
         padding: 140px 0;
+        overflow-x: hidden;
       }
       .workflow-grid {
         display: grid;
@@ -407,7 +650,7 @@
       .wf-lead {
         font-size: 15px;
         line-height: 1.7;
-        color: var(--ink-2);
+        color: var(--ink);
         max-width: 42ch;
         margin: 0 0 40px;
       }
@@ -483,7 +726,7 @@
       }
 
       /* ===========================================================
-         FOOTER
+         FOOTER — case_mium.html 동일 구조
          =========================================================== */
       .bottom-logo {
         display: grid;
@@ -516,11 +759,11 @@
         .overview-grid,
         .section-head,
         .workflow-grid { grid-template-columns: 1fr; gap: 40px; }
-        .channel-ig { width: 100%; max-width: 480px; }
+        .channel-ig { width: 100%; max-width: none; }
         .wf-visual { grid-template-columns: 120px 1fr; }
       }
       @media (max-width: 760px) {
-        .overview, .channel-section, .workflow, .visual-section { padding: 80px 0; }
+        .overview, .channel-section, .workflow, .visual-section, .carousel-section { padding: 80px 0; }
         .channel-inner { gap: 48px; }
         .hero-inner { padding-top: 104px; padding-bottom: 40px; }
         .hero-title { max-width: 10ch; }
@@ -530,23 +773,63 @@
           max-width: none;
           justify-self: stretch;
         }
+        .channel-ig .ch-label {
+          width: 100%;
+          margin: 0 0 50px;
+          padding: 0 10px 0 0;
+        }
         .web-caption { padding: 20px; }
-        .wf-visual { grid-template-columns: 1fr; gap: 20px; }
-        .wf-anchor { max-width: 200px; aspect-ratio: 4 / 3; }
+        .wf-visual { grid-template-columns: 1fr; }
+
+        /* Overview — mobile 1단 재구조 */
+        .overview { align-items: flex-start; padding: 80px 0 56px; }
+        .overview-grid { gap: 0; }
+        .overview-right { gap: 40px; }
+        .desktop-brandname { display: none; }
+        .desktop-meta { display: none; }
+
+        /* Mobile: category + period chips */
+        .meta-chips {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          margin-bottom: 14px;
+        }
+        .meta-chip {
+          font-family: var(--en);
+          font-size: 14px;
+          font-weight: 400;
+          color: var(--ink);
+        }
+
+        /* Mobile: brand name */
+        .meta-brandname {
+          display: block;
+          font-family: Georgia, "Times New Roman", serif;
+          font-size: 18px;
+          font-weight: 300;
+          letter-spacing: -.02em;
+          line-height: 1.1;
+          color: var(--ink);
+          margin: 0 0 40px;
+        }
       }
     </style>
   </head>
   <body>
-    <!-- TOPBAR -->
+    <!-- TOPBAR — case_mium.html 동일 구조 -->
     <header class="topbar">
       <nav class="topbar-menu left">
         <a href="../service.html">Service</a>
         <a class="is-active" href="index.html">Work</a>
+        <a class="topbar-make-label" href="https://checker.krk.team" target="_blank" rel="noopener">Make Label</a>
       </nav>
       <a class="topbar-logo" href="../index.html" aria-label="KRK home">
         <img src="../assets/krk-logo.svg" alt="KRK" />
       </a>
-      <span aria-hidden="true"></span>
+      <nav class="topbar-menu right">
+        <a class="topbar-make-label" href="https://checker.krk.team" target="_blank" rel="noopener">Make Label</a>
+      </nav>
     </header>
 
     <main>
@@ -565,19 +848,62 @@
       <section class="overview">
         <div class="container">
           <div class="overview-grid">
-            <div class="meta-list fade-in" id="metaList"></div>
-            <p class="overview-lead fade-in" id="overviewLead"></p>
+
+            <!-- Left col (desktop) / Top block (mobile) -->
+            <div class="overview-left fade-in">
+              <!-- Desktop only: category + year -->
+              <div class="desktop-meta">
+                <p class="desktop-meta-item" id="desktopCat"></p>
+                <p class="desktop-meta-item" id="desktopPeriod"></p>
+              </div>
+              <!-- Mobile only: chips + brand name -->
+              <div class="meta-chips">
+                <span class="meta-chip" id="metaCat"></span>
+                <span class="meta-chip" id="metaPeriod"></span>
+              </div>
+              <p class="meta-brandname" id="metaBrandName"></p>
+            </div>
+
+            <!-- Right col (desktop) / Below (mobile) -->
+            <div class="overview-right">
+              <!-- Desktop only: brand name at top of right column -->
+              <p class="desktop-brandname" id="desktopBrandName"></p>
+              <p class="overview-lead fade-in" id="overviewLead"></p>
+
+              <!-- Credits -->
+              <div class="credits fade-in">
+                <p class="credits-heading">Credits</p>
+                <div class="credits-cols">
+                  <div class="credits-col">
+                    <p class="credits-col-label">Clients</p>
+                    <p class="credits-col-value" id="creditsClient"></p>
+                  </div>
+                  <div class="credits-col">
+                    <p class="credits-col-label">Tools</p>
+                    <p class="credits-col-value" id="creditsTools"></p>
+                  </div>
+                </div>
+                <div class="credits-dir">
+                  <p class="credits-col-label">Direction</p>
+                  <div class="credits-dir-vals">
+                    <span class="credits-director" id="creditsDirector"></span>
+                    <span class="credits-copyright" id="creditsCopyright"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
 
-      <!-- 03 VISUAL CAROUSEL -->
+      <!-- 03 VISUAL — 2x1 / 1 / 2x1 image layout -->
       <section class="visual-section">
-        <div class="section-head">
-          <div class="fade-in">
-            <h2 class="section-title" id="visualTitle"></h2>
-          </div>
-        </div>
+        <div class="image-layout fade-in" id="imageLayout"></div>
+      </section>
+
+      <!-- 04 CAROUSEL -->
+      <section class="carousel-section">
         <div class="carousel-frame fade-in">
           <div class="carousel-track" id="carouselTrack"></div>
         </div>
@@ -586,11 +912,6 @@
       <!-- 04 CHANNEL: Title (top) + Web (middle) + IG (bottom, centered) -->
       <section class="channel-section">
         <div class="channel-inner">
-          <!-- Title (top) -->
-          <div class="channel-copy fade-in">
-            <h2 class="section-title">Web Landing &amp; SNS</h2>
-          </div>
-
           <!-- Web Landing (middle, large) -->
           <div class="channel-web channel-block fade-in">
             <p class="ch-label">Web Landing</p>
@@ -610,17 +931,12 @@
             </div>
           </div>
 
-          <!-- Instagram Feed (bottom, centered, 2x) -->
-          <div class="channel-ig channel-block fade-in">
-            <p class="ch-label">Instagram Feed</p>
-            <div class="ig-frame">
-              <div class="ig-bar">
-                <div class="ig-avatar"></div>
-                <div class="ig-handle" id="igHandle"></div>
-              </div>
-              <div class="ig-feed" id="igFeed"></div>
-            </div>
-          </div>
+        </div>
+
+        <!-- Instagram Feed — channel-inner 밖, full-width -->
+        <div class="channel-ig channel-block fade-in">
+          <p class="ch-label">Instagram Feed</p>
+          <div class="ig-cards-track" id="igFeed"></div>
         </div>
       </section>
 
@@ -646,7 +962,7 @@
       </section>
     </main>
 
-    <!-- FOOTER -->
+    <!-- FOOTER — case_mium.html 동일 구조 -->
     <footer class="bottom-logo" id="contact">
       <img src="../assets/krk-logo.svg" alt="KRK" />
       <div class="bottom-info">
@@ -656,55 +972,65 @@
     </footer>
 
     <script>
+      // ================================================================
+      // 새 브랜드 케이스 작성 시 이 블록만 수정하세요.
+      // 이미지 파일명 규칙: IMAGE_NAMING.md 참조
+      // ================================================================
       const cases = [{
-        id: "urbanpure",
-        name: "UrbanPure",
-        en: "UrbanPure",
-        slogan: "Small rituals. Real results.<br>UrbanPure",
+        id:       "urbanpure",          // assets/{brandid}/ 폴더명과 동일하게
+        name:     "UrbanPure",
+        en:       "UrbanPure",
+        slogan:   "Small rituals. Real results.<br>UrbanPure",
         category: "Inner Beauty",
-        period: "2026",
-        scope: "Brand Positioning · Package · Campaign Visual · AI Brand OS",
-        overviewLead: "이너뷰티 시장은 클렌즈와 디톡스의 언어로 가득합니다.<br>UrbanPure는 그 언어를 쓰지 않습니다.<br>세 가지 색, 세 개의 아침 — 어제와 오늘 사이를 매듭짓는 브랜드입니다.",
-        visualTitle: "Brand Campaign",
-        wfTitle: "From one anchor to a full campaign.",
-        wfLead: "한 장의 기준 이미지에서 캠페인 시리즈, 패키지 비주얼, SNS 소재까지 같은 톤으로 확장합니다.",
+        period:   "2026",
+        scope:    "Brand Positioning · Package · Campaign Visual · AI Brand OS",
+        tools:    "Figma · Notion · Claude · AI · GPT",
+        director: "HANNA",
+        copyright: "© All Rights krk.studio",
+        overviewLead: "{브랜드 소개 텍스트}",
+        wfTitle:  "From one anchor to a full campaign.",
+        wfLead:   "한 장의 기준 이미지에서 캠페인 시리즈, 패키지 비주얼, SNS 소재까지 같은 톤으로 확장합니다.",
         wfChecks: [
-          "Anchor product shot as visual reference",
-          "AI-generated campaign series with consistent tone",
-          "Package, lifestyle, and feed cuts from one brief"
+          "{체크리스트 항목 1}",
+          "{체크리스트 항목 2}",
+          "{체크리스트 항목 3}"
         ],
         webHeadline: "Three colors. One ritual.",
-        webSub: "JINLEMON · OLITOMA · PEARAJI",
-        heroImage: "../assets/urbanpure-brand-01.png",
-        slides: [
-          "../assets/urbanpure-a-01.png",
-          "../assets/urbanpure-a-02.png",
-          "../assets/urbanpure-a-03.png",
-          "../assets/urbanpure-m-01.png",
-          "../assets/urbanpure-m-02.png",
-          "../assets/urbanpure-m-03.png"
+        webSub:      "JINLEMON · OLITOMA · PEARAJI",
+
+        // ── 이미지 경로 (IMAGE_NAMING.md 규칙 준수) ──────────────────
+        heroImage: "../assets/urbanpure/Hero_urbanpure.png",
+        sectionGrid: [
+          "../assets/urbanpure/Section_urbanpure_01.png",
+          "../assets/urbanpure/Section_urbanpure_02.png",
+          "../assets/urbanpure/Section_urbanpure_03.png",
+          "../assets/urbanpure/Section_urbanpure_04.png",
+          "../assets/urbanpure/Section_urbanpure_05.png"
+        ],
+        storyCards: [
+          "../assets/urbanpure/Story_urbanpure_01.png",
+          "../assets/urbanpure/Story_urbanpure_02.png",
+          "../assets/urbanpure/Story_urbanpure_03.png",
+          "../assets/urbanpure/Story_urbanpure_04.png",
+          "../assets/urbanpure/Story_urbanpure_05.png",
+          "../assets/urbanpure/Story_urbanpure_06.png"
         ],
         igGrid: [
-          "../assets/urbanpure-a-01.png",
-          "../assets/urbanpure-m-01.png",
-          "../assets/urbanpure-p-01.png",
-          "../assets/urbanpure-a-02.png",
-          "../assets/urbanpure-m-02.png",
-          "../assets/urbanpure-p-02.png",
-          "../assets/urbanpure-a-03.png",
-          "../assets/urbanpure-m-03.png",
-          "../assets/urbanpure-brand-01.png"
+          "../assets/urbanpure/IG_urbanpure_01.png",
+          "../assets/urbanpure/IG_urbanpure_02.png",
+          "../assets/urbanpure/IG_urbanpure_03.png"
         ],
-        webImage: "../assets/urbanpure-m-01.png",
-        wfAnchor: "../assets/urbanpure-brand-01.png",
+        webImage: "",
+        wfAnchor: "../assets/urbanpure/Anchor_urbanpure.png",
         wfRefs: [
-          "../assets/urbanpure-p-01.png",
-          "../assets/urbanpure-p-02.png",
-          "../assets/urbanpure-p-03.png",
-          "../assets/urbanpure-a-01.png",
-          "../assets/urbanpure-a-02.png",
-          "../assets/urbanpure-a-03.png"
+          "",
+          "",
+          "",
+          "",
+          "",
+          ""
         ]
+        // ─────────────────────────────────────────────────────────────
       }];
 
       const params = new URLSearchParams(window.location.search);
@@ -724,25 +1050,71 @@
 
       // 02 Overview
       setHTML('overviewLead', current.overviewLead);
+
+      // Desktop meta list
       setHTML('metaList', [
-        ['Client', current.name],
+        ['Client',   current.name],
         ['Category', current.category],
-        ['Period', current.period],
-        ['Scope', current.scope]
+        ['Period',   current.period],
+        ['Scope',    current.scope]
       ].map(([k, v]) =>
         `<div class="meta-item"><span class="meta-label">${k}</span><span class="meta-value">${v}</span></div>`
       ).join(''));
 
-      // 03 Visual carousel
-      setText('visualTitle', current.visualTitle);
-      setHTML('carouselTrack', current.slides.map((src, i) =>
+      // Desktop: left col (category + year) + right col brand name
+      setText('desktopCat',      current.category);
+      setText('desktopPeriod',   current.period);
+      setText('desktopBrandName', current.name);
+
+      // Mobile chips + brand name
+      setText('metaCat',      current.category);
+      setText('metaPeriod',   current.period);
+      setText('metaBrandName', current.name);
+
+      // Credits
+      setText('creditsClient',    current.name);
+      setText('creditsTools',     current.tools);
+      setText('creditsDirector',  current.director);
+      setText('creditsCopyright', current.copyright);
+
+      // 03 Visual — 2x1 / 1 / 2x1 layout (Section 5장)
+      const s = current.sectionGrid;
+      setHTML('imageLayout', `
+        <div class="image-row-2">
+          <div class="image-cell"><img src="${s[0]}" alt="${current.name} 1" loading="lazy" /></div>
+          <div class="image-cell"><img src="${s[1]}" alt="${current.name} 2" loading="lazy" /></div>
+        </div>
+        <div class="image-row-1">
+          <div class="image-cell"><img src="${s[2]}" alt="${current.name} 3" loading="lazy" /></div>
+        </div>
+        <div class="image-row-2">
+          <div class="image-cell"><img src="${s[3]}" alt="${current.name} 4" loading="lazy" /></div>
+          <div class="image-cell"><img src="${s[4]}" alt="${current.name} 5" loading="lazy" /></div>
+        </div>
+      `);
+
+      // 04 Carousel (Story 6장)
+      setHTML('carouselTrack', current.storyCards.map((src, i) =>
         `<div class="carousel-slide"><img src="${src}" alt="${current.name} ${i + 1}" /></div>`
       ).join(''));
 
-      // 04 Channel
-      setText('igHandle', '@' + current.id);
-      setHTML('igFeed', current.igGrid.slice(0, 9).map(src =>
-        `<div class="ig-cell"><img src="${src}" alt="" /></div>`
+      // 05 Channel — IG post cards
+      const igHandle = '@' + current.id;
+      setHTML('igFeed', current.igGrid.slice(0, 3).map((src, i) =>
+        `<div class="ig-card">
+          <div class="ig-card-top">
+            <div class="ig-card-avatar"></div>
+            <span class="ig-card-handle">${igHandle}</span>
+          </div>
+          <div class="ig-card-img"><img src="${src}" alt="" loading="lazy" /></div>
+          <div class="ig-card-bottom">
+            <div class="ig-card-dots">
+              <div class="ig-card-dot${i===0?' active':''}"></div>
+              <div class="ig-card-dot"></div>
+              <div class="ig-card-dot"></div>
+            </div>
+          </div>
+        </div>`
       ).join(''));
       setImg('webImage', current.webImage, '');
       setText('webHeadline', current.webHeadline);
@@ -770,7 +1142,7 @@
       }, { threshold: 0.1 });
       document.querySelectorAll('.fade-in').forEach(el => io.observe(el));
 
-      // Auto-scroll carousel
+      // Auto-scroll: 캠페인 캐러셀
       (function () {
         const track = $('carouselTrack');
         if (!track) return;
@@ -781,6 +1153,28 @@
           i = (i + 1) % slides.length;
           track.scrollTo({ left: slides[i].offsetLeft - 24, behavior: 'smooth' });
         }, 4000);
+      })();
+
+      // IG 피드: 모바일에서만 자동 슬라이드
+      (function () {
+        if (window.innerWidth > 760) return;   // PC는 중앙 그리드, 슬라이드 없음
+        const track = $('igFeed');
+        if (!track) return;
+        const cards = track.querySelectorAll('.ig-card');
+        if (cards.length < 2) return;
+        let idx = 0;
+        let paused = false;
+        track.addEventListener('pointerdown', () => { paused = true; });
+        track.addEventListener('pointerup',   () => { setTimeout(() => { paused = false; }, 3000); });
+        setInterval(() => {
+          if (paused) return;
+          idx = (idx + 1) % cards.length;
+          const card = cards[idx];
+          track.scrollTo({
+            left: card.offsetLeft - parseInt(getComputedStyle(track).paddingLeft),
+            behavior: 'smooth'
+          });
+        }, 3000);
       })();
     </script>
     <script src="../consult-widget.js" defer></script>
