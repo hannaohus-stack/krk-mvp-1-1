@@ -240,6 +240,28 @@
         transition: transform .2s ease;
       }
       .service-cta-link:hover .arr { transform: translateX(4px); }
+
+      /* Make Label */
+      .topbar-menu.left .topbar-make-label { display: none; }
+      .topbar-make-label {
+        opacity: 1 !important;
+        padding: 7px 14px;
+        border: 1px solid rgba(255,255,255,.55);
+        border-radius: 999px;
+        font-size: 12px !important;
+        letter-spacing: .02em;
+        color: rgba(255,255,255,.9) !important;
+        transition: background .18s ease, color .18s ease, border-color .18s ease !important;
+      }
+      .topbar-make-label:hover {
+        background: #fff;
+        color: var(--ink) !important;
+        border-color: #fff;
+      }
+      @media (max-width: 760px) {
+        .topbar-menu.right { display: none; }
+        .topbar-menu.left .topbar-make-label { display: inline-flex; }
+      }
     </style>
   </head>
   <body>
@@ -247,11 +269,14 @@
       <nav class="topbar-menu left">
         <a href="service.html">Service</a>
         <a href="work/index.html">Work</a>
+        <a class="topbar-make-label" href="https://checker.krk.team" target="_blank" rel="noopener">Make Label</a>
       </nav>
       <a href="index.html" class="topbar-logo" aria-label="KRK home">
         <img src="assets/krk-logo.svg" alt="KRK" />
       </a>
-      <div class="topbar-right"></div>
+      <nav class="topbar-menu right">
+        <a class="topbar-make-label" href="https://checker.krk.team" target="_blank" rel="noopener">Make Label</a>
+      </nav>
     </header>
 
     <main>
