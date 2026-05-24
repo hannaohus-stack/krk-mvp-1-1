@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>KRK · Food brand all-in-one consulting studio</title>
+    <meta name="description" content="KRK는 식품 브랜드 개발 컨설팅 스튜디오입니다. 아이디어부터 출시까지, 브랜딩 · 패키지 · 사진 · 상세페이지 · 유통을 한 호흡으로 진행합니다." />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="KRK · Food brand all-in-one consulting studio" />
+    <meta property="og:description" content="식품 브랜드 개발 컨설팅 스튜디오. 아이디어부터 출시까지, 한 호흡으로." />
+    <meta property="og:image" content="assets/krk-og.png" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:site_name" content="KRK" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="KRK · Food brand all-in-one consulting studio" />
+    <meta name="twitter:description" content="식품 브랜드 개발 컨설팅 스튜디오. 아이디어부터 출시까지, 한 호흡으로." />
+    <meta name="twitter:image" content="assets/krk-og.png" />
+
+    <link rel="stylesheet" href="assets/krk-tokens.css" />
+    <style>
+      /* Index · page-specific styles only.
+         Tokens, reset, topbar (white-on-dark default), button, footer
+         live in assets/krk-tokens.css */
+
+      /* ──────────── HERO — full-bleed media + overlay copy ──────────── */
+      .hero-fullbleed {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        min-height: 640px;
+        overflow: hidden;
+        background: var(--bg-dark);
+        color: #fff;
+      }
+      .hero-media { position: absolute; inset: 0; }
+      .hero-media video,
+      .hero-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .hero-media-placeholder {
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(120% 80% at 30% 30%, #2a2a2c 0%, #0e0e10 60%, #050507 100%);
+        overflow: hidden;
+      }
+      .hero-media-placeholder::before {
+        content: "";
+        position: absolute;
+        inset: -10%;
+        background:
+          radial-gradient(40% 50% at 70% 30%, rgba(255,255,255,.08), transparent 60%),
+          radial-gradient(50% 60% at 20% 80%, rgba(255,255,255,.05), transparent 60%);
+        animation: drift 18s ease-in-out infinite alternate;
+      }
+      .hero-media-placeholder::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          repeating-linear-gradient(0deg, rgba(255,255,255,.018) 0 1px, transparent 1px 3px);
+        pointer-events: none;
+        mix-blend-mode: overlay;
+      }
+      @keyframes drift {
+        0%   { transform: translate(0, 0) scale(1); }
+        100% { transform: translate(-2%, 1%) scale(1.05); }
+      }
+      .hero-scrim {
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(180deg, rgba(0,0,0,.45) 0%, rgba(0,0,0,.20) 22%, rgba(0,0,0,.10) 50%, rgba(0,0,0,.55) 100%);
+        pointer-events: none;
+      }
+
+      .hero-title-block {
+        position: absolute;
+        top: clamp(96px, 14vh, 140px);
+        left: var(--pad-x);
+        max-width: min(900px, 90vw);
+        z-index: 2;
+      }
+      .hero-eyebrow {
+        font-family: var(--en);
+        font-size: 14px;
+        letter-spacing: .04em;
+        color: rgba(255,255,255,.55);
+        font-weight: 400;
+        margin-bottom: 16px;
+      }
+      .hero-title {
+        font-family: var(--en);
+        font-weight: 400;
+        font-size: clamp(38px, 5.6vw, 82px);
+        line-height: 1.08;
+        letter-spacing: -.02em;
+        color: rgba(255,255,255,.92);
+        margin: 0;
+      }
+      .hero-foot {
+        position: absolute;
+        left: var(--pad-x);
+        bottom: clamp(110px, 14vh, 150px);
+        font-family: var(--kr);
+        font-size: 15px;
+        line-height: 1.7;
+        color: rgba(255,255,255,.6);
+        z-index: 2;
+      }
+      .hero-foot p { margin: 0; }
+
+      .hero-cta-wrap {
+        position: absolute;
+        left: 0; right: 0;
+        bottom: clamp(40px, 5vh, 64px);
+        display: grid;
+        place-items: center;
+        z-index: 2;
+        pointer-events: none;
+      }
+      .hero-cta-wrap > .krk-btn { pointer-events: auto; }
+
+      @media (max-width: 720px) {
+        .hero-title { font-size: clamp(34px, 9vw, 52px); }
+        .hero-foot { font-size: 13px; bottom: 130px; }
+      }
+
+      /* ──────────── PORTFOLIO — 3 real cases on light gray, hover label ──────────── */
+      .portfolio {
+        max-width: var(--max);
+        margin: 0 auto;
+        padding: clamp(48px, 6vw, 96px) var(--pad-x);
+      }
+      .portfolio-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: clamp(12px, 1.5vw, 20px);
+      }
+      @media (max-width: 1000px) { .portfolio-grid { grid-template-columns: repeat(2, 1fr); } }
+      @media (max-width: 560px)  { .portfolio-grid { grid-template-columns: 1fr; } }
+
+      .work-card { display: block; cursor: pointer; }
+      .work-thumb {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        background: var(--soft);
+        overflow: hidden;
+        border-radius: 2px;
+        transition: transform .35s ease;
+      }
+      .work-card:hover .work-thumb { transform: translateY(-4px); }
+      .work-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: filter .35s ease, transform .9s cubic-bezier(.19,1,.22,1);
+      }
+      .work-card:hover .work-thumb img {
+        filter: saturate(.92) brightness(.94);
+        transform: scale(1.04);
+      }
+      .work-hover-name {
+        position: absolute;
+        top: 18px;
+        left: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        opacity: 0;
+        transform: translateY(-4px);
+        transition: opacity .25s ease, transform .25s ease;
+        z-index: 2;
+      }
+      .work-card:hover .work-hover-name {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .work-hover-en {
+        font-family: var(--en);
+        font-size: 11px;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+        font-weight: 600;
+      }
+      .work-hover-kr {
+        font-family: var(--kr);
+        font-size: 17px;
+        font-weight: 600;
+        color: var(--ink);
+        letter-spacing: -.01em;
+      }
+
+      /* ──────────── SERVICE CTA strip ──────────── */
+      .service-cta {
+        padding: clamp(56px, 8vw, 120px) var(--pad-x);
+      }
+      .service-cta-inner {
+        max-width: var(--max);
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: clamp(24px, 4vw, 48px);
+      }
+      .service-cta-line {
+        align-self: stretch;
+        text-align: right;
+        margin: 0;
+        font-family: var(--kr);
+        font-size: clamp(22px, 2.4vw, 34px);
+        font-weight: 600;
+        letter-spacing: -.015em;
+        color: var(--ink);
+        line-height: 1.4;
+      }
+      .service-cta-link {
+        font-family: var(--kr);
+        font-size: clamp(22px, 2.4vw, 34px);
+        font-weight: 600;
+        letter-spacing: -.015em;
+        color: var(--ink);
+        display: inline-flex;
+        align-items: baseline;
+        gap: 6px;
+        transition: opacity .15s ease;
+      }
+      .service-cta-link .arr {
+        display: inline-block;
+        transition: transform .2s ease;
+      }
+      .service-cta-link:hover .arr { transform: translateX(4px); }
+
+      /* Make Label */
+      .topbar-menu.left .topbar-make-label { display: none; }
+      .topbar-make-label {
+        opacity: 1 !important;
+        padding: 7px 14px;
+        border: 1px solid rgba(255,255,255,.55);
+        border-radius: 999px;
+        font-size: 12px !important;
+        letter-spacing: .02em;
+        color: rgba(255,255,255,.9) !important;
+        transition: background .18s ease, color .18s ease, border-color .18s ease !important;
+      }
+      .topbar-make-label:hover {
+        background: #fff;
+        color: var(--ink) !important;
+        border-color: #fff;
+      }
+      .topbar.scrolled .topbar-make-label {
+        border-color: var(--ink);
+        color: var(--ink) !important;
+      }
+      .topbar.scrolled .topbar-make-label:hover {
+        background: var(--ink);
+        color: #fff !important;
+        border-color: var(--ink);
+      }
+      @media (max-width: 760px) {
+        .topbar-menu.right { display: none; }
+        .topbar-menu.left .topbar-make-label { display: inline-flex; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <nav class="topbar-menu left">
+        <a href="service.html">Service</a>
+        <a href="work/index.html">Work</a>
+        <a class="topbar-make-label" href="https://checker.krk.team" target="_blank" rel="noopener">Make Label</a>
+      </nav>
+      <a href="index.html" class="topbar-logo" aria-label="KRK home">
+        <img src="assets/krk-logo.svg" alt="KRK" />
+      </a>
+      <nav class="topbar-menu right">
+        <a class="topbar-make-label" href="https://checker.krk.team" target="_blank" rel="noopener">Make Label</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero-fullbleed">
+        <div class="hero-media">
+          <img src="assets/index_urbanpure.png" alt="KRK food brand consulting work" />
+          <div class="hero-scrim"></div>
+        </div>
+
+        <div class="hero-title-block">
+<h1 class="hero-title">
+            Food brand<br />
+            all-in-one<br />
+            consulting studio.
+          </h1>
+        </div>
+
+        <div class="hero-foot">
+          <p>식품 브랜드 개발 컨설팅 스튜디오</p>
+          <p>아이디어부터 출시까지, 한 호흡으로</p>
+          <p>브랜딩 · 패키지 · 사진 · 상세페이지 · 유통</p>
+        </div>
+      </section>
+
+      <section class="portfolio" id="work">
+        <div class="portfolio-grid">
+          <a class="work-card" href="work/case_balanceb.html">
+            <div class="work-thumb">
+              <img src="assets/index_balance b.png" alt="Balance B" />
+              <div class="work-hover-name">
+                <span class="work-hover-en">BALANCE B</span>
+              </div>
+            </div>
+          </a>
+          <a class="work-card" href="work/case_mium.html">
+            <div class="work-thumb">
+              <img src="assets/index_mium.png" alt="Mium" />
+              <div class="work-hover-name">
+                <span class="work-hover-en">MIUM</span>
+              </div>
+            </div>
+          </a>
+          <a class="work-card" href="work/case_urbanpure.html">
+            <div class="work-thumb">
+              <img src="assets/index_urbanpure.png" alt="UrbanPure" />
+              <div class="work-hover-name">
+                <span class="work-hover-en">URBANPURE</span>
+              </div>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <section class="service-cta">
+        <div class="service-cta-inner">
+          <p class="service-cta-line">
+            식품 브랜드를 0→1로 만들고, 1→10으로 키우고 싶다면
+          </p>
+          <a class="service-cta-link" href="service.html">
+            [Service <span class="arr">→</span>]
+          </a>
+        </div>
+      </section>
+
+      <footer class="bottom-logo">
+        <img src="assets/krk-logo.svg" alt="KRK" />
+        <div class="bottom-info">
+          <span>©KRK. All rights reserved.</span>
+          <a href="mailto:contact@krk.team">contact@krk.team</a>
+        </div>
+      </footer>
+    </main>
+    <script>
+      const topbar = document.querySelector('.topbar');
+      const syncTopbar = () => {
+        if (!topbar) return;
+        topbar.classList.toggle('scrolled', window.scrollY > 8);
+      };
+      syncTopbar();
+      window.addEventListener('scroll', syncTopbar, { passive: true });
+    </script>
+    <script src="consult-widget.js" defer></script>
+  </body>
+</html>
