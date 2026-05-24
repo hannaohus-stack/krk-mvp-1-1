@@ -194,14 +194,10 @@
         overflow: hidden;
         border-radius: 6px;
         background: var(--ink);
-        transition: transform .4s cubic-bezier(.19,1,.22,1), box-shadow .4s ease, opacity .4s ease;
-        opacity: .55;
+        transition: opacity .3s ease;
+        opacity: .45;
       }
       .gallery-card.is-active { opacity: 1; }
-      .gallery-card.is-active:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 24px 56px rgba(26,24,22,.16);
-      }
       .gallery-card a {
         display: block;
         width: 100%; height: 100%;
@@ -211,10 +207,8 @@
       .gallery-card img {
         width: 100%; height: 100%;
         object-fit: cover;
-        transition: transform 1s cubic-bezier(.19,1,.22,1);
         pointer-events: none;
       }
-      .gallery-card.is-active:hover img { transform: scale(1.03); }
       .gallery-meta {
         position: absolute;
         left: 0; right: 0; bottom: 0;
@@ -396,26 +390,22 @@
       }
 
       /* ============================================================
-         04 — AGENTS (warm cream)
+         04 — AGENTS
          ============================================================ */
       .agents-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: clamp(12px, 1.6vw, 20px);
+        gap: clamp(16px, 2vw, 24px);
       }
       .agent-card {
-        padding: clamp(32px, 3vw, 44px);
-        background: var(--paper);
-        border-radius: 4px;
+        position: relative;
+        overflow: hidden;
+        border-radius: 6px;
+        background: var(--ink);
+        aspect-ratio: 16 / 10;
+        cursor: pointer;
         display: flex;
         flex-direction: column;
-        gap: 16px;
-        cursor: pointer;
-        transition: transform .35s cubic-bezier(.19,1,.22,1), box-shadow .35s ease;
-      }
-      .agent-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 24px 48px rgba(26,24,22,.08);
       }
       .agent-num {
         font-family: var(--en);
@@ -423,24 +413,19 @@
         font-weight: 700;
         letter-spacing: .18em;
         text-transform: uppercase;
-        color: var(--ink-3);
+        color: rgba(255,255,255,.55);
       }
       .agent-card h3 {
         margin: 0;
         font-family: var(--serif);
         font-weight: 400;
-        font-size: clamp(22px, 2vw, 30px);
+        font-size: clamp(20px, 1.8vw, 28px);
         line-height: 1.1;
         letter-spacing: -.02em;
-        color: var(--ink);
+        color: #fff;
       }
       .agent-card p {
-        margin: 0;
-        font-family: var(--sans-kr);
-        font-size: 14px;
-        line-height: 1.6;
-        color: var(--ink-2);
-        flex: 1;
+        display: none;
       }
       .agent-learn {
         display: inline-flex;
@@ -449,12 +434,14 @@
         font-family: var(--en);
         font-size: 12px;
         font-weight: 600;
-        color: var(--ink-3);
+        color: rgba(255,255,255,.7);
         letter-spacing: .04em;
-        transition: color .2s ease;
-        margin-top: 8px;
+        width: fit-content;
+        padding: 9px 18px;
+        border: 1px solid rgba(255,255,255,.45);
+        border-radius: 999px;
+        background: transparent;
       }
-      .agent-card:hover .agent-learn { color: var(--ink); }
 
       /* ============================================================
          05 — PROCESS
@@ -566,21 +553,14 @@
         display: block;
         position: relative;
         overflow: hidden;
-        border-radius: 4px;
+        border-radius: 6px;
         aspect-ratio: 4 / 5;
         background: var(--ink);
-        transition: transform .35s cubic-bezier(.19,1,.22,1), box-shadow .35s ease;
-      }
-      .work-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 24px 56px rgba(26,24,22,.12);
       }
       .work-card img {
         width: 100%; height: 100%;
         object-fit: cover;
-        transition: transform .9s cubic-bezier(.19,1,.22,1);
       }
-      .work-card:hover img { transform: scale(1.04); }
       .work-card-meta {
         position: absolute;
         left: 0; right: 0; bottom: 0;
@@ -839,82 +819,43 @@
         margin-bottom: clamp(64px, 7vw, 104px);
       }
       .gallery-track {
-        scroll-behavior: smooth;
         scroll-padding-inline: calc((100vw - min(58vw, 760px)) / 2);
-      }
-      .gallery-card {
-        opacity: .42;
-        transform: scale(.965);
-        transition: opacity .55s ease, transform .65s cubic-bezier(.19,1,.22,1), filter .55s ease;
-        filter: saturate(.85);
-      }
-      .gallery-card.is-active {
-        opacity: 1;
-        transform: scale(1);
-        filter: saturate(1);
       }
       .gallery-nav {
         display: none !important;
       }
-      .agents-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        align-items: stretch;
-      }
-      .agent-card {
-        padding: 0;
-        overflow: hidden;
-        min-height: 520px;
-        background: #fff;
-        border-radius: 6px;
-        gap: 0;
-      }
       .agent-image {
-        position: relative;
-        aspect-ratio: 4 / 3.15;
-        overflow: hidden;
-        background: var(--bg-soft);
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
       }
       .agent-image img {
         width: 100%;
         height: 100%;
         object-fit: cover;
         display: block;
-        transition: transform .9s cubic-bezier(.19,1,.22,1);
       }
-      .agent-card:hover .agent-image img {
-        transform: scale(1.045);
+      .agent-image::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(0,0,0,.02) 0%, rgba(0,0,0,.58) 100%);
+        pointer-events: none;
       }
       .agent-content {
-        flex: 1;
+        position: absolute;
+        z-index: 2;
+        left: 0;
+        right: 0;
+        bottom: 0;
         display: flex;
         flex-direction: column;
-        gap: 16px;
-        padding: clamp(26px, 2.6vw, 38px);
+        gap: 14px;
+        padding: clamp(20px, 2.4vw, 32px);
       }
       .agent-content .agent-num {
-        margin-bottom: 6px;
-      }
-      .agent-content h3 {
-        font-size: clamp(24px, 2.2vw, 34px);
-      }
-      .agent-content p {
-        flex: 1;
-      }
-      .agent-learn {
-        width: fit-content;
-        margin-top: 12px;
-        padding: 11px 20px;
-        border: 1px solid var(--line);
-        border-radius: 999px;
-        color: var(--ink);
-        background: transparent;
-        letter-spacing: -.005em;
-        text-transform: none;
-      }
-      .agent-card:hover .agent-learn {
-        color: #fff;
-        background: var(--ink);
-        border-color: var(--ink);
+        display: none;
       }
       .process-steps {
         grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -947,7 +888,6 @@
         font-size: 14px;
       }
       @media (max-width: 1080px) {
-        .agents-grid { grid-template-columns: 1fr; max-width: 560px; }
         .process-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       }
       @media (max-width: 760px) {
@@ -955,7 +895,8 @@
         .hero { padding-bottom: 96px; }
         .process-steps { grid-template-columns: 1fr; }
         .process-step { min-height: 220px; }
-        .agent-card { min-height: auto; }
+        .agents-grid { grid-template-columns: 1fr; }
+        .agent-card { aspect-ratio: 16 / 9; }
       }
 
       /* ============================================================
@@ -964,7 +905,7 @@
       @media (max-width: 1080px) {
         .gallery-card { width: 68vw; }
         .gallery-track { padding: 8px calc((100vw - 68vw) / 2); }
-        .agents-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }
+        .agents-grid { grid-template-columns: repeat(2, 1fr); }
         .process-steps { grid-template-columns: repeat(2, 1fr); }
         .process-steps::before { display: none; }
         .work-grid { grid-template-columns: repeat(2, 1fr); }
@@ -1000,84 +941,11 @@
 
 
       /* Horizontal card layout correction */
-      .agents-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-        max-width: none !important;
-        margin: 0 !important;
-      }
-      .agent-card {
-        position: relative;
-        min-height: clamp(420px, 42vw, 620px) !important;
-        padding: 0 !important;
-        overflow: hidden;
-        border-radius: 6px;
-        background: var(--ink);
-      }
-      .agent-image {
-        position: absolute !important;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        aspect-ratio: auto !important;
-      }
-      .agent-image::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(180deg, rgba(0,0,0,.04) 0%, rgba(0,0,0,.62) 100%);
-        pointer-events: none;
-      }
-      .agent-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-      .agent-content {
-        position: absolute;
-        z-index: 2;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        padding: clamp(22px, 2.6vw, 36px) !important;
-        gap: 18px;
-        min-height: auto;
-      }
-      .agent-content .agent-num,
-      .agent-content p {
-        display: none !important;
-      }
-      .agent-content h3 {
-        margin: 0;
-        color: #fff;
-        font-size: clamp(24px, 2.4vw, 38px) !important;
-        text-shadow: 0 2px 18px rgba(0,0,0,.24);
-      }
-      .agent-learn {
-        color: #fff !important;
-        border-color: rgba(255,255,255,.7) !important;
-        background: transparent !important;
-        padding: 10px 18px;
-      }
-      .agent-card:hover .agent-learn {
-        color: var(--ink) !important;
-        background: #fff !important;
-        border-color: #fff !important;
-      }
       .process-steps {
         grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
         max-width: none !important;
       }
       @media (max-width: 1080px) {
-        .agents-grid {
-          grid-template-columns: repeat(3, minmax(260px, 1fr)) !important;
-          overflow-x: auto;
-          padding-bottom: 12px;
-          scroll-snap-type: x mandatory;
-        }
-        .agent-card {
-          min-width: 260px;
-          scroll-snap-align: start;
-        }
         .process-steps {
           grid-template-columns: repeat(4, minmax(220px, 1fr)) !important;
           overflow-x: auto;
@@ -1090,13 +958,6 @@
         }
       }
       @media (max-width: 760px) {
-        .agents-grid {
-          grid-template-columns: repeat(3, minmax(74vw, 1fr)) !important;
-        }
-        .agent-card {
-          min-width: 74vw;
-          min-height: 430px !important;
-        }
         .process-steps {
           grid-template-columns: repeat(4, minmax(68vw, 1fr)) !important;
         }
@@ -1108,145 +969,79 @@
 
 
 
-      /* Horizontal rail refinement for Agents and Selected Work */
-      .agents-grid {
-        display: flex !important;
-        gap: clamp(14px, 1.6vw, 22px) !important;
-        overflow-x: auto;
-        overflow-y: hidden;
-        padding-bottom: 12px;
-        scroll-snap-type: x mandatory;
-        -webkit-overflow-scrolling: touch;
-      }
-      .agent-card {
-        flex: 0 0 calc((100% - clamp(14px, 1.6vw, 22px) * 2) / 3) !important;
-        min-width: 0 !important;
-        min-height: auto !important;
-        aspect-ratio: 16 / 10 !important;
-        scroll-snap-align: start;
-      }
-      .agent-content h3 {
-        font-size: clamp(22px, 2vw, 32px) !important;
-      }
+      /* Selected Work — PC grid + frosted overlay */
       .work-grid {
-        display: flex !important;
-        gap: clamp(14px, 1.6vw, 22px) !important;
-        overflow-x: auto;
-        overflow-y: hidden;
-        padding-bottom: 14px;
-        scroll-snap-type: x mandatory;
-        -webkit-overflow-scrolling: touch;
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: clamp(16px, 2vw, 24px) !important;
+        width: 100% !important;
+        margin-left: 0 !important;
+        padding-right: 0 !important;
+        overflow: visible !important;
       }
-      .work-card,
-      .work-more-card {
-        flex: 0 0 calc((100% - clamp(14px, 1.6vw, 22px) * 2) / 3) !important;
-        min-width: 0;
-        scroll-snap-align: start;
+      /* 태블릿도 3열 유지 — overlay가 grid-column:3 사용하므로 */
+      @media (max-width: 1080px) and (min-width: 761px) {
+        .work-grid {
+          grid-template-columns: repeat(3, 1fr) !important;
+        }
       }
+      /* work-more-card: 3열 1행에 겹쳐서 frosted glass 오버레이 */
       .work-more-card {
+        grid-column: 3;
+        grid-row: 1;
+        z-index: 2;
         aspect-ratio: 4 / 5;
-        display: grid;
-        place-items: center;
-        border: 1px solid var(--line);
-        border-radius: 4px;
-        background: #fff;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.18);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
         font-family: var(--en);
-        font-size: clamp(18px, 2vw, 28px);
+        font-size: clamp(16px, 1.6vw, 22px);
         font-weight: 600;
         color: var(--ink);
         letter-spacing: -.02em;
-        transition: background .2s ease, color .2s ease, transform .35s cubic-bezier(.19,1,.22,1), box-shadow .35s ease;
-      }
-      .work-more-card:hover {
-        background: var(--ink);
-        color: #fff;
-        transform: translateY(-6px);
-        box-shadow: 0 24px 56px rgba(26,24,22,.12);
+        text-decoration: none;
       }
       .work-all-wrap {
         display: none !important;
       }
-      @media (max-width: 1080px) {
-        .agent-card {
-          flex-basis: min(520px, 72vw) !important;
-        }
-        .work-card,
-        .work-more-card {
-          flex-basis: min(420px, 62vw) !important;
-        }
-      }
       @media (max-width: 760px) {
-        .agent-card {
-          flex-basis: 82vw !important;
-          aspect-ratio: 4 / 3 !important;
-        }
-        .work-card,
-        .work-more-card {
-          flex-basis: 76vw !important;
-        }
-      }
-
-
-
-      /* Rail spacing and smoothness tuning */
-      .agents-grid,
-      .work-grid {
-        scroll-behavior: smooth;
-        scroll-snap-type: x proximity;
-        overscroll-behavior-x: contain;
-        scrollbar-width: none;
-      }
-      .agents-grid::-webkit-scrollbar,
-      .work-grid::-webkit-scrollbar {
-        display: none;
-      }
-      .agents-grid {
-        padding-right: clamp(96px, 14vw, 220px) !important;
-      }
-      .agent-card {
-        flex-basis: clamp(360px, 37vw, 520px) !important;
-      }
-      .work-grid {
-        width: 80%;
-        margin-left: 20% !important;
-        padding-right: 20% !important;
-      }
-      .work-card,
-      .work-more-card {
-        flex-basis: clamp(220px, 24vw, 320px) !important;
-      }
-      @media (max-width: 1080px) {
-        .agents-grid {
-          padding-right: 18vw !important;
-        }
-        .agent-card {
-          flex-basis: min(70vw, 500px) !important;
-        }
         .work-grid {
-          width: 86%;
-          margin-left: 14% !important;
-          padding-right: 14% !important;
+          display: flex !important;
+          overflow-x: auto !important;
+          overflow-y: hidden !important;
+          scroll-snap-type: x mandatory !important;
+          -webkit-overflow-scrolling: touch !important;
+          gap: clamp(14px, 4vw, 20px) !important;
+          padding-bottom: 12px !important;
+          scrollbar-width: none !important;
         }
+        .work-grid::-webkit-scrollbar { display: none; }
         .work-card,
         .work-more-card {
-          flex-basis: min(44vw, 300px) !important;
+          flex: 0 0 76vw !important;
+          scroll-snap-align: start !important;
+          grid-column: auto !important;
+          grid-row: auto !important;
+        }
+        .work-more-card {
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+          background: rgba(26, 24, 22, 0.06) !important;
+          border: 1px solid var(--line) !important;
         }
       }
+
+
+
+      /* Rail spacing — mobile only */
       @media (max-width: 760px) {
-        .agents-grid {
-          padding-right: 16vw !important;
-        }
-        .agent-card {
-          flex-basis: 76vw !important;
-        }
         .work-grid {
-          width: 88%;
-          margin-left: 12% !important;
-          padding-right: 12% !important;
-        }
-        .work-card,
-        .work-more-card {
-          flex-basis: 62vw !important;
+          scroll-behavior: smooth;
+          overscroll-behavior-x: contain;
         }
       }
 
@@ -1279,14 +1074,6 @@
       }
       .section-head h2 {
         margin-bottom: 18px;
-      }
-      .agents-grid {
-        width: 80%;
-        margin-left: 20% !important;
-        padding-right: 20% !important;
-      }
-      .agent-card {
-        flex-basis: clamp(340px, 35vw, 500px) !important;
       }
       .krk-footer {
         background: #fff;
@@ -1321,21 +1108,9 @@
       .krk-footer-info a {
         color: var(--ink);
       }
-      @media (max-width: 1080px) {
-        .agents-grid {
-          width: 86%;
-          margin-left: 14% !important;
-          padding-right: 18vw !important;
-        }
-      }
       @media (max-width: 760px) {
         .hero-title {
           font-size: clamp(40px, 12vw, 65px) !important;
-        }
-        .agents-grid {
-          width: 88%;
-          margin-left: 12% !important;
-          padding-right: 16vw !important;
         }
         .krk-footer-inner {
           display: flex;
@@ -1713,24 +1488,6 @@
 
         updateActive();
 
-        let autoTimer = null;
-        const startAuto = () => {
-          if (total < 2 || autoTimer) return;
-          autoTimer = window.setInterval(() => {
-            const nextIdx = (findActiveIdx() + 1) % total;
-            scrollToIdx(nextIdx);
-          }, 4200);
-        };
-        const stopAuto = () => {
-          if (!autoTimer) return;
-          window.clearInterval(autoTimer);
-          autoTimer = null;
-        };
-        track.addEventListener('mouseenter', stopAuto);
-        track.addEventListener('mouseleave', startAuto);
-        track.addEventListener('focusin', stopAuto);
-        track.addEventListener('focusout', startAuto);
-        startAuto();
 
         prevBtn?.addEventListener('click', () => scrollToIdx(currentIdx - 1));
         nextBtn?.addEventListener('click', () => scrollToIdx(currentIdx + 1));
@@ -1741,10 +1498,8 @@
         });
 
         track.addEventListener('wheel', (e) => {
-          if (Math.abs(e.deltaX) > Math.abs(e.deltaY) * 1.2) {
-            e.preventDefault();
-            track.scrollLeft += e.deltaX;
-          }
+          e.preventDefault();
+          track.scrollLeft += Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
         }, { passive: false });
 
         let isDown = false;
