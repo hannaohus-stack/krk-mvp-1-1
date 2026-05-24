@@ -22,7 +22,7 @@
 
   // ── CONFIG ────────────────────────────────────────────────
   const MAKE_WEBHOOK = 'https://hook.us2.make.com/8omwxlfwuwdrenvqu3jdr7i8kyfror2l';
-  const CALENDLY_URL = 'https://calendly.com/chaeumkorea/30min';
+  const CALENDLY_URL = 'https://calendly.com/chaeumkorea/15min';
 
   // ── CSS ───────────────────────────────────────────────────
   const css = `
@@ -66,6 +66,16 @@
     @keyframes krk-dot-pulse {
       0%, 100% { box-shadow: 0 0 0 2px rgba(62,207,107,.25); }
       50%       { box-shadow: 0 0 0 4px rgba(62,207,107,.12); }
+    }
+    @keyframes krk-c-shake {
+      0%, 100% { transform: translateX(0); }
+      20%       { transform: translateX(-5px); }
+      40%       { transform: translateX(5px); }
+      60%       { transform: translateX(-4px); }
+      80%       { transform: translateX(4px); }
+    }
+    .krk-c-services.is-shake {
+      animation: krk-c-shake .35s cubic-bezier(.19,1,.22,1) both;
     }
 
     /* PANEL */
@@ -481,7 +491,7 @@
         <!-- Step 3 -->
         <div class="krk-c-step" data-step="2">
           <div class="krk-c-step-label">Step 03</div>
-          <p class="krk-c-step-q">30분 무료 상담 시간을 예약해주세요.</p>
+          <p class="krk-c-step-q">15분 미팅 시간을 예약해주세요.</p>
           <div class="krk-c-cal-wrap">
             <div class="krk-c-cal-loading" id="krkCCalLoading">불러오는 중</div>
             <div id="krkCCalEmbed"></div>
@@ -523,7 +533,20 @@
     const progSteps = document.querySelectorAll('.krk-c-progress-step');
 
     // Open / close
+    const resetState = () => {
+      state.service = ''; state.serviceLabel = '';
+      state.name = ''; state.brand = ''; state.stage = ''; state.email = '';
+      document.querySelectorAll('.krk-c-service').forEach((c) => c.classList.remove('is-selected'));
+      [fName, fBrand, fStage, fEmail].forEach((el) => {
+        if (!el) return;
+        el.value = '';
+        el.classList.remove('is-error');
+      });
+      next0.disabled = true;
+      renderStep(0);
+    };
     const openPanel = () => {
+      resetState();
       panel.classList.add('is-open');
     };
     const closePanel = () => {
@@ -556,8 +579,14 @@
         next0.disabled = false;
       });
     });
+    const serviceGrid = document.querySelector('.krk-c-services');
     next0.addEventListener('click', () => {
-      if (!state.service) return;
+      if (!state.service) {
+        serviceGrid.classList.remove('is-shake');
+        void serviceGrid.offsetWidth; // reflow to restart animation
+        serviceGrid.classList.add('is-shake');
+        return;
+      }
       renderStep(1);
     });
 
