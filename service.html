@@ -985,19 +985,15 @@
           grid-template-columns: repeat(3, 1fr) !important;
         }
       }
-      /* work-more-card: 3열 1행에 겹쳐서 frosted glass 오버레이 */
+      /* work-more-card: 독립 3열 카드 */
       .work-more-card {
-        grid-column: 3;
-        grid-row: 1;
-        z-index: 2;
         aspect-ratio: 4 / 5;
         border-radius: 6px;
         display: flex;
         align-items: center;
         justify-content: center;
-        background: rgba(255, 255, 255, 0.18);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
+        background: rgba(26, 24, 22, 0.04);
+        border: 1px solid var(--line);
         font-family: var(--en);
         font-size: clamp(16px, 1.6vw, 22px);
         font-weight: 600;
@@ -1028,9 +1024,7 @@
           grid-row: auto !important;
         }
         .work-more-card {
-          backdrop-filter: none !important;
-          -webkit-backdrop-filter: none !important;
-          background: rgba(26, 24, 22, 0.06) !important;
+          background: rgba(26, 24, 22, 0.04) !important;
           border: 1px solid var(--line) !important;
         }
       }
@@ -1559,14 +1553,13 @@
         const fallback = [
           { en: 'Balance B', cat: 'Inner Beauty · Branding', link: 'work/case_balanceb.html', thumb: 'assets/balanceb-m-01.png' },
           { en: 'Mium', cat: 'Inner Beauty · Branding', link: 'work/case_mium.html', thumb: 'assets/mium-m-01.png' },
-          { en: 'UrbanPure', cat: 'Inner Beauty · Campaign', link: 'work/case_urbanpure.html', thumb: 'assets/urbanpure-m-01.png' },
         ];
         let works = [];
         try {
           const res = await fetch('/api/works');
           if (!res.ok) throw new Error();
           const data = await res.json();
-          works = (Array.isArray(data.works) ? data.works : []).slice(0, 3).map(w => ({
+          works = (Array.isArray(data.works) ? data.works : []).slice(0, 2).map(w => ({
             en: w.en || w.name || '',
             cat: w.cat || '',
             link: w.link ? `work/${w.link}` : '#',
