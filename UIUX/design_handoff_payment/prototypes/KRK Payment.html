@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>krk check — Payment v4 (service: 기본 / 전문)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" />
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #EFEEEA;
+    font-family: 'Pretendard', 'Pretendard Variable', system-ui, -apple-system, sans-serif;
+    color: #1E1E1E;
+    overflow: hidden;
+  }
+  @keyframes krkspin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  .krk-frame {
+    width: 390px;
+    height: 844px;
+    background: #F4F4F5;
+    border: 1px solid rgba(30,30,30,0.10);
+    overflow: hidden;
+    position: relative;
+  }
+  .krk-status {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #0A0A0B;
+  }
+  .krk-status-right { display: flex; align-items: center; gap: 5px; }
+  .krk-frame-body {
+    position: absolute;
+    top: 44px; left: 0; right: 0; bottom: 0;
+    overflow: hidden;
+  }
+  .krk-desktop {
+    width: 1280px;
+    height: 820px;
+    background: #F4F4F5;
+    border: 1px solid rgba(30,30,30,0.10);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .krk-browser-bar {
+    height: 32px;
+    background: #f0eee9;
+    border-bottom: 1px solid rgba(10,10,11,0.08);
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .krk-browser-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: rgba(10,10,11,0.18);
+  }
+  .krk-browser-url {
+    margin-left: 14px;
+    flex: 1;
+    height: 20px;
+    background: #fff;
+    border: 1px solid rgba(10,10,11,0.10);
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 11px;
+    color: rgba(10,10,11,0.55);
+    letter-spacing: 0.02em;
+    max-width: 340px;
+  }
+
+  ::selection { background: #0CA4F9; color: #fff; }
+  ::-moz-selection { background: #0CA4F9; color: #fff; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="payment-screens.jsx"></script>
+<script type="text/babel" src="design-canvas.jsx"></script>
+
+<script type="text/babel">
+const { DesignCanvas, DCSection, DCArtboard } = window;
+const { PaymentDesktop, PaymentMobile, CompleteDesktop, CompleteMobile } = window;
+
+function MobileStatusBar() {
+  return (
+    <div className="krk-status">
+      <span>9:41</span>
+      <div className="krk-status-right">
+        <svg width="17" height="11" viewBox="0 0 17 11" fill="none">
+          <rect x="0" y="7" width="3" height="4" rx="0.5" fill="#0A0A0B"/>
+          <rect x="4.5" y="5" width="3" height="6" rx="0.5" fill="#0A0A0B"/>
+          <rect x="9" y="2.5" width="3" height="8.5" rx="0.5" fill="#0A0A0B"/>
+          <rect x="13.5" y="0" width="3" height="11" rx="0.5" fill="#0A0A0B"/>
+        </svg>
+        <svg width="15" height="11" viewBox="0 0 15 11" fill="none">
+          <path d="M7.5 9.5a1 1 0 1 0 0 .01" stroke="#0A0A0B" strokeWidth="1.5"/>
+          <path d="M3.5 6.5a6 6 0 0 1 8 0" stroke="#0A0A0B" strokeWidth="1.3" fill="none"/>
+          <path d="M1 4a9.5 9.5 0 0 1 13 0" stroke="#0A0A0B" strokeWidth="1.3" fill="none"/>
+        </svg>
+        <svg width="25" height="11" viewBox="0 0 25 11" fill="none">
+          <rect x="0.5" y="0.5" width="21" height="10" rx="2.2" stroke="#0A0A0B" strokeOpacity="0.45" fill="none"/>
+          <rect x="2" y="2" width="18" height="7" rx="1.2" fill="#0A0A0B"/>
+          <rect x="22.5" y="3.5" width="1.5" height="4" rx="0.5" fill="#0A0A0B" fillOpacity="0.45"/>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function MobileFrame({ children }) {
+  return (
+    <div className="krk-frame">
+      <MobileStatusBar />
+      <div className="krk-frame-body">{children}</div>
+    </div>
+  );
+}
+
+function DesktopFrame({ url, children }) {
+  return (
+    <div className="krk-desktop">
+      <div className="krk-browser-bar">
+        <span className="krk-browser-dot"/>
+        <span className="krk-browser-dot"/>
+        <span className="krk-browser-dot"/>
+        <div className="krk-browser-url">{url}</div>
+      </div>
+      <div style={{ flex: 1, overflow: 'hidden', position: 'relative', display: 'flex', flexDirection: 'column' }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <DesignCanvas
+      title="krk check / Payment v4 — service 분기 (기본 / 전문)"
+      subtitle="v3 → v4. Tier 분기 폐기 → service: 'basic' (9,900) / 'pro' (19,900). 베타 모달 제거. PDF 3종 통합 카피 → 개별 파일 명시. /payment/complete 다운로드 허브 재설계 + 마이페이지 1년 안내."
+      initialZoom={0.42}
+    >
+      {/* ─── Desktop /payment ───────────────────────────────── */}
+      <DCSection
+        id="desktop-payment"
+        title="Desktop /payment — 서비스 분기"
+        subtitle="좌: 주문 요약 카드 (서비스명 + 포함 내역 명시) · 우: 토스 위젯 + 결제 CTA. /review에서 선택된 service prop으로 진입."
+      >
+        <DCArtboard id="desktop-basic" label="01 — 기본 라벨 패키지 · 9,900원" width={1280} height={820}>
+          <DesktopFrame url="krk.team/payment?service=basic">
+            <PaymentDesktop service="basic" />
+          </DesktopFrame>
+        </DCArtboard>
+        <DCArtboard id="desktop-pro" label="02 — 전문 수정 가이드 · 19,900원" width={1280} height={820}>
+          <DesktopFrame url="krk.team/payment?service=pro">
+            <PaymentDesktop service="pro" />
+          </DesktopFrame>
+        </DCArtboard>
+        <DCArtboard id="desktop-loading" label="03 — Loading · 결제 처리 중" width={1280} height={820}>
+          <DesktopFrame url="krk.team/payment?service=pro">
+            <PaymentDesktop service="pro" state="loading" />
+          </DesktopFrame>
+        </DCArtboard>
+        <DCArtboard id="desktop-error" label="04 — Error · 결제 실패 (인라인 배너)" width={1280} height={820}>
+          <DesktopFrame url="krk.team/payment?service=basic">
+            <PaymentDesktop service="basic" state="error" />
+          </DesktopFrame>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── Desktop /payment/complete ───────────────────────── */}
+      <DCSection
+        id="desktop-complete"
+        title="Desktop /payment/complete — 다운로드 허브"
+        subtitle="결제 직후 안도+신뢰 톤. '○○가 준비됐어요.' 카피. 좌: 영수증 + 마이페이지 안내(준비 중) · 우: 다운로드 리스트 + 항목별 텍스트 복사. 서비스에 따라 파일 개수 다름."
+      >
+        <DCArtboard id="complete-basic" label="05 — Success · 기본 (라벨 PDF + PNG)" width={1280} height={820}>
+          <DesktopFrame url="krk.team/payment/complete">
+            <CompleteDesktop service="basic" state="success" />
+          </DesktopFrame>
+        </DCArtboard>
+        <DCArtboard id="complete-pro" label="06 — Success · 전문 (5개 파일 · 신고가이드+리포트+분리배출 ZIP 포함)" width={1280} height={820}>
+          <DesktopFrame url="krk.team/payment/complete">
+            <CompleteDesktop service="pro" state="success" />
+          </DesktopFrame>
+        </DCArtboard>
+        <DCArtboard id="complete-fail" label="07 — Fail · 결제 실패" width={1280} height={820}>
+          <DesktopFrame url="krk.team/payment/complete">
+            <CompleteDesktop service="basic" state="fail" />
+          </DesktopFrame>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ─── Mobile ─────────────────────────────────────────── */}
+      <DCSection
+        id="mobile"
+        title="Mobile — 1-col 스택"
+        subtitle="주문 요약 → 위젯 → 결제 CTA. Complete에서는 다운로드 리스트 + 복사 리스트 + 마이페이지 안내가 자연스럽게 스택."
+      >
+        <DCArtboard id="m-basic" label="08 — Mobile · 기본 (9,900)" width={390} height={844}>
+          <MobileFrame><PaymentMobile service="basic" /></MobileFrame>
+        </DCArtboard>
+        <DCArtboard id="m-pro" label="09 — Mobile · 전문 (19,900)" width={390} height={844}>
+          <MobileFrame><PaymentMobile service="pro" /></MobileFrame>
+        </DCArtboard>
+        <DCArtboard id="m-loading" label="10 — Mobile · Loading" width={390} height={844}>
+          <MobileFrame><PaymentMobile service="pro" state="loading" /></MobileFrame>
+        </DCArtboard>
+        <DCArtboard id="m-error" label="11 — Mobile · Error" width={390} height={844}>
+          <MobileFrame><PaymentMobile service="basic" state="error" /></MobileFrame>
+        </DCArtboard>
+        <DCArtboard id="m-complete-basic" label="12 — Mobile Complete · 기본" width={390} height={844}>
+          <MobileFrame><CompleteMobile service="basic" state="success" /></MobileFrame>
+        </DCArtboard>
+        <DCArtboard id="m-complete-pro" label="13 — Mobile Complete · 전문" width={390} height={844}>
+          <MobileFrame><CompleteMobile service="pro" state="success" /></MobileFrame>
+        </DCArtboard>
+        <DCArtboard id="m-complete-fail" label="14 — Mobile Complete · Fail" width={390} height={844}>
+          <MobileFrame><CompleteMobile service="basic" state="fail" /></MobileFrame>
+        </DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

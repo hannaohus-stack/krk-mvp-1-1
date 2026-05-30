@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>KRK Checker — Blog (List + Article)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" />
+<style>
+  html, body { margin: 0; padding: 0; background: #f0eee9; font-family: 'Pretendard', sans-serif; color: #1E1E1E; overflow: hidden; }
+  ::selection { background: #0CA4F9; color: #fff; }
+
+  .krk-mobile { width: 390px; height: 1600px; background: #fff; border: 1px solid rgba(30,30,30,0.10); overflow: hidden; position: relative; display: flex; flex-direction: column; }
+  .krk-mobile-status { height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; color: #0A0A0B; background: #fff; flex-shrink: 0; position: relative; z-index: 70; }
+  .krk-mobile-status-right { display: flex; align-items: center; gap: 5px; }
+  .krk-mobile-body { flex: 1; overflow: auto; position: relative; }
+
+  .krk-desktop { width: 1440px; height: 1800px; background: #fff; border: 1px solid rgba(30,30,30,0.10); overflow: hidden; position: relative; display: flex; flex-direction: column; }
+  .krk-desktop-article { width: 1440px; height: 3400px; background: #fff; border: 1px solid rgba(30,30,30,0.10); overflow: hidden; position: relative; display: flex; flex-direction: column; }
+  .krk-browser-bar { height: 32px; background: #f0eee9; border-bottom: 1px solid rgba(10,10,11,0.08); display: flex; align-items: center; padding: 0 14px; gap: 8px; flex-shrink: 0; position: relative; z-index: 70; }
+  .krk-browser-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(10,10,11,0.18); }
+  .krk-browser-url { margin-left: 14px; flex: 1; height: 20px; background: #fff; border: 1px solid rgba(10,10,11,0.10); display: flex; align-items: center; padding: 0 10px; font-family: 'Inter', sans-serif; font-size: 11px; color: rgba(10,10,11,0.55); letter-spacing: 0.02em; max-width: 320px; }
+  .krk-desktop-body { flex: 1; overflow: auto; position: relative; }
+  .krk-mobile-article { width: 390px; height: 2800px; background: #fff; border: 1px solid rgba(30,30,30,0.10); overflow: hidden; position: relative; display: flex; flex-direction: column; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="blog-data.jsx"></script>
+<script type="text/babel" src="blog-list.jsx"></script>
+<script type="text/babel" src="blog-article.jsx"></script>
+<script type="text/babel">
+const { DesignCanvas, DCSection, DCArtboard } = window;
+const { BlogList, BlogArticle } = window;
+
+function MobileStatusBar() {
+  return (
+    <div className="krk-mobile-status">
+      <span>9:41</span>
+      <div className="krk-mobile-status-right">
+        <svg width="17" height="11" viewBox="0 0 17 11" fill="none"><rect x="0" y="7" width="3" height="4" rx="0.5" fill="#0A0A0B"/><rect x="4.5" y="5" width="3" height="6" rx="0.5" fill="#0A0A0B"/><rect x="9" y="2.5" width="3" height="8.5" rx="0.5" fill="#0A0A0B"/><rect x="13.5" y="0" width="3" height="11" rx="0.5" fill="#0A0A0B"/></svg>
+        <svg width="15" height="11" viewBox="0 0 15 11" fill="none"><path d="M7.5 9.5a1 1 0 1 0 0 .01" stroke="#0A0A0B" strokeWidth="1.5"/><path d="M3.5 6.5a6 6 0 0 1 8 0" stroke="#0A0A0B" strokeWidth="1.3" fill="none"/><path d="M1 4a9.5 9.5 0 0 1 13 0" stroke="#0A0A0B" strokeWidth="1.3" fill="none"/></svg>
+        <svg width="25" height="11" viewBox="0 0 25 11" fill="none"><rect x="0.5" y="0.5" width="21" height="10" rx="2.2" stroke="#0A0A0B" strokeOpacity="0.45" fill="none"/><rect x="2" y="2" width="18" height="7" rx="1.2" fill="#0A0A0B"/><rect x="22.5" y="3.5" width="1.5" height="4" rx="0.5" fill="#0A0A0B" fillOpacity="0.45"/></svg>
+      </div>
+    </div>
+  );
+}
+
+function MobileFrame({ children, tall = false, taller = false }) {
+  return (
+    <div className={taller ? 'krk-mobile-article' : 'krk-mobile'}>
+      <MobileStatusBar />
+      <div className="krk-mobile-body">{children}</div>
+    </div>
+  );
+}
+
+function DesktopFrame({ children, article = false }) {
+  return (
+    <div className={article ? 'krk-desktop-article' : 'krk-desktop'}>
+      <div className="krk-browser-bar">
+        <span className="krk-browser-dot"/><span className="krk-browser-dot"/><span className="krk-browser-dot"/>
+        <div className="krk-browser-url">krk.team/blog</div>
+      </div>
+      <div className="krk-desktop-body">{children}</div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <DesignCanvas
+      title="KRK Checker / Blog — 리스트 + 상세 (A 안 확정)"
+      subtitle="Editorial Restrained — 중앙 정렬 narrow column, 뉴스레터 스트립, Featured 2열, sticky 카테고리 탭, soft tint CTA. Desktop + Mobile."
+      initialZoom={0.42}
+    >
+      <DCSection
+        id="list"
+        title="리스트 페이지"
+        subtitle="Featured 카드 + 카테고리 sticky 탭 + 3열 카드 그리드. 모바일은 1열 + 가로 스크롤 탭."
+      >
+        <DCArtboard id="list-d-a" label="Desktop · 리스트" width={1440} height={1800}>
+          <DesktopFrame><BlogList device="desktop" variant="A" /></DesktopFrame>
+        </DCArtboard>
+        <DCArtboard id="list-m-a" label="Mobile · 리스트" width={390} height={1600}>
+          <MobileFrame><BlogList device="mobile" variant="A" /></MobileFrame>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection
+        id="article"
+        title="상세 페이지"
+        subtitle="중앙 정렬 narrow column + 메타 칩 + soft tint CTA 박스 + 액션 행(목록·공유·의견) + 관련 글 3열."
+      >
+        <DCArtboard id="art-d-a" label="Desktop · 상세" width={1440} height={3400}>
+          <DesktopFrame article><BlogArticle device="desktop" variant="A" /></DesktopFrame>
+        </DCArtboard>
+        <DCArtboard id="art-m-a" label="Mobile · 상세" width={390} height={2800}>
+          <MobileFrame taller><BlogArticle device="mobile" variant="A" /></MobileFrame>
+        </DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
