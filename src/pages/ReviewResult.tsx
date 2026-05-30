@@ -1,10 +1,15 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useLocation, Navigate } from 'react-router-dom'
 import {
   AlertTriangle, CheckCircle2, AlertCircle,
-  ChevronDown, ChevronUp, RotateCcw, Share2, Edit3,
+  ChevronDown, ChevronUp, RotateCcw, Edit3, Lock,
 } from 'lucide-react'
+import LogoLockup from '../components/LogoLockup'
 import type { Ingredient } from '../utils/parsing'
+import type { ServiceTier } from '../utils/tierUtils'
+import type { CreatorData } from './creator/types'
+import { TIER_1_PRICE, TIER_2_PRICE, fmtKRW } from '../utils/tierUtils'
+import { recordLabelReview } from '../lib/supabase'
 import regulationsData from '../utils/data/regulations.json'
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
@@ -16,13 +21,23 @@ export interface Metadata {
   expiryDays: string
   storage: string
   manufacturer: string
+  manufacturerAddress?: string
+  itemReportNumber?: string
+  marketingClaims?: string
+  packagingMaterials?: string[]   // v4: 분리배출 마크 판별용 (선택)
+  sharedFacilityAllergens?: string[]
+  categories?:   string[]         // v5: 식품 카테고리 (라벨 PDF · 복사 항목용)
+  businessType?: string           // v5: 사업자 유형 (신고 가이드 분기용)
+  facilityType?: '단독' | '공유'  // A-8: 영업 시설 유형 (공유주방 혼입 경고용)
 }
 
 type RiskStatus = 'violation' | 'warn' | 'pass'
 type StatusFilter = 'all' | 'violation' | 'warn' | 'pass'
+type ServiceType = 'basic' | 'pro'
+type ResultKind = 'need' | 'warn' | 'ok'
 
 export interface RegulationResult {
-  id: string                   // "R01" ~ "R12"
+  id: string                   // "R01" ~ "R20" (R13/R14/R18 미구현)
   title: string
   severity: 'red' | 'yellow'
   condition: string
@@ -31,6 +46,15 @@ export interface RegulationResult {
   suggestion: string
   status: RiskStatus
   detail: string
+  currentValue?: string
+  issueReason?: string
+  legalBasis?: string
+  fixInstruction?: string
+  recommendedLabelText?: string
+  beforeExample?: string
+  afterExample?: string
+  actionItems?: string[]
+  targetOutput?: string[]
 }
 
 // ─── 분석 로직 ─────────────────────────────────────────────────────────────────
@@ -45,7 +69,7 @@ export function analyzeRegulations(
   const isSorted   = allWeights &&
     ingredients.every((ing, idx) => idx === 0 || ingredients[idx - 1].weight >= ing.weight)
 
-  const map: Record<string, { status: RiskStatus; detail: string }> = {
+  const map: Record<string, Partial<RegulationResult> & { status: RiskStatus; detail: string }> = {
     R01: metadata.productName.trim()
       ? { status: 'pass',      detail: `제품명 "${metadata.productName}" 확인.` }
       : { status: 'violation', detail: '제품명이 입력되지 않았습니다. 라벨 필수 기재 항목입니다.' },
@@ -62,9 +86,55 @@ export function analyzeRegulations(
 
     R04: { status: 'warn', detail: '제품명에 특정 원재료(예: 딸기잼 → 딸기)가 포함된 경우 해당 원재료 함량(%)을 표시해야 합니다. 직접 확인하세요.' },
 
-    R05: allergens.length > 0
-      ? { status: 'warn',  detail: `${allergens.map(a => a.name).join(', ')} 등 ${allergens.length}개 알레르기 유발 원료 감지. 별도 구분하여 명시 필요.` }
-      : { status: 'pass',  detail: '알레르기 유발 원료가 감지되지 않았습니다.' },
+    R05: (() => {
+      const sharedKitchen = metadata.facilityType === '공유'
+      const sharedAllergens = metadata.sharedFacilityAllergens ?? []
+      if (allergens.length > 0) {
+        const base = `${allergens.map(a => a.name).join(', ')} 등 ${allergens.length}개 알레르기 유발 원료 감지. 별도 구분하여 명시 필요.`
+        const extra = sharedKitchen && sharedAllergens.length > 0
+          ? `\n공유시설 혼입 가능성 표시 필요: ${sharedAllergens.join(', ')} 사용 제품과 같은 제조시설에서 제조.`
+          : sharedKitchen
+          ? '\n공유시설 사용 중입니다. 같은 시설에서 취급되는 알레르기 유발물질을 입력해야 혼입 가능성 표시를 완성할 수 있습니다.'
+          : ''
+        return {
+          status: 'warn' as RiskStatus,
+          detail: base + extra,
+          currentValue: allergens.map(a => a.name).join(', '),
+          issueReason: '알레르기 유발 원료는 원재료명과 별도로 소비자가 쉽게 확인할 수 있게 표시해야 합니다.',
+          fixInstruction: '라벨 정보표시면에 알레르기 표시 줄을 별도로 만들고, 직접 사용 원료와 공유시설 혼입 가능성 문구를 분리해 작성하세요.',
+          recommendedLabelText: `알레르기 유발물질: ${allergens.map(a => a.name).join(', ')} 함유${sharedAllergens.length > 0 ? ` / 이 제품은 ${sharedAllergens.join(', ')}을 사용한 제품과 같은 제조시설에서 제조하고 있습니다.` : ''}`,
+          beforeExample: '원재료명 안에만 알레르기 원료가 섞여 있음',
+          afterExample: `알레르기 유발물질: ${allergens.map(a => a.name).join(', ')} 함유`,
+          actionItems: ['알레르기 표시 문구를 정보표시면에 별도 배치', '공유시설 사용 시 혼입 가능 알레르기 품목 확인', '라벨 PDF/PNG에 동일 문구 반영'],
+          targetOutput: ['전문 수정 가이드 PDF', '라벨 PDF', '라벨 PNG'],
+        }
+      }
+      if (sharedKitchen) {
+        if (sharedAllergens.length > 0) {
+          return {
+            status: 'warn' as RiskStatus,
+            detail: `공유시설 혼입 가능성 표시 필요: ${sharedAllergens.join(', ')} 사용 제품과 같은 제조시설에서 제조하고 있음을 라벨에 표시하세요. (식품 등의 표시·광고에 관한 법률 시행규칙 별표 2)`,
+            currentValue: sharedAllergens.join(', '),
+            issueReason: '공유시설에서 알레르기 유발물질을 취급하면 직접 원료가 아니어도 혼입 가능성 안내가 필요할 수 있습니다.',
+            fixInstruction: '공유시설에서 함께 취급되는 알레르기 품목을 확인한 뒤 혼입 가능성 문구를 정보표시면 하단에 넣으세요.',
+            recommendedLabelText: `이 제품은 ${sharedAllergens.join(', ')}을 사용한 제품과 같은 제조시설에서 제조하고 있습니다.`,
+            actionItems: ['공유시설 취급 알레르기 목록 확인', '혼입 가능성 문구 라벨 반영'],
+            targetOutput: ['전문 수정 가이드 PDF', '라벨 PDF', '라벨 PNG'],
+          }
+        }
+        return {
+          status: 'warn' as RiskStatus,
+          detail: '직접 사용한 알레르기 유발 원료는 감지되지 않았습니다. 다만 공유시설 사용 시 같은 시설에서 취급되는 알레르기 유발물질을 확인해 혼입 가능성 표시 여부를 판단해야 합니다.',
+          currentValue: '공유시설 사용, 혼입 가능 알레르기 미입력',
+          issueReason: '공유시설 사용 시 같은 제조시설 취급 품목을 확인해야 혼입 가능성 표시 여부를 판단할 수 있습니다.',
+          fixInstruction: '공유시설 운영자에게 같은 시설에서 취급하는 알레르기 유발물질 목록을 확인하고 입력 단계에 반영하세요.',
+          recommendedLabelText: '이 제품은 [알레르기 품목]을 사용한 제품과 같은 제조시설에서 제조하고 있습니다.',
+          actionItems: ['공유시설 취급 품목 확인', '필요 시 혼입 가능성 문구 추가'],
+          targetOutput: ['전문 수정 가이드 PDF'],
+        }
+      }
+      return { status: 'pass' as RiskStatus, detail: '알레르기 유발 원료가 감지되지 않았습니다.' }
+    })(),
 
     R06: composites.length > 0
       ? { status: 'warn',  detail: `${composites.map(c => c.name).join(', ')} 등 ${composites.length}개 복합원재료 감지. 괄호 안에 구성 원재료를 함량 순으로 표시해야 합니다.` }
@@ -78,31 +148,249 @@ export function analyzeRegulations(
       ? { status: 'pass',  detail: `보관방법 "${metadata.storage}" 확인. 개봉 후 보관방법도 포함되어 있는지 확인하세요.` }
       : { status: 'warn',  detail: '보관방법이 입력되지 않았습니다. 개봉 전·후 보관조건을 모두 표시하세요.' },
 
-    R09: { status: 'warn', detail: '영양성분표 의무 여부는 사업 규모에 따라 다릅니다. 연매출 1억 이상 또는 50인 이상 사업장은 의무 표시 대상입니다.' },
+    R09: {
+      status: 'warn',
+      detail: '영양성분표 의무 여부는 식품유형, 영업소 매출 규모, 적용 시기, 영양강조표시 사용 여부에 따라 달라집니다. 영양강조표시를 쓰면 면제 대상이어도 열량·탄수화물·당류·단백질·지방·포화지방·트랜스지방·콜레스테롤·나트륨 9개 영양성분 표시가 필요할 수 있습니다.',
+      currentValue: metadata.marketingClaims || metadata.productName || '영양강조표시 사용 여부 확인 필요',
+      issueReason: '영양표시 면제 대상이어도 무가당, 저칼로리, 고단백 등 영양강조표시를 사용하면 9개 영양성분 표시가 필요할 수 있습니다.',
+      fixInstruction: '영양강조표시를 유지할 경우 9개 영양성분을 표시하고, 영양성분 산출 근거를 보관하세요. 산출이 어렵다면 영양강조표시 표현을 제거하세요.',
+      recommendedLabelText: '영양성분: 열량, 탄수화물, 당류, 단백질, 지방, 포화지방, 트랜스지방, 콜레스테롤, 나트륨',
+      beforeExample: '무설탕 수제잼',
+      afterExample: '수제잼 또는 9개 영양성분표를 함께 표시한 무설탕 수제잼',
+      actionItems: ['영양강조표시 사용 여부 결정', '유지 시 9개 영양성분 입력', '제거 시 제품명/광고문구에서 강조 표현 삭제'],
+      targetOutput: ['전문 수정 가이드 PDF', '라벨 PDF', '라벨 PNG'],
+    },
 
-    R10: metadata.manufacturer.trim()
-      ? { status: 'pass',      detail: `제조업소 "${metadata.manufacturer}" 확인. 소재지(도로명 주소)·신고번호 병기 여부를 확인하세요.` }
-      : { status: 'violation', detail: '제조업소명이 입력되지 않았습니다. 소재지·신고번호를 함께 표시해야 합니다.' },
+    R10: metadata.manufacturer.trim() && (metadata.manufacturerAddress ?? '').trim()
+      ? {
+          status: 'pass',
+          detail: `제조업소 "${metadata.manufacturer}" 및 소재지 확인. 품목보고번호는 식품제조가공업 해당 시 함께 표시하세요.`,
+          currentValue: `${metadata.manufacturer} / ${metadata.manufacturerAddress ?? ''}`,
+          recommendedLabelText: `제조원: ${metadata.manufacturer} / 소재지: ${metadata.manufacturerAddress ?? ''}${metadata.itemReportNumber ? ` / 품목보고번호: ${metadata.itemReportNumber}` : ''}`,
+          targetOutput: ['라벨 PDF', '라벨 PNG', '신고 입력 가이드 PDF'],
+        }
+      : {
+          status: 'violation',
+          detail: '제조업소명 또는 소재지가 입력되지 않았습니다. 라벨에는 영업소 명칭과 소재지를 함께 표시해야 합니다.',
+          currentValue: `제조업소명: ${metadata.manufacturer || '미입력'} / 소재지: ${metadata.manufacturerAddress || '미입력'}`,
+          issueReason: '제조업소명과 소재지는 표시사항의 기본 필수 정보입니다. 누락되면 소비자가 제조 주체와 소재지를 확인할 수 없습니다.',
+          fixInstruction: '영업신고증 기준의 제조업소명과 도로명 소재지를 입력하고, 식품제조가공업 품목은 품목보고번호까지 확인해 라벨에 반영하세요.',
+          recommendedLabelText: `제조원: ${metadata.manufacturer || '[제조업소명]'} / 소재지: ${metadata.manufacturerAddress || '[도로명 주소]'}${metadata.businessType === '식품제조가공업' ? ' / 품목보고번호: [품목보고번호]' : ''}`,
+          actionItems: ['영업신고증 기준 제조업소명 확인', '도로명 소재지 입력', '식품제조가공업이면 품목보고번호 확인'],
+          targetOutput: ['전문 수정 가이드 PDF', '라벨 PDF', '라벨 PNG', '신고 입력 가이드 PDF'],
+        },
 
-    R11: { status: 'warn', detail: '포장재질(PET, PP 등)은 자동 감지되지 않습니다. 용기·뚜껑 각각의 재질을 직접 확인하세요.' },
+    R11: {
+      status: 'warn',
+      detail: '포장재질(PET, PP 등)은 자동 감지되지 않습니다. 용기·뚜껑 각각의 재질을 직접 확인하세요.',
+      currentValue: (metadata.packagingMaterials ?? []).join(', ') || '미선택',
+      issueReason: '포장재질과 분리배출 표시는 실제 용기/뚜껑 재질에 맞춰 표시해야 합니다.',
+      fixInstruction: '용기, 뚜껑, 라벨/필름 등 구성품별 재질을 확인하고, 선택한 재질에 맞는 분리배출 마크를 라벨에 배치하세요.',
+      recommendedLabelText: (metadata.packagingMaterials ?? []).length > 0 ? `포장재질: ${(metadata.packagingMaterials ?? []).join(', ')}` : '포장재질: [용기 재질], [뚜껑 재질]',
+      actionItems: ['실제 포장 구성품별 재질 확인', '포장재질 입력값 수정', '분리배출 마크 ZIP에서 해당 도안 사용'],
+      targetOutput: ['전문 수정 가이드 PDF', '라벨 PDF', '라벨 PNG', '분리배출 마크 ZIP'],
+    },
 
-    R12: { status: 'warn', detail: '부당 표시 여부는 자동 판별이 어렵습니다. \'천연\', \'유기농\', \'다이어트\' 등 미인증 표현 사용 여부를 직접 확인하세요.' },
+    R12: (() => {
+      // 제품명 + 원재료명에서 금지 키워드 자동 감지
+      const BANNED = ['천연', '유기농', '무첨가', '다이어트', '저칼로리', '자연산']
+      const targets = [
+        metadata.productName,
+        metadata.marketingClaims ?? '',
+        ...ingredients.map(i => i.name),
+      ].join(' ')
+      const found = BANNED.filter(kw => targets.includes(kw))
+      return found.length > 0
+        ? { status: 'violation', detail: `금지 표현 감지: "${found.join('", "')}" — 인증 없이 사용 불가. 즉시 제거하거나 인증 취득 후 표시하세요.` }
+        : { status: 'pass',      detail: '금지 표현(천연, 유기농, 무첨가, 다이어트 등)이 제품명 및 원재료에서 감지되지 않았습니다.' }
+    })(),
+
+    // ─── v4 신규 항목 ──────────────────────────────────────────────────────
+
+    // ─── R15~R17: 분리배출 마크 ───────────────────────────────────────────────
+    // [KRK-LAW] 카테고리 4 - 자원재활용법 제14조 + 환경부 고시 2024-170호
+    // 과태료: 최대 300만원
+    R15: (() => {
+      const pm = metadata.packagingMaterials ?? []
+      if (pm.length === 0) {
+        return {
+          status: 'warn' as RiskStatus,
+          detail: '분리배출 마크 표시 여부 확인 필요\n근거: 자원의 절약과 재활용 촉진에 관한 법률 제14조 + 환경부 고시 2024-170호\n과태료: 최대 300만원\n수정방법: 포장재 재질을 입력 단계에서 선택하면 맞는 마크를 자동으로 제공합니다.',
+        }
+      }
+      return {
+        status: 'warn' as RiskStatus,
+        detail: `선택하신 [${pm.join(', ')}]에 맞는 분리배출 마크 표시가 필요합니다.\n근거: 환경부 고시 2024-170호\n수정방법: 전문 수정 가이드에서 해당 재질 분리배출 마크(환경부 공식 도안 SVG)를 제공합니다.`,
+      }
+    })(),
+
+    R16: (() => {
+      const pm = metadata.packagingMaterials ?? []
+      if (pm.length === 0) {
+        return { status: 'warn' as RiskStatus, detail: '포장재 재질이 입력되지 않아 재질 표기 검토를 건너뜁니다.' }
+      }
+      // 플라스틱 계열: PET, HDPE, PVC, LDPE, PP, PS, 기타플라스틱, 비닐류
+      const PLASTIC_MATERIALS = ['페트(PET)', '고밀도 폴리에틸렌(HDPE)', '폴리염화비닐(PVC)', '저밀도 폴리에틸렌(LDPE)', '폴리프로필렌(PP)', '폴리스티렌(PS)', '기타 플라스틱', '비닐류']
+      const plastics = pm.filter(m => PLASTIC_MATERIALS.includes(m))
+      if (plastics.length > 0) {
+        return {
+          status: 'warn' as RiskStatus,
+          detail: `플라스틱 계열 포장재(${plastics.join(', ')}) 사용 감지. 분리배출 마크 내에 구체적 재질명(PET·HDPE·PP·PS 등)을 정확히 표기해야 합니다.\n근거: 환경부 고시 2024-170호`,
+        }
+      }
+      return { status: 'pass' as RiskStatus, detail: '플라스틱 계열 포장재가 없어 재질 상세 표기 항목은 해당 없습니다.' }
+    })(),
+
+    R17: (() => {
+      const pm = metadata.packagingMaterials ?? []
+      if (pm.length === 0) {
+        return { status: 'warn' as RiskStatus, detail: '포장재 재질이 입력되지 않아 다중 포장재 검토를 건너뜁니다.' }
+      }
+      if (pm.length > 1) {
+        return {
+          status: 'warn' as RiskStatus,
+          detail: `복수 포장재 감지(${pm.join(', ')}). 재질이 다른 각 포장재에 대해 별도의 분리배출 마크를 각각 표시해야 합니다.\n근거: 환경부 고시 2024-170호`,
+        }
+      }
+      return { status: 'pass' as RiskStatus, detail: '단일 재질 포장재입니다. 해당 재질 분리배출 마크 1종을 표시하세요.' }
+    })(),
+
+    // ─── R19: 원산지 표시 강화 ────────────────────────────────────────────────
+    // [KRK-LAW] 카테고리 5 - 농수산물의 원산지 표시 등에 관한 법률 + 시행규칙 별표 1
+    // 과태료: 최대 1,000만원
+    // 기준: 배합비율 98% 이상인 원료(1~2개)에 원산지 표시 + 볼드체 의무
+    // 제외 원료: 물, 정제수, 식품첨가물, 주정, 당류, 설탕, 포도당
+    R19: (() => {
+      const ORIGIN_EXCLUDED = ['물', '정제수', '식품첨가물', '주정', '당류', '설탕', '포도당', '과당', '올리고당']
+
+      const totalWeight = ingredients.reduce((s, i) => s + i.weight, 0)
+      if (totalWeight === 0) {
+        return {
+          status: 'warn' as RiskStatus,
+          detail: '원재료 함량 정보가 없어 원산지 표시 의무 여부를 자동 확인할 수 없습니다. 배합비율 98% 이상 원료에 원산지(볼드체)를 표시하세요.\n근거: 농수산물의 원산지 표시 등에 관한 법률 + 시행규칙 별표 1\n과태료: 최대 1,000만원',
+          currentValue: '원재료 함량 미입력',
+          issueReason: '원산지 표시 대상 원료를 판단하려면 원재료 배합비율이 필요합니다.',
+          fixInstruction: '물, 정제수, 식품첨가물 등 제외 원료를 제외하고 배합비율 상위 원료의 원산지를 확인해 입력하세요.',
+          recommendedLabelText: '원재료명: [주원료](원산지) ...',
+          actionItems: ['원재료 배합비율 입력', '표시 대상 원료 원산지 확인', '원재료명 옆에 원산지 표시'],
+          targetOutput: ['전문 수정 가이드 PDF', '라벨 PDF', '라벨 PNG'],
+        }
+      }
+
+      // 제외 원료 필터링 후 배합비율 계산
+      const filtered = ingredients
+        .filter(i => !ORIGIN_EXCLUDED.some(ex => i.name.includes(ex)))
+        .map(i => ({ name: i.name, pct: (i.weight / totalWeight) * 100 }))
+        .sort((a, b) => b.pct - a.pct)
+
+      if (filtered.length === 0) {
+        return { status: 'pass' as RiskStatus, detail: '원산지 표시 의무 대상 원료가 없습니다.' }
+      }
+
+      // 1순위 원료 단독 98% 이상, 상위 2개 합 98% 이상, 그 외 상위 3개 표시
+      const THRESHOLD = 98
+      let required = filtered.slice(0, 3)
+      if (filtered[0].pct >= THRESHOLD) {
+        required = filtered.slice(0, 1)
+      } else if (filtered.length >= 2 && filtered[0].pct + filtered[1].pct >= THRESHOLD) {
+        required = filtered.slice(0, 2)
+      }
+
+      if (required.length > 0) {
+        const missing = required.filter(item => {
+          const source = ingredients.find(ing => ing.name === item.name)
+          return !(source?.origin ?? '').trim()
+        })
+        const requiredText = required.map(item => {
+          const source = ingredients.find(ing => ing.name === item.name)
+          const origin = (source?.origin ?? '').trim()
+          return `${item.name} (${item.pct.toFixed(1)}%, 원산지: ${origin || '입력 필요'})`
+        })
+        return {
+          status: 'warn' as RiskStatus,
+          detail: `원산지 표시 대상 원료: ${requiredText.join(', ')}\n근거: 농수산물의 원산지 표시 등에 관한 법률 시행령 제3조\n${missing.length > 0 ? `원산지 미입력: ${missing.map(item => item.name).join(', ')}\n` : ''}과태료: 최대 1,000만원(사안별 상이)\n수정방법: 표시 대상 원료의 원산지를 원재료명 옆에 굵은 글씨로 표시하세요.`,
+          currentValue: requiredText.join(', '),
+          issueReason: '배합비율 기준으로 원산지 표시 대상이 되는 원료는 원재료명 옆에 원산지를 명확히 표시해야 합니다.',
+          fixInstruction: '표시 대상 원료의 원산지를 확인하고 원재료명 바로 뒤 괄호 안에 표기하세요. 인쇄 라벨에서는 해당 원산지가 잘 보이도록 굵게 처리하세요.',
+          recommendedLabelText: required.map(item => {
+            const source = ingredients.find(ing => ing.name === item.name)
+            return `${item.name}(${(source?.origin ?? '').trim() || '원산지 입력'})`
+          }).join(', '),
+          beforeExample: required.map(item => item.name).join(', '),
+          afterExample: required.map(item => {
+            const source = ingredients.find(ing => ing.name === item.name)
+            return `${item.name}(${(source?.origin ?? '').trim() || '국산/수입산 등'})`
+          }).join(', '),
+          actionItems: ['표시 대상 원료 원산지 확인', '원재료명 옆에 원산지 표기', '라벨 PDF/PNG에서 굵게 또는 명확한 위치로 표시'],
+          targetOutput: ['전문 수정 가이드 PDF', '라벨 PDF', '라벨 PNG'],
+        }
+      }
+
+      return {
+        status: 'pass' as RiskStatus,
+        detail: `원산지 표시 대상 원료가 없습니다.\n(제외 원료: ${ORIGIN_EXCLUDED.join(', ')} 등)`,
+      }
+    })(),
+
+    // ─── R20: 영양강조표시 자동 감지 ──────────────────────────────────────────
+    // [KRK-LAW] 카테고리 2 - 식품등의 표시기준 (식약처) 영양강조표시 조항
+    // 감지 대상: 제품명(A-1) + 원재료명(A-2) — 광고문구 필드(A-3) 추가 시 확장 예정
+    R20: (() => {
+      const NUTRITION_CLAIM_KEYWORDS = [
+        // 열량/지방
+        '저칼로리', '저열량', '무칼로리', '무열량', '칼로리프리',
+        '저지방', '무지방', '저포화지방', '무포화지방',
+        '저트랜스지방', '무트랜스지방',
+        // 당류
+        '무가당', '무설탕', '설탕무첨가', '무첨가당', '슈가프리', 'sugar free',
+        '저당', '저당류',
+        // 단백질/영양소
+        '고단백', '단백질 함유', '고칼슘', '칼슘 풍부',
+        '고섬유', '식이섬유 풍부', '고철분', '철분 함유',
+        // 나트륨/기타
+        '저나트륨', '저염', '무나트륨',
+        '고오메가', '오메가3 함유',
+      ]
+      const targets = [
+        metadata.productName,
+        metadata.marketingClaims ?? '',
+        ...ingredients.map(i => i.name),
+      ].join(' ')
+      const found = NUTRITION_CLAIM_KEYWORDS.filter(kw =>
+        targets.toLowerCase().includes(kw.toLowerCase())
+      )
+      return found.length > 0
+        ? {
+            status: 'warn' as RiskStatus,
+            detail: `영양강조표시 감지: "${found.join('", "')}" — 영양표시 의무 발생.\n근거: 식품등의 표시기준 (식약처)\n영양강조표시 사용 시 연매출 120억 이하 면제 적용 불가. 열량·탄수화물·당류·단백질·지방·포화지방·트랜스지방·콜레스테롤·나트륨 9개 영양성분 표시가 필요합니다.`,
+            currentValue: found.join(', '),
+            issueReason: '영양강조표시를 사용하면 소규모 제조업 면제 여부와 별개로 영양성분 표시 의무가 발생할 수 있습니다.',
+            fixInstruction: '강조 표현을 유지하려면 9개 영양성분표를 완성하세요. 영양성분 산출이 어렵다면 제품명/광고문구에서 강조 표현을 제거하세요.',
+            recommendedLabelText: '영양성분표 9개 항목 표시 또는 영양강조표시 표현 제거',
+            beforeExample: found.join(', '),
+            afterExample: '강조 표현 제거 또는 9개 영양성분표 병기',
+            actionItems: ['영양강조표시 유지 여부 결정', '유지 시 영양성분 9개 입력', '제거 시 라벨/상세페이지 문구 수정'],
+            targetOutput: ['전문 수정 가이드 PDF', '라벨 PDF', '라벨 PNG'],
+          }
+        : { status: 'pass' as RiskStatus, detail: '영양강조표시 표현(무가당·저칼로리·고단백 등)이 제품명 및 원재료에서 감지되지 않았습니다.' }
+    })(),
   }
 
   return (regulationsData as unknown as Omit<RegulationResult, 'status' | 'detail'>[]).map(reg => ({
     ...reg,
     severity: reg.severity as 'red' | 'yellow',
+    legalBasis: reg.regulation,
     ...(map[reg.id] ?? { status: 'warn' as RiskStatus, detail: '' }),
   }))
 }
 
-function parseMaxPenaltyMw(penaltyRange: string): number {
+export function parseMaxPenaltyMw(penaltyRange: string): number {
   const nums = penaltyRange.match(/\d+/g)?.map(Number) ?? []
   return nums.length > 0 ? Math.max(...nums) : 0
 }
 
 // Checker 분석 데이터 → Creator 사전 입력 형식 변환
-function toCreatorPrefill(ingredients: Ingredient[], metadata: Metadata) {
+export function toCreatorPrefill(ingredients: Ingredient[], metadata: Metadata) {
   // expiryDays(일수) → expiryDate(YYYY-MM-DD) 변환
   let expiryDate = ''
   if (metadata.expiryDays) {
@@ -124,12 +412,18 @@ function toCreatorPrefill(ingredients: Ingredient[], metadata: Metadata) {
     totalWeight:  metadata.totalWeight,
     unit:         unitMap[metadata.unit] ?? 'g',
     manufacturer: metadata.manufacturer,
+    manufacturerAddress: metadata.manufacturerAddress ?? '',
+    itemReportNumber: metadata.itemReportNumber ?? '',
     storage:      metadata.storage,
     expiryDate,
+    marketingClaims: metadata.marketingClaims ?? '',
+    packagingMaterials: metadata.packagingMaterials ?? [],
+    sharedFacilityAllergens: metadata.sharedFacilityAllergens ?? [],
     ingredients:  ingredients.map(ing => ({
       id:          ing.id,
       name:        ing.name,
       weight:      String(ing.weight),
+      origin:      ing.origin ?? '',
       isAllergen:  ing.isAllergen,
       isComposite: ing.isComposite,
     })),
@@ -139,7 +433,7 @@ function toCreatorPrefill(ingredients: Ingredient[], metadata: Metadata) {
 function riskLevel(violations: number, warnings: number): { label: string; color: string } {
   if (violations >= 3)                      return { label: '고위험',  color: '#B30000' }
   if (violations >= 1 || warnings >= 8)     return { label: '주의',    color: '#F0A500' }
-  return                                           { label: '양호',    color: '#15803D' }
+  return                                           { label: '양호',    color: '#002D72' }
 }
 
 // ─── 상수 ─────────────────────────────────────────────────────────────────────
@@ -173,8 +467,8 @@ const STATUS_CONFIG: Record<RiskStatus, {
   pass: {
     label: '통과',
     badgeClass: 'badge-pass',
-    borderColor: '#15803D',
-    rowBg: '#FAFFFC',
+    borderColor: '#002D72',
+    rowBg: '#EAF6FE',
     icon: <CheckCircle2 size={10} />,
   },
 }
@@ -185,14 +479,17 @@ function RegulationRow({
   result,
   expanded,
   onToggle,
+  locked,
 }: {
   result: RegulationResult
   expanded: boolean
   onToggle: () => void
+  locked?: boolean
 }) {
   const sev  = SEVERITY_CONFIG[result.severity]
   const stat = STATUS_CONFIG[result.status]
   const showPenalty = result.status === 'violation' || result.status === 'warn'
+  const blurClass = locked ? 'select-none' : ''
 
   return (
     <div
@@ -247,10 +544,10 @@ function RegulationRow({
       {/* 확장 패널 */}
       {expanded && (
         <div
-          className="pl-12 pr-4 pb-4 flex flex-col gap-3 border-t border-[rgba(10,10,11,0.06)]"
+          className={`pl-12 pr-4 pb-4 flex flex-col gap-3 border-t border-[rgba(10,10,11,0.06)] ${blurClass}`}
           style={{ background: stat.rowBg }}
         >
-          {/* 감지 내역 */}
+          {/* 감지 내역 — 항상 표시 */}
           <div className="pt-3">
             <p className="font-en text-[10px] font-semibold text-[rgba(10,10,11,0.32)] uppercase tracking-[0.1em] mb-1">
               감지 내역
@@ -260,7 +557,7 @@ function RegulationRow({
             </p>
           </div>
 
-          {/* 관련 법규 */}
+          {/* 관련 법규 — 항상 표시 */}
           <div>
             <p className="font-en text-[10px] font-semibold text-[rgba(10,10,11,0.32)] uppercase tracking-[0.1em] mb-1">
               관련 법규
@@ -268,30 +565,46 @@ function RegulationRow({
             <p className="font-kr text-[12px] text-[rgba(10,10,11,0.5)]">{result.regulation}</p>
           </div>
 
-          {/* 권고사항 */}
+          {/* 권고사항 — Tier 1: 블러 / Tier 2: 전체 표시 */}
           {result.status !== 'pass' && (
-            <div className="bg-white border border-[rgba(10,10,11,0.08)] px-3 py-2.5">
+            <div className="relative bg-white border border-[rgba(10,10,11,0.08)] px-3 py-2.5 overflow-hidden">
               <p className="font-en text-[10px] font-semibold text-[rgba(10,10,11,0.32)] uppercase tracking-[0.1em] mb-1">
                 조치 권고
               </p>
-              <p className="font-kr text-[12px] text-[rgba(10,10,11,0.7)] leading-[1.65]">
+              <p
+                className="font-kr text-[12px] text-[rgba(10,10,11,0.7)] leading-[1.65]"
+                style={locked ? { filter: 'blur(4px)', userSelect: 'none' } : {}}
+              >
                 {result.suggestion}
               </p>
+              {locked && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/60">
+                  <Lock size={12} className="text-[rgba(10,10,11,0.35)] mr-1" />
+                  <span className="font-kr text-[11px] text-[rgba(10,10,11,0.45)]">전문에서 확인</span>
+                </div>
+              )}
             </div>
           )}
 
-          {/* 과태료 범위 */}
+          {/* 과태료 범위 — Tier 1: 블러 / Tier 2: 표시 */}
           {showPenalty && (
-            <div className="flex items-center gap-2">
+            <div className="relative flex items-center gap-2">
               <span
                 className="font-en text-[11px] px-2 py-[3px]"
                 style={{
                   background: result.status === 'violation' ? '#FFE6E6' : '#FFF3DC',
                   color:      result.status === 'violation' ? '#B30000' : '#8A5A00',
+                  filter:     locked ? 'blur(4px)' : 'none',
+                  userSelect: locked ? 'none' : 'auto',
                 }}
               >
                 {result.penaltyRange}
               </span>
+              {locked && (
+                <span className="font-kr text-[10px] text-[rgba(10,10,11,0.4)] flex items-center gap-1">
+                  <Lock size={10} /> 과태료 금액 잠김
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -302,19 +615,29 @@ function RegulationRow({
 
 // ─── 페이지 컴포넌트 ────────────────────────────────────────────────────────────
 
-export default function ReviewResult() {
+export function LegacyReviewResult() {
   const navigate  = useNavigate()
   const location  = useLocation()
 
   // 라우터 state 가드 — 직접 접근 시 홈으로
-  const state = location.state as { ingredients: Ingredient[]; metadata: Metadata } | null
+  const state = location.state as {
+    ingredients: Ingredient[]
+    metadata: Metadata
+    serviceTier?: ServiceTier
+    fromCreator?: boolean   // CREATOR Step5에서 진입 시 — 결제 블록 숨기고 돌아가기 버튼 표시
+    creatorData?: CreatorData  // 영양성분·알레르겐 전달용 (PDF 실데이터 연결)
+  } | null
   if (!state?.ingredients || !state?.metadata) return <Navigate to="/" replace />
 
   const { ingredients, metadata } = state
+  const fromCreator = state.fromCreator ?? false
+  const serviceTier: ServiceTier = state.serviceTier ?? 'tier1'
+  const isTier2 = serviceTier === 'tier2'
 
   const results   = useMemo(() => analyzeRegulations(ingredients, metadata), [ingredients, metadata])
   const [filter,  setFilter]    = useState<StatusFilter>('all')
   const [expanded, setExpanded] = useState<string | null>(null)
+  const [selectedTier, setSelectedTier] = useState<ServiceTier>('tier1')
 
   const counts = {
     violation: results.filter(r => r.status === 'violation').length,
@@ -344,8 +667,7 @@ export default function ReviewResult() {
           onClick={() => navigate('/')}
           className="flex items-baseline gap-[5px] hover:opacity-70 transition-opacity"
         >
-          <span style={{ fontFamily: "Georgia, 'Times New Roman', serif" }} className="font-bold text-[15px] tracking-[0.04em] text-[#0A0A0B]">krk</span>
-          <span className="font-en font-light text-[15px] tracking-[0.14em] text-[#0A0A0B]">check</span>
+          <LogoLockup />
         </button>
         {/* 라우트 스텝 표시 */}
         <div className="hidden md:flex items-center gap-0 font-en text-[11px] tracking-[0.1em] uppercase">
@@ -418,10 +740,10 @@ export default function ReviewResult() {
                     <span className="font-kr text-[12px] text-[rgba(10,10,11,0.65)]">경고</span>
                   </div>
                 </div>
-                <div className="border border-[#15803D] px-4 py-3.5 bg-[#F0FDF4]">
-                  <div className="font-en font-bold text-[36px] text-[#15803D] leading-none tabular-nums">{counts.pass}</div>
+                <div className="border border-heritage-500 px-4 py-3.5 bg-[#EAF6FE]">
+                  <div className="font-en font-bold text-[36px] text-heritage-500 leading-none tabular-nums">{counts.pass}</div>
                   <div className="flex items-center gap-1.5 mt-2">
-                    <CheckCircle2 size={11} className="text-[#15803D]" />
+                    <CheckCircle2 size={11} className="text-heritage-500" />
                     <span className="font-kr text-[12px] text-[rgba(10,10,11,0.65)]">통과</span>
                   </div>
                 </div>
@@ -442,6 +764,38 @@ export default function ReviewResult() {
               )}
             </div>
 
+            {/* ── B-6: 위반·경고 요약 배너 (2-line compact) ─────────────── */}
+            {(counts.violation > 0 || counts.warn > 0) && (
+              <div className="border border-[rgba(10,10,11,0.1)] divide-y divide-[rgba(10,10,11,0.07)]">
+                {counts.violation > 0 && (
+                  <div className="flex items-center gap-3 px-4 py-3 bg-[#FFF5F5]" style={{ borderLeft: '3px solid #B30000' }}>
+                    <AlertTriangle size={13} className="text-[#B30000] flex-shrink-0" />
+                    <div className="flex-1 min-w-0 flex items-baseline gap-2">
+                      <span className="font-en text-[12px] font-bold text-[#B30000] flex-shrink-0">
+                        위반 {counts.violation}건
+                      </span>
+                      <span className="font-kr text-[11px] text-[rgba(10,10,11,0.5)] truncate">
+                        {results.filter(r => r.status === 'violation').map(r => r.title).join(' · ')}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                {counts.warn > 0 && (
+                  <div className="flex items-center gap-3 px-4 py-3 bg-[#FFFBF0]" style={{ borderLeft: '3px solid #F0A500' }}>
+                    <AlertCircle size={13} className="text-[#8A5A00] flex-shrink-0" />
+                    <div className="flex-1 min-w-0 flex items-baseline gap-2">
+                      <span className="font-en text-[12px] font-bold text-[#8A5A00] flex-shrink-0">
+                        경고 {counts.warn}건
+                      </span>
+                      <span className="font-kr text-[11px] text-[rgba(10,10,11,0.5)] truncate">
+                        {results.filter(r => r.status === 'warn').map(r => r.title).join(' · ')}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* 필터 탭 */}
             <div className="flex gap-0 border-b border-[rgba(10,10,11,0.1)]">
               {([
@@ -451,7 +805,7 @@ export default function ReviewResult() {
                 { key: 'pass'      as StatusFilter, label: '통과' },
               ]).map(({ key, label }) => {
                 const active = filter === key
-                const dot = key === 'violation' ? '#B30000' : key === 'warn' ? '#F0A500' : key === 'pass' ? '#15803D' : undefined
+                const dot = key === 'violation' ? '#B30000' : key === 'warn' ? '#F0A500' : key === 'pass' ? '#002D72' : undefined
                 return (
                   <button key={key} onClick={() => setFilter(key)}
                     className={`flex items-center gap-2 font-en text-[11px] font-semibold tracking-[0.08em] px-4 py-2.5 uppercase transition-colors border-b-[2px] -mb-px ${
@@ -472,13 +826,212 @@ export default function ReviewResult() {
                     <p className="font-kr text-[13px] text-[rgba(10,10,11,0.4)]">해당 항목이 없습니다.</p>
                   </div>
                 : filtered.map(r => (
-                    <RegulationRow key={r.id} result={r} expanded={expanded === r.id} onToggle={() => toggle(r.id)} />
+                    <RegulationRow
+                      key={r.id}
+                      result={r}
+                      expanded={expanded === r.id}
+                      onToggle={() => toggle(r.id)}
+                      locked={!isTier2 && r.status !== 'pass'}
+                    />
                   ))
               }
             </div>
 
+            {/* ── 섹션 3: 디자인 규격 안내 (Tier 1/2 모두 표시) ──────────────── */}
+            <div className="border border-[rgba(10,10,11,0.1)] bg-[rgba(10,10,11,0.015)]">
+              <div className="px-5 py-3 border-b border-[rgba(10,10,11,0.07)] flex items-center justify-between">
+                <div className="font-en text-[10px] font-semibold text-[rgba(10,10,11,0.35)] uppercase tracking-[0.12em]">
+                  03 — 라벨 디자인 규격
+                </div>
+                <span className="font-kr text-[10px] text-[rgba(10,10,11,0.35)]">참고용 안내</span>
+              </div>
+              <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-[12px]">
+                {[
+                  { title: '제품명 글자 크기',   desc: '주표시면 면적에 따라 최소 12pt 이상 (식품표시기준 제6조)' },
+                  { title: '원재료명 글자 크기', desc: '최소 8pt 이상, 알레르기 유발 원료 굵게(볼드) 표시 필수' },
+                  { title: '영양성분표 위치',   desc: '주표시면 외 측면 또는 후면, 표의 형태로 기재' },
+                  { title: '소비기한 표시 위치', desc: '주표시면 또는 잘 보이는 위치, 도트 인쇄 병행 권장' },
+                  { title: '분리배출 마크 크기', desc: '가로·세로 각 8mm 이상, 주표시면 외 표시 가능' },
+                  { title: '제조업소 표시',      desc: '제조업소명 + 소재지 필수, 식품제조가공업은 품목보고번호 확인' },
+                ].map(({ title, desc }) => (
+                  <div key={title} className="flex flex-col gap-0.5">
+                    <span className="font-kr font-semibold text-ink">{title}</span>
+                    <span className="font-kr text-[rgba(10,10,11,0.55)] leading-[1.5]">{desc}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── 분리배출 마크 (Tier 2 전용) ──────────────────────────────── */}
+            {isTier2 && (metadata.packagingMaterials?.length ?? 0) > 0 && (
+              <div className="border border-[rgba(10,10,11,0.1)]">
+                <div className="px-5 py-3 border-b border-[rgba(10,10,11,0.07)] flex items-center justify-between">
+                  <div className="font-en text-[10px] font-semibold text-[rgba(10,10,11,0.35)] uppercase tracking-[0.12em]">
+                    분리배출 마크
+                  </div>
+                  <span className="font-kr text-[10px] text-[rgba(10,10,11,0.4)]">환경부 고시 2024-170호</span>
+                </div>
+                <div className="px-5 py-4 flex flex-wrap gap-4">
+                  {(metadata.packagingMaterials ?? []).map(mat => {
+                    // [KRK-LAW] 카테고리 4 - 환경부 고시 2024-170호
+                    // ⚠️ 아래 SVG는 placeholder — 실제 배포 시 한국환경공단 공식 도안으로 교체 필수
+                    const fileMap: Record<string, string> = {
+                      '페트(PET)':              '/recycling/plastic-pet.svg',
+                      '고밀도 폴리에틸렌(HDPE)': '/recycling/plastic-pe.svg',
+                      '폴리염화비닐(PVC)':       '/recycling/plastic-pe.svg',
+                      '저밀도 폴리에틸렌(LDPE)': '/recycling/plastic-pe.svg',
+                      '폴리프로필렌(PP)':        '/recycling/plastic-pp.svg',
+                      '폴리스티렌(PS)':          '/recycling/plastic-ps.svg',
+                      '기타 플라스틱':           '/recycling/plastic-pe.svg',
+                      '유리':                   '/recycling/glass.svg',
+                      '철':                     '/recycling/can-steel.svg',
+                      '알루미늄':               '/recycling/can-aluminum.svg',
+                      '종이팩':                 '/recycling/paper.svg',
+                      '골판지':                 '/recycling/paper.svg',
+                      '일반 종이':              '/recycling/paper.svg',
+                      '비닐류':                 '/recycling/vinyl.svg',
+                      '스티로폼':               '/recycling/plastic-ps.svg',
+                    }
+                    const src = fileMap[mat]
+                    if (!src) return null
+                    return (
+                      <div key={mat} className="flex flex-col items-center gap-1.5">
+                        <img src={src} alt={mat} className="w-14 h-14 border border-[rgba(10,10,11,0.08)]" />
+                        <span className="font-kr text-[10px] text-[rgba(10,10,11,0.5)]">{mat}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div className="px-5 pb-4">
+                  <p className="font-kr text-[11px] text-[rgba(10,10,11,0.4)] leading-[1.6]">
+                    위 이미지는 참고용 placeholder입니다.
+                    공식 마크는 <strong>한국환경공단 분리배출표시 시스템</strong>에서 다운로드하세요.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* 하단 버튼 */}
             <div className="flex flex-col gap-3 pt-2">
+
+              {/* ── CREATOR 진입 시: 결제 블록 대신 돌아가기 버튼 ──────────── */}
+              {fromCreator && (
+                <button
+                  onClick={() => navigate(-1)}
+                  className="w-full flex items-center justify-center gap-2 h-12 font-kr font-semibold text-[14px] bg-ink text-white hover:bg-[rgba(10,10,11,0.8)] transition-colors"
+                >
+                  ← 라벨 미리보기로 돌아가기
+                </button>
+              )}
+
+              {/* ── B-5: 서비스 선택 UI (CHECK 플로우 전용) ───────────────── */}
+              {!fromCreator && (<>
+              <div className="border border-[rgba(10,10,11,0.12)] flex flex-col gap-0">
+                {/* 헤더 */}
+                <div className="px-5 py-3.5 border-b border-[rgba(10,10,11,0.08)]">
+                  <p className="font-en text-[10px] font-semibold text-[rgba(10,10,11,0.35)] uppercase tracking-[0.12em]">
+                    상품 선택
+                  </p>
+                  <p className="font-kr text-[13px] text-ink mt-0.5">
+                    필요한 산출물 범위에 맞춰 선택하세요.
+                  </p>
+                </div>
+
+                {/* 티어 카드 */}
+                <div className="grid grid-cols-2 gap-0 divide-x divide-[rgba(10,10,11,0.08)]">
+                  {/* 기본 */}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTier('tier1')}
+                    className={`flex flex-col gap-2 px-4 py-4 text-left transition-colors select-none
+                      ${selectedTier === 'tier1'
+                        ? 'bg-ink text-white'
+                        : 'bg-white text-ink hover:bg-[rgba(10,10,11,0.02)]'
+                      }`}
+                  >
+                    <div>
+                      <p className={`font-en text-[10px] font-semibold uppercase tracking-[0.1em] mb-0.5
+                        ${selectedTier === 'tier1' ? 'text-white/60' : 'text-[rgba(10,10,11,0.4)]'}`}>
+                        기본 라벨 패키지
+                      </p>
+                      <div className="flex items-baseline gap-0.5">
+                        <span className="font-en text-[22px] font-semibold tabular-nums leading-none">
+                          {fmtKRW(TIER_1_PRICE)}
+                        </span>
+                        <span className={`font-kr text-[12px] ${selectedTier === 'tier1' ? 'text-white/60' : 'text-[rgba(10,10,11,0.45)]'}`}>원</span>
+                      </div>
+                    </div>
+                    <ul className="flex flex-col gap-1">
+                      {['라벨 PDF', '기본 신호등 결과', '표시사항 텍스트'].map(f => (
+                        <li key={f} className="flex items-center gap-1.5">
+                          <CheckCircle2 size={11} className={`flex-shrink-0 ${selectedTier === 'tier1' ? 'text-white/70' : 'text-[rgba(10,10,11,0.35)]'}`} />
+                          <span className={`font-kr text-[11px] leading-tight ${selectedTier === 'tier1' ? 'text-white/80' : 'text-[rgba(10,10,11,0.55)]'}`}>{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </button>
+
+                  {/* 전문 — 비선택 시에도 heritage 강조 유지 */}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTier('tier2')}
+                    className={`flex flex-col gap-2 px-4 py-4 text-left transition-colors select-none relative
+                      ${selectedTier === 'tier2'
+                        ? 'bg-heritage-500 text-white'
+                        : 'bg-[rgba(0,45,114,0.04)] text-ink hover:bg-[rgba(0,45,114,0.08)]'
+                      }`}
+                  >
+                    {/* 추천 뱃지 */}
+                    <span className={`absolute top-3 right-3 font-en text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-[0.08em]
+                      ${selectedTier === 'tier2' ? 'bg-white/20 text-white' : 'bg-heritage-500 text-white'}`}>
+                      추천
+                    </span>
+                    <div>
+                      <p className={`font-en text-[10px] font-semibold uppercase tracking-[0.1em] mb-0.5
+                        ${selectedTier === 'tier2' ? 'text-white/60' : 'text-heritage-500'}`}>
+                        전문 수정 가이드 PDF
+                      </p>
+                      <div className="flex items-baseline gap-0.5">
+                        <span className={`font-en text-[22px] font-semibold tabular-nums leading-none
+                          ${selectedTier === 'tier2' ? 'text-white' : 'text-heritage-500'}`}>
+                          {fmtKRW(TIER_2_PRICE)}
+                        </span>
+                        <span className={`font-kr text-[12px] ${selectedTier === 'tier2' ? 'text-white/60' : 'text-heritage-500/70'}`}>원</span>
+                      </div>
+                    </div>
+                    <ul className="flex flex-col gap-1">
+                      {['항목별 수정 방법', '표시 기준 출처', '과태료/행정처분 참고', '신고 입력 가이드'].map(f => (
+                        <li key={f} className="flex items-center gap-1.5">
+                          <CheckCircle2 size={11} className={`flex-shrink-0 ${selectedTier === 'tier2' ? 'text-white/70' : 'text-heritage-500/70'}`} />
+                          <span className={`font-kr text-[11px] leading-tight ${selectedTier === 'tier2' ? 'text-white/80' : 'text-heritage-500/80'}`}>{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </button>
+                </div>
+
+                {/* 결제 버튼 */}
+                <div className="px-5 py-4 border-t border-[rgba(10,10,11,0.08)] flex flex-col gap-2">
+                  <button
+                    onClick={() =>
+                      navigate('/payment', {
+                        state: { ingredients, metadata, returnTier: selectedTier, creatorData: state.creatorData },
+                      })
+                    }
+                    className={`w-full flex items-center justify-center gap-2 h-12 font-kr font-semibold text-[14px] transition-colors
+                      ${selectedTier === 'tier2'
+                        ? 'bg-heritage-500 text-white hover:bg-[#001F5A]'
+                        : 'bg-ink text-white hover:bg-[rgba(10,10,11,0.8)]'
+                      }`}
+                  >
+                    <Lock size={14} />
+                    {selectedTier === 'tier2' ? '전문 수정 가이드 PDF 받기' : '기본 라벨 패키지 받기'} — {fmtKRW(selectedTier === 'tier2' ? TIER_2_PRICE : TIER_1_PRICE)}원
+                  </button>
+                  <p className="font-kr text-[11px] text-[rgba(10,10,11,0.35)] text-center leading-[1.5]">
+                    결제 후 선택한 산출물을 바로 확인하고 다운로드할 수 있어요.
+                  </p>
+                </div>
+              </div>
 
               {/* Creator 연결 CTA */}
               <button
@@ -494,19 +1047,14 @@ export default function ReviewResult() {
               </button>
 
               {/* Secondary 버튼 */}
-              <div className="flex items-center justify-between">
+              <div className="flex items-center">
                 <button onClick={() => navigate('/', { replace: true })} className="btn-ghost flex items-center gap-2">
                   <RotateCcw size={14} />
                   홈으로
                 </button>
-                <button
-                  onClick={() => navigate('/export', { state })}
-                  className="btn-heritage flex items-center gap-2"
-                >
-                  <Share2 size={14} />
-                  내보내기
-                </button>
               </div>
+
+              </>)}
 
             </div>
 
@@ -520,6 +1068,437 @@ export default function ReviewResult() {
             정확한 법규 해석은 관할 지자체 또는 식약처에 문의하세요.
           </p>
         </footer>
+      </main>
+    </div>
+  )
+}
+
+interface BResultItem {
+  id: string
+  kind: ResultKind
+  title: string
+  desc: string
+  locked: boolean
+}
+
+interface BResultCounts {
+  need: number
+  warn: number
+  ok: number
+}
+
+function toResultItems(results: RegulationResult[]): BResultItem[] {
+  return results.map(r => ({
+    id: r.id,
+    kind: r.status === 'violation' ? 'need' : r.status === 'warn' ? 'warn' : 'ok',
+    title: r.title,
+    desc: r.detail,
+    locked: r.status !== 'pass',
+  }))
+}
+
+function StickyNavB() {
+  const navigate = useNavigate()
+  return (
+    <nav className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-6 md:px-14 py-[16px] bg-white/80 backdrop-blur-[18px] border-b border-[rgba(10,10,11,0.08)]">
+      <button onClick={() => navigate('/')} className="flex items-baseline gap-[5px] hover:opacity-70 transition-opacity">
+        <LogoLockup />
+      </button>
+      <span className="hidden sm:block font-en text-[11px] font-semibold text-[rgba(10,10,11,0.4)] uppercase tracking-[0.16em]">
+        Free Review Result
+      </span>
+      <span className="font-en text-[11px] text-[rgba(10,10,11,0.4)] uppercase tracking-[0.08em]">
+        krk.team/review
+      </span>
+    </nav>
+  )
+}
+
+function FlowBreadcrumbB() {
+  const steps: Array<{ n: number; label: string; state: 'done' | 'active' | 'inactive' }> = [
+    { n: 1, label: '정보 입력', state: 'done' },
+    { n: 2, label: '라벨 미리보기', state: 'done' },
+    { n: 3, label: '무료 검토 결과', state: 'active' },
+    { n: 4, label: '상세 수정 가이드', state: 'inactive' },
+    { n: 5, label: '다운로드', state: 'inactive' },
+  ]
+
+  return (
+    <div className="overflow-x-auto pb-3">
+      <div className="min-w-[760px] flex items-center font-en text-[11px] font-semibold uppercase tracking-[0.08em]">
+        {steps.map((step, idx) => (
+          <div key={step.n} className="flex items-center">
+            <div className={`flex items-center gap-2 whitespace-nowrap ${step.state === 'inactive' ? 'text-[rgba(10,10,11,0.4)]' : 'text-heritage-500'}`}>
+              <span className={`w-[26px] h-[26px] rounded-full flex items-center justify-center border text-[11px] ${
+                step.state === 'done'
+                  ? 'border-heritage-500 text-heritage-500 bg-white'
+                  : step.state === 'active'
+                    ? 'border-heritage-500 bg-heritage-500 text-white'
+                    : 'border-[rgba(10,10,11,0.2)] text-[rgba(10,10,11,0.4)] bg-white'
+              }`}>
+                {step.state === 'done' ? <CheckCircle2 size={13} /> : step.n}
+              </span>
+              <span>{step.label}</span>
+            </div>
+            {idx < steps.length - 1 && <span className="block w-10 h-px bg-[rgba(10,10,11,0.15)] mx-4" />}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ScoreInlineB({ n, label, color, dark, divider }: {
+  n: number
+  label: string
+  color: string
+  dark: boolean
+  divider?: boolean
+}) {
+  return (
+    <div className={divider ? 'pl-5 border-l' : ''} style={{ borderColor: divider ? (dark ? 'rgba(255,255,255,0.16)' : 'rgba(10,10,11,0.08)') : undefined }}>
+      <div className="font-en text-[38px] font-bold leading-none tracking-[-0.025em] tabular-nums" style={{ color }}>{n}</div>
+      <div className="mt-2 font-kr text-[12px]" style={{ color: dark ? 'rgba(255,255,255,0.7)' : 'rgba(10,10,11,0.65)' }}>{label}</div>
+    </div>
+  )
+}
+
+function HeroB({ counts, metadata, onBackToCreator }: {
+  counts: BResultCounts
+  metadata: Metadata
+  onBackToCreator: () => void
+}) {
+  const hasViolations = counts.need > 0
+  const hasIssues = counts.need + counts.warn > 0
+  const h1 = hasViolations
+    ? '판매 전 확인이 필요한 항목이 발견됐어요.'
+    : hasIssues
+      ? '몇 가지만 보완하면 판매 준비가 끝나요.'
+      : '입력하신 라벨이 기준에 맞는지 정리했어요.'
+
+  return (
+    <section
+      className="px-[22px] py-[24px] md:px-[36px] md:py-[36px] border mb-4"
+      style={{
+        background: hasViolations ? '#1a1d24' : '#fff',
+        borderColor: hasViolations ? '#1a1d24' : 'rgba(10,10,11,0.08)',
+        color: hasViolations ? '#fff' : '#0A0A0B',
+      }}
+    >
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
+        <div className="max-w-[720px]">
+          <div className="font-en text-[11px] font-bold uppercase tracking-[0.16em] mb-4" style={{ color: hasViolations ? 'rgba(255,255,255,0.7)' : '#002D72' }}>
+            {hasViolations ? 'Action Required · 무료 검토 결과' : '무료 검토 결과'}
+          </div>
+          <h1 className="font-kr text-[26px] md:text-[44px] font-bold leading-[1.1] tracking-[-0.02em]">{h1}</h1>
+          <p className="mt-4 font-kr text-[13.5px] md:text-[15px] leading-[1.7]" style={{ color: hasViolations ? 'rgba(255,255,255,0.68)' : 'rgba(10,10,11,0.62)' }}>
+            {metadata.productName || '입력한 제품'}의 라벨 미리보기를 기준으로, 판매 전 확인해야 할 표시 기준을 먼저 정리했습니다.
+          </p>
+        </div>
+        <button
+          onClick={onBackToCreator}
+          className="self-start md:self-end font-kr text-[12.5px] font-medium pb-px border-b"
+          style={{ color: hasViolations ? '#fff' : '#002D72', borderColor: hasViolations ? 'rgba(255,255,255,0.4)' : '#0CA4F9' }}
+        >
+          ← 입력 수정하기
+        </button>
+      </div>
+      <div className="mt-8 pt-6 grid grid-cols-3 gap-4" style={{ borderTop: `1px solid ${hasViolations ? 'rgba(255,255,255,0.16)' : 'rgba(10,10,11,0.08)'}` }}>
+        <ScoreInlineB n={counts.need} label="필수 확인" color={hasViolations ? '#FF8A8A' : '#B30000'} dark={hasViolations} />
+        <ScoreInlineB n={counts.warn} label="보완 권장" color={hasViolations ? '#FFD78B' : '#8A5A00'} dark={hasViolations} divider />
+        <ScoreInlineB n={counts.ok} label="기준 충족" color={hasViolations ? '#0CA4F9' : '#002D72'} dark={hasViolations} divider />
+      </div>
+    </section>
+  )
+}
+
+function ViolationsCalloutB({ violations, hasLockedDetails }: { violations: BResultItem[]; hasLockedDetails: boolean }) {
+  if (violations.length === 0) return null
+  return (
+    <div className="bg-white border border-[rgba(10,10,11,0.08)] px-6 py-[18px] mb-4" style={{ borderLeft: '3px solid #B30000' }}>
+      <div className="font-en text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#B30000] mb-[10px]">
+        판매 전 필수 확인 — {violations.length}건
+      </div>
+      {violations.map(v => (
+        <div key={v.id} className="flex items-baseline gap-[10px] py-1.5 border-t border-dashed border-[rgba(10,10,11,0.08)]">
+          <span className="font-en text-[11px] font-semibold text-[#B30000] min-w-[32px]">{v.id}</span>
+          <span className="text-[14px] font-semibold text-ink tracking-[-0.01em] flex-1">{v.title}</span>
+          <span className="text-[11.5px] text-[rgba(10,10,11,0.4)] whitespace-nowrap">수정 문구 잠김</span>
+        </div>
+      ))}
+      {hasLockedDetails && (
+        <div className="mt-3 pt-3 border-t border-[rgba(10,10,11,0.08)] flex items-start gap-2 text-[12px] text-[rgba(10,10,11,0.55)] leading-[1.6]">
+          <AlertTriangle size={13} className="text-[#B30000] mt-0.5 flex-shrink-0" />
+          <span>수정 방법, 기준 출처, 과태료/행정처분 참고 정보는 상세 수정 가이드에서 확인할 수 있어요.</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SectionHeaderB({ title, count, kind }: { title: string; count: number; kind: ResultKind }) {
+  const color = kind === 'need' ? '#B30000' : kind === 'warn' ? '#8A5A00' : '#002D72'
+  return (
+    <div className="flex items-center justify-between px-5 py-3.5 border-b border-[rgba(10,10,11,0.08)]">
+      <div className="flex items-center gap-2.5">
+        <span className="w-1.5 h-1.5 rounded-full" style={{ background: color }} />
+        <h3 className="m-0 text-[13.5px] font-semibold tracking-[-0.005em]">{title}</h3>
+        <span className="font-en text-[11px] font-semibold text-[rgba(10,10,11,0.4)]">{String(count).padStart(2, '0')}</span>
+      </div>
+    </div>
+  )
+}
+
+const B_BADGE_MAP: Record<ResultKind, { bg: string; text: string }> = {
+  need: { bg: '#FFE6E6', text: '#B30000' },
+  warn: { bg: '#FFF3DC', text: '#8A5A00' },
+  ok: { bg: '#EAF6FE', text: '#00255E' },
+}
+
+function BadgeB({ kind, children }: { kind: ResultKind; children: React.ReactNode }) {
+  const s = B_BADGE_MAP[kind]
+  return (
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-kr text-[11px] font-medium tracking-[-0.005em] whitespace-nowrap" style={{ background: s.bg, color: s.text }}>
+      <span className="w-1.5 h-1.5 rounded-full" style={{ background: s.text }} />
+      {children}
+    </span>
+  )
+}
+
+function ResultItemCompactB({ item }: { item: BResultItem }) {
+  const badgeLabel = item.kind === 'need' ? '필수 확인' : item.kind === 'warn' ? '보완 권장' : '기준 충족'
+  return (
+    <article className="flex items-center gap-3.5 px-5 py-3.5 border-b border-[rgba(10,10,11,0.08)] flex-wrap">
+      <div className="flex-shrink-0"><BadgeB kind={item.kind}>{badgeLabel}</BadgeB></div>
+      <div className="flex-1 min-w-[200px]">
+        <h3 className="m-0 mb-0.5 text-[15px] font-semibold tracking-[-0.01em]">{item.title}</h3>
+        <p className="m-0 text-[13px] text-[rgba(10,10,11,0.65)] leading-[1.5] whitespace-pre-line">{item.desc}</p>
+      </div>
+      {item.locked && (
+        <div className="flex-shrink-0 flex items-center gap-[5px] text-[11.5px] text-heritage-500 font-medium whitespace-nowrap">
+          <Lock size={12} className="text-heritage-500" />
+          수정 문구 잠김
+        </div>
+      )}
+    </article>
+  )
+}
+
+function PackageTabB({ active, onClick, label, price, recommended }: {
+  active: boolean
+  onClick: () => void
+  label: string
+  price: string
+  recommended?: boolean
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="text-left px-4 py-3.5"
+      style={{
+        background: active ? (recommended ? '#002D72' : '#0A0A0B') : 'transparent',
+        color: active ? '#fff' : '#0A0A0B',
+        borderRight: !recommended ? '1px solid rgba(10,10,11,0.08)' : 'none',
+      }}
+    >
+      <div className="flex items-center justify-between gap-1.5 text-[12.5px] font-semibold tracking-[-0.005em]">
+        <span>{label}</span>
+        {recommended && (
+          <span className="text-[9.5px] font-semibold uppercase tracking-[0.06em] px-[5px] py-0.5" style={{ background: active ? 'rgba(255,255,255,0.16)' : '#EAF6FE', color: active ? '#fff' : '#002D72' }}>
+            추천
+          </span>
+        )}
+      </div>
+      <div className="mt-1 font-en text-[14px] font-bold tracking-[-0.01em]" style={{ opacity: active ? 1 : 0.7 }}>
+        {price}<span className="font-kr text-[11px] ml-0.5 font-medium">원</span>
+      </div>
+    </button>
+  )
+}
+
+function IntegratedPackageCardB({ ingredients, metadata, creatorData }: {
+  ingredients: Ingredient[]
+  metadata: Metadata
+  creatorData?: CreatorData
+}) {
+  const [service, setService] = useState<ServiceType>('pro')
+  const navigate = useNavigate()
+  const meta = service === 'pro'
+    ? {
+        eyebrow: 'Professional Guide · Recommended',
+        title: '전문 수정 가이드',
+        price: fmtKRW(TIER_2_PRICE),
+        bullets: ['항목별 수정 방법 + 표시 기준 출처', '과태료 · 행정처분 참고 정보', '신고 입력 가이드 + 라벨 검토 리포트', '분리배출 마크 ZIP + 라벨 PDF/PNG'],
+        cta: '상세 수정 가이드 받기',
+        ctaColor: '#002D72',
+      }
+    : {
+        eyebrow: 'Basic Label Package',
+        title: '기본 라벨 패키지',
+        price: fmtKRW(TIER_1_PRICE),
+        bullets: ['라벨 PDF · 인쇄용', '라벨 PNG · 고해상도', '항목별 텍스트 복사'],
+        cta: '기본 라벨 패키지 받기',
+        ctaColor: '#0CA4F9',
+      }
+
+  return (
+    <aside className="lg:sticky lg:top-[88px] border border-heritage-500 bg-white self-start">
+      <div className="grid grid-cols-2 border-b border-[rgba(10,10,11,0.08)]">
+        <PackageTabB active={service === 'basic'} onClick={() => setService('basic')} label="기본" price={fmtKRW(TIER_1_PRICE)} />
+        <PackageTabB active={service === 'pro'} onClick={() => setService('pro')} label="전문" price={fmtKRW(TIER_2_PRICE)} recommended />
+      </div>
+      <div className="p-[22px]">
+        <div className={`font-en text-[10px] font-bold uppercase tracking-[0.14em] mb-2 ${service === 'pro' ? 'text-heritage-500' : 'text-[rgba(10,10,11,0.4)]'}`}>{meta.eyebrow}</div>
+        <h3 className="m-0 text-[20px] font-semibold tracking-[-0.01em]">{meta.title}</h3>
+        <div className="mt-2.5 text-heritage-500 leading-none">
+          <span className="font-en text-[36px] font-bold tracking-[-0.025em]">{meta.price}</span>
+          <span className="ml-1 font-kr text-[14px] font-medium text-[rgba(10,10,11,0.4)]">원</span>
+        </div>
+        <ul className="grid gap-[9px] my-[18px] p-0 list-none">
+          {meta.bullets.map(b => (
+            <li key={b} className="flex gap-2.5 text-[12.5px] text-[rgba(10,10,11,0.65)] leading-[1.55]">
+              <CheckCircle2 size={14} className="flex-shrink-0 mt-0.5" style={{ color: meta.ctaColor }} />
+              <span>{b}</span>
+            </li>
+          ))}
+        </ul>
+        <button
+          onClick={() => navigate('/payment', { state: { ingredients, metadata, service, creatorData } })}
+          className="w-full h-12 flex items-center justify-center gap-2 font-kr text-[13.5px] font-semibold text-white"
+          style={{ background: meta.ctaColor }}
+        >
+          {meta.cta}
+        </button>
+        <div className="mt-3.5 pt-3 border-t border-[rgba(10,10,11,0.08)] text-[11px] text-[rgba(10,10,11,0.4)] leading-[1.5]">
+          KRK 검토 결과는 자율 점검 참고 자료이며, 식약처 공식 인증이 아닙니다.
+        </div>
+      </div>
+    </aside>
+  )
+}
+
+function ResultsPanelB({ violations, warns, okItems, counts }: {
+  violations: BResultItem[]
+  warns: BResultItem[]
+  okItems: BResultItem[]
+  counts: BResultCounts
+}) {
+  const [showOk, setShowOk] = useState(false)
+  return (
+    <div>
+      {violations.length > 0 && (
+        <div className="bg-white border border-[rgba(10,10,11,0.08)] mb-3.5">
+          <SectionHeaderB title="필수 확인" count={violations.length} kind="need" />
+          {violations.map(it => <ResultItemCompactB key={it.id} item={it} />)}
+        </div>
+      )}
+      {warns.length > 0 && (
+        <div className="bg-white border border-[rgba(10,10,11,0.08)] mb-3.5">
+          <SectionHeaderB title="보완 권장" count={warns.length} kind="warn" />
+          {warns.map(it => <ResultItemCompactB key={it.id} item={it} />)}
+        </div>
+      )}
+      <div className="bg-white border border-[rgba(10,10,11,0.08)]">
+        <div className="px-5 py-4 flex items-center justify-between gap-3.5 flex-wrap">
+          <div className="flex items-center gap-3">
+            <BadgeB kind="ok">기준 충족 {counts.ok}</BadgeB>
+            <span className="text-[13px] text-[rgba(10,10,11,0.65)]">표시 기준을 충족한 항목입니다.</span>
+          </div>
+          <button onClick={() => setShowOk(v => !v)} className="text-[12.5px] text-heritage-500 font-medium border-b border-breath-500 pb-px">
+            {showOk ? '접기' : '전체 보기'} →
+          </button>
+        </div>
+        {showOk && okItems.map(it => <ResultItemCompactB key={it.id} item={it} />)}
+      </div>
+    </div>
+  )
+}
+
+function NoticePanelB() {
+  return (
+    <div className="mt-6 p-[18px] border border-[rgba(10,10,11,0.08)] bg-white">
+      <h3 className="m-0 mb-2 text-[13.5px] font-semibold tracking-[-0.005em]">중요 안내</h3>
+      <p className="m-0 text-[12px] text-[rgba(10,10,11,0.65)] leading-[1.6]">
+        KRK의 검토 결과는 입력한 정보를 기준으로 한 자율 점검 참고 자료이며, 식약처 또는 관할 기관의 공식 인증이 아닙니다.
+      </p>
+    </div>
+  )
+}
+
+export default function ReviewResult() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const state = location.state as {
+    ingredients: Ingredient[]
+    metadata: Metadata
+    serviceTier?: ServiceTier
+    service?: ServiceType
+    fromCreator?: boolean
+    creatorData?: CreatorData
+  } | null
+  if (!state?.ingredients || !state?.metadata) return <Navigate to="/" replace />
+
+  const { ingredients, metadata, creatorData } = state
+  const fromCreator = state.fromCreator ?? false
+  const results = useMemo(() => analyzeRegulations(ingredients, metadata), [ingredients, metadata])
+  useEffect(() => {
+    const signature = JSON.stringify({
+      productName: metadata.productName,
+      categories: metadata.categories,
+      ingredients: ingredients.map(({ id, name, weight, isAllergen, isComposite }) => ({
+        id,
+        name,
+        weight,
+        isAllergen,
+        isComposite,
+      })),
+    })
+    const guardKey = `krk_review_saved_${signature}`
+    if (sessionStorage.getItem(guardKey)) return
+
+    sessionStorage.setItem(guardKey, '1')
+    recordLabelReview({
+      ingredients,
+      metadata,
+      results,
+      tier: 'free',
+      status: 'reviewed',
+      amount: 0,
+    }).then(saved => {
+      if (saved) localStorage.removeItem('krk_creator_draft_v1')
+    })
+  }, [ingredients, metadata, results])
+  const items = useMemo(() => toResultItems(results), [results])
+  const counts = useMemo<BResultCounts>(() => ({
+    need: items.filter(i => i.kind === 'need').length,
+    warn: items.filter(i => i.kind === 'warn').length,
+    ok: items.filter(i => i.kind === 'ok').length,
+  }), [items])
+  const violations = items.filter(i => i.kind === 'need')
+  const warns = items.filter(i => i.kind === 'warn')
+  const okItems = items.filter(i => i.kind === 'ok')
+  const hasLockedDetails = results.some(r => r.status !== 'pass' && parseMaxPenaltyMw(r.penaltyRange) > 0)
+
+  return (
+    <div className="min-h-screen bg-[#F4F4F5]">
+      <StickyNavB />
+      <main className="pt-[72px]">
+        <div className="max-w-[1140px] mx-auto px-5 md:px-14 py-9">
+          <FlowBreadcrumbB />
+          <HeroB counts={counts} metadata={metadata} onBackToCreator={() => navigate('/creator')} />
+          <ViolationsCalloutB violations={violations} hasLockedDetails={hasLockedDetails} />
+          <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+            <ResultsPanelB violations={violations} warns={warns} okItems={okItems} counts={counts} />
+            {fromCreator ? (
+              <button onClick={() => navigate(-1)} className="w-full h-12 bg-ink text-white font-semibold text-[14px]">
+                ← 라벨 미리보기로 돌아가기
+              </button>
+            ) : (
+              <IntegratedPackageCardB ingredients={ingredients} metadata={metadata} creatorData={creatorData} />
+            )}
+          </section>
+          <NoticePanelB />
+        </div>
       </main>
     </div>
   )

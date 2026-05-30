@@ -1,381 +1,279 @@
-import { useState, useEffect } from 'react'
-import { Lightbulb, CheckCircle2, AlertTriangle, X, Rocket } from 'lucide-react'
-import type { StepProps, CreatorData } from './types'
-import { NUTRITION_EXEMPTION_CRITERIA } from '../../utils/data/nutritionExemption'
+import { useEffect, useState } from 'react'
+import type React from 'react'
+import { AlertTriangle, CheckCircle2, ChevronDown, ChevronUp, Lightbulb, Rocket } from 'lucide-react'
+import type { CreatorData, StepProps } from './types'
 
-// ─── 상수 ─────────────────────────────────────────────────────────────────────
-
-type NutrientKey = 'calories' | 'totalCarbs' | 'sugar' | 'protein' | 'totalFat' | 'sodium'
+type NutrientKey = 'calories' | 'totalCarbs' | 'sugar' | 'protein' | 'totalFat' | 'saturatedFat' | 'transFat' | 'cholesterol' | 'sodium'
+type Answer = 'yes' | 'no' | null
 
 const NUTRIENTS: { key: NutrientKey; label: string; unit: string; indent?: boolean }[] = [
-  { key: 'calories',   label: '열량',    unit: 'kcal' },
+  { key: 'calories', label: '열량', unit: 'kcal' },
   { key: 'totalCarbs', label: '탄수화물', unit: 'g' },
-  { key: 'sugar',      label: '당류',    unit: 'g',   indent: true },
-  { key: 'protein',    label: '단백질',   unit: 'g' },
-  { key: 'totalFat',   label: '지방',    unit: 'g' },
-  { key: 'sodium',     label: '나트륨',   unit: 'mg' },
+  { key: 'sugar', label: '당류', unit: 'g', indent: true },
+  { key: 'protein', label: '단백질', unit: 'g' },
+  { key: 'totalFat', label: '지방', unit: 'g' },
+  { key: 'saturatedFat', label: '포화지방', unit: 'g', indent: true },
+  { key: 'transFat', label: '트랜스지방', unit: 'g', indent: true },
+  { key: 'cholesterol', label: '콜레스테롤', unit: 'mg' },
+  { key: 'sodium', label: '나트륨', unit: 'mg' },
 ]
 
-type Mode = 'choose' | 'input' | 'exempted'
-type Answer = 'yes' | 'no' | null
-type Answers = Record<string, Answer>
+const QUESTIONS = [
+  { id: 'sales', question: '연 매출액이 120억 원 이하인 영업소인가요?' },
+  { id: 'phase', question: '2028년 전까지 단계적 적용 유예 대상인지 확인했나요?' },
+  { id: 'claim', question: '제품에 영양강조표시(저칼로리·무가당 등)가 없나요?' },
+  { id: 'type', question: '건강기능식품 또는 특수영양식품이 아닌가요?' },
+] as const
 
-// ─── 유틸 ─────────────────────────────────────────────────────────────────────
+type Answers = Record<typeof QUESTIONS[number]['id'], Answer>
 
-const blockNonNumeric = (e: React.KeyboardEvent<HTMLInputElement>) => {
-  if (['e', 'E', '+', '-'].includes(e.key)) e.preventDefault()
+const INITIAL_ANSWERS: Answers = {
+  sales: null,
+  phase: null,
+  claim: null,
+  type: null,
 }
 
-const toDisplay = (val: string) => (val === '' ? '' : val)
-
-function initMode(data: CreatorData): Mode {
-  if (data.nutritionExempted) return 'exempted'
-  const hasData = (['calories','totalCarbs','sugar','protein','totalFat','sodium'] as NutrientKey[])
-    .some(k => data[k] && data[k] !== '0')
-  return hasData ? 'input' : 'choose'
+const blockNonNumeric = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  if (['e', 'E', '+', '-'].includes(event.key)) event.preventDefault()
 }
 
-function initAnswers(): Answers {
-  return Object.fromEntries(NUTRITION_EXEMPTION_CRITERIA.map(c => [c.id, null]))
-}
-
-// ─── 컴포넌트 ─────────────────────────────────────────────────────────────────
+const hasNutritionData = (data: CreatorData) =>
+  NUTRIENTS.some(item => data[item.key] && data[item.key] !== '0')
 
 export default function Step3_Nutrition({ data, onChange }: StepProps) {
-  const [mode, setMode]           = useState<Mode>(() => initMode(data))
-  const [modalOpen, setModalOpen] = useState(false)
-  const [answers, setAnswers]     = useState<Answers>(initAnswers)
+  const [answers, setAnswers] = useState<Answers>(() => INITIAL_ANSWERS)
+  const [expanded, setExpanded] = useState(false)
+  const [manualInput, setManualInput] = useState(hasNutritionData(data))
   const [showToast, setShowToast] = useState(false)
 
-  const set = (key: keyof CreatorData) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-    onChange({ [key]: e.target.value })
+  const answered = Object.values(answers).every(answer => answer !== null)
+  const allYes = answered && Object.values(answers).every(answer => answer === 'yes')
+
+  useEffect(() => {
+    if (!answered) return
+    if (allYes) {
+      onChange({ nutritionExempted: true })
+    } else {
+      onChange({ nutritionExempted: false })
+    }
+  }, [answered, allYes])
+
+  useEffect(() => {
+    if (!showToast) return
+    const timer = setTimeout(() => setShowToast(false), 2400)
+    return () => clearTimeout(timer)
+  }, [showToast])
+
+  const set = (key: keyof CreatorData) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+    onChange({ [key]: event.target.value })
 
   const handleBlur = (key: NutrientKey) => () => {
     if (data[key].trim() === '') onChange({ [key]: '0' })
   }
 
-  const handleServingBlur = () => {
-    if (data.servingSize.trim() === '') onChange({ servingSize: '0' })
-  }
-
-  // 모달 결과 계산
-  const answered = Object.values(answers).every(a => a !== null)
-  const allYes   = answered && Object.values(answers).every(a => a === 'yes')
-
-  const handleExempt = () => {
-    onChange({ nutritionExempted: true })
-    setModalOpen(false)
-    setMode('exempted')
-  }
-
-  const handleManualInput = () => {
-    onChange({ nutritionExempted: false })
-    setModalOpen(false)
-    setMode('input')
-  }
-
-  const openModal = () => {
-    setAnswers(initAnswers())
-    setModalOpen(true)
-  }
-
-  // 자동 계산 Coming Soon 토스트 (2.5초 후 자동 소멸)
-  const triggerToast = () => {
-    setShowToast(true)
-  }
-  useEffect(() => {
-    if (!showToast) return
-    const t = setTimeout(() => setShowToast(false), 2500)
-    return () => clearTimeout(t)
-  }, [showToast])
-
   return (
-    <>
-      {/* ── 토스트 ─────────────────────────────────────────────────────────── */}
+    <div className="flex flex-col gap-6">
       {showToast && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[70] flex items-center gap-2.5 px-5 py-3 bg-ink text-white font-kr text-[13px] shadow-xl whitespace-nowrap">
-          <Rocket size={14} className="flex-shrink-0" />
+        <div className="fixed left-1/2 top-20 z-[70] flex -translate-x-1/2 items-center gap-2.5 bg-ink px-5 py-3 font-kr text-[13px] text-white shadow-xl">
+          <Rocket size={14} />
           자동 계산 기능은 v1.5에 추가될 예정입니다.
         </div>
       )}
 
-      {/* ── 면제 진단 모달 ──────────────────────────────────────────────────── */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-[480px] mx-4 border border-[rgba(10,10,11,0.12)]">
-
-            {/* 모달 헤더 */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(10,10,11,0.08)]">
-              <span className="font-kr font-semibold text-[15px] text-ink">
-                영양성분 표시 면제 자가진단
-              </span>
-              <button
-                onClick={() => setModalOpen(false)}
-                className="text-[rgba(10,10,11,0.4)] hover:text-ink transition-colors"
-              >
-                <X size={18} />
-              </button>
+      <section className="border border-[rgba(10,10,11,0.1)] bg-white">
+        <button
+          type="button"
+          onClick={() => setExpanded(value => !value)}
+          className={`flex w-full items-center justify-between gap-4 px-5 py-4 text-left ${
+            expanded ? 'border-l-[3px] border-l-heritage-500' : 'border-l-[3px] border-l-[#B07A1A] bg-[#FFF8E1]'
+          }`}
+        >
+          <div className="flex items-start gap-3">
+            <Lightbulb size={17} className="mt-0.5 flex-shrink-0 text-[#B07A1A]" />
+            <div>
+              <h2 className="font-kr text-[14px] font-semibold text-ink">
+                {expanded ? `면제 자가진단 · ${Object.values(answers).filter(Boolean).length}/4` : '면제 대상인지 확인하세요'}
+              </h2>
+              <p className="mt-1 font-kr text-[12px] leading-[1.6] text-[rgba(10,10,11,0.5)]">
+                {expanded
+                  ? '4개 질문으로 면제 가능성을 확인합니다.'
+                  : '4개 질문으로 빠르게 진단합니다. 영양강조표시 사용 시 면제 대상이어도 표시 의무가 생길 수 있습니다.'}
+              </p>
             </div>
+          </div>
+          <span className="inline-flex items-center gap-2 font-kr text-[12px] font-semibold text-[#8A5A00]">
+            {expanded ? '접기' : '진단 시작'}
+            {expanded ? <ChevronUp size={17} /> : <ChevronDown size={17} />}
+          </span>
+        </button>
 
-            {/* 질문 목록 */}
-            <div className="px-6 py-5 flex flex-col gap-5">
-              {NUTRITION_EXEMPTION_CRITERIA.map(c => (
-                <div key={c.id} className="flex flex-col gap-2.5">
-                  <p className="font-kr text-[13px] text-ink leading-[1.6]">
-                    {c.question}
-                  </p>
-                  <p className="font-kr text-[11px] text-[rgba(10,10,11,0.4)]">
-                    {c.regulation}
-                  </p>
-                  <div className="flex gap-2">
-                    {(['yes', 'no'] as const).map(v => (
+        {expanded && (
+          <div className="border-t border-[rgba(10,10,11,0.08)] px-5 py-5">
+            <div className="grid grid-cols-1 gap-4">
+              {QUESTIONS.map(item => (
+                <div key={item.id} className="grid grid-cols-1 gap-2 border-b border-[rgba(10,10,11,0.06)] pb-4 last:border-0 last:pb-0 md:grid-cols-[1fr_180px] md:items-center">
+                  <p className="font-kr text-[13px] leading-[1.6] text-ink">{item.question}</p>
+                  <div className="grid grid-cols-2 border border-[rgba(10,10,11,0.16)]">
+                    {(['yes', 'no'] as const).map(value => (
                       <button
-                        key={v}
-                        onClick={() => setAnswers(prev => ({ ...prev, [c.id]: v }))}
-                        className={`flex-1 min-h-[44px] font-kr text-[13px] font-medium border transition-colors ${
-                          answers[c.id] === v
-                            ? v === 'yes'
-                              ? 'bg-heritage-500 border-heritage-500 text-white'
-                              : 'bg-[#B30000] border-[#B30000] text-white'
-                            : 'bg-white border-[rgba(10,10,11,0.2)] text-[rgba(10,10,11,0.6)] hover:border-ink'
+                        key={value}
+                        type="button"
+                        onClick={() => setAnswers(prev => ({ ...prev, [item.id]: value }))}
+                        className={`h-10 border-l first:border-l-0 border-[rgba(10,10,11,0.12)] font-kr text-[13px] transition-colors ${
+                          answers[item.id] === value
+                            ? value === 'yes' ? 'bg-heritage-500 text-white' : 'bg-[#B30000] text-white'
+                            : 'bg-white text-[rgba(10,10,11,0.55)] hover:bg-[rgba(10,10,11,0.03)]'
                         }`}
                       >
-                        {v === 'yes' ? '예' : '아니오'}
+                        {value === 'yes' ? '예' : '아니오'}
                       </button>
                     ))}
                   </div>
                 </div>
               ))}
+            </div>
 
-              {/* 결과 영역 */}
-              {answered && (
-                <div className={`px-4 py-3.5 border flex flex-col gap-2 ${
-                  allYes
-                    ? 'bg-[#f0fdf4] border-[#15803d]/30'
-                    : 'bg-[#FFF8F8] border-[#B30000]/25'
-                }`}>
-                  <div className="flex items-center gap-2">
-                    {allYes
-                      ? <CheckCircle2 size={14} className="text-[#15803d] flex-shrink-0" />
-                      : <AlertTriangle size={14} className="text-[#B30000] flex-shrink-0" />}
-                    <span className={`font-kr font-semibold text-[13px] ${allYes ? 'text-[#15803d]' : 'text-[#B30000]'}`}>
+            {answered && (
+              <div className={`mt-5 border px-4 py-3.5 ${
+                allYes ? 'border-[#15803d]/30 bg-[#f0fdf4]' : 'border-[#B30000]/25 bg-[#FFF8F8]'
+              }`}>
+                <div className="flex items-start gap-2">
+                  {allYes
+                    ? <CheckCircle2 size={15} className="mt-0.5 flex-shrink-0 text-[#15803d]" />
+                    : <AlertTriangle size={15} className="mt-0.5 flex-shrink-0 text-[#B30000]" />
+                  }
+                  <div>
+                    <h3 className={`font-kr text-[13px] font-semibold ${allYes ? 'text-[#15803d]' : 'text-[#B30000]'}`}>
+                      {allYes ? '면제 대상일 가능성이 높습니다.' : '영양성분 직접 입력이 필요할 수 있습니다.'}
+                    </h3>
+                    <p className="mt-1 font-kr text-[12px] leading-[1.6] text-[rgba(10,10,11,0.55)]">
                       {allYes
-                        ? '면제 대상일 가능성이 높습니다.'
-                        : '면제 대상이 아닐 수 있습니다.'}
-                    </span>
-                  </div>
-                  <p className="font-kr text-[12px] text-[rgba(10,10,11,0.55)] leading-[1.6] pl-[22px]">
-                    {allYes
-                      ? '최종 판단은 관할 지자체 또는 식약처에 확인하세요.'
-                      : '영양성분을 직접 입력해주세요.'}
-                  </p>
-                  <div className="pl-[22px] pt-1">
-                    {allYes ? (
-                      <button onClick={handleExempt} className="btn-heritage flex items-center gap-2">
-                        <CheckCircle2 size={13} />
-                        면제 적용하고 다음으로
-                      </button>
-                    ) : (
-                      <button onClick={handleManualInput} className="btn-primary flex items-center gap-2">
+                        ? '라벨 미리보기에는 영양표시 면제 가능 상태로 표시됩니다. 최종 판단은 기준일 법규와 관할 지자체 기준을 확인하세요.'
+                        : '아래 9개 영양성분표에 분석 수치를 입력하세요.'
+                      }
+                    </p>
+                    {!allYes && (
+                      <button
+                        type="button"
+                        onClick={() => setManualInput(true)}
+                        className="mt-3 inline-flex h-9 items-center justify-center bg-heritage-500 px-4 font-kr text-[12px] font-semibold text-white"
+                      >
                         직접 입력하기
                       </button>
                     )}
                   </div>
                 </div>
-              )}
-            </div>
-
-          </div>
-        </div>
-      )}
-
-      {/* ── 본문 ─────────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col gap-6">
-
-        {/* ── 진입 배너 (choose 또는 exempted 모드) ──────────────────────────── */}
-        {(mode === 'choose' || mode === 'exempted') && (
-          <div className="border border-[rgba(10,10,11,0.1)] px-5 py-4 flex flex-col gap-4">
-            {mode === 'exempted' ? (
-              /* 면제 적용됨 */
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 size={15} className="text-[#15803d] flex-shrink-0" />
-                  <span className="font-kr font-semibold text-[14px] text-[#15803d]">
-                    영양성분 표시 면제 적용됨
-                  </span>
-                </div>
-                <p className="font-kr text-[12px] text-[rgba(10,10,11,0.5)] leading-[1.6] pl-[23px]">
-                  자가진단 결과 면제 대상으로 확인되었습니다.
-                  최종 판단은 관할 지자체 또는 식약처에 문의하세요.
-                </p>
-                <div className="flex gap-2 pl-[23px] pt-1">
-                  <button
-                    onClick={() => { onChange({ nutritionExempted: false }); setMode('choose'); setAnswers(initAnswers()) }}
-                    className="font-en text-[12px] text-[rgba(10,10,11,0.4)] hover:text-ink underline transition-colors"
-                  >
-                    다시 진단하기
-                  </button>
-                  <span className="text-[rgba(10,10,11,0.2)]">·</span>
-                  <button
-                    onClick={handleManualInput}
-                    className="font-en text-[12px] text-[rgba(10,10,11,0.4)] hover:text-ink underline transition-colors"
-                  >
-                    직접 입력하기
-                  </button>
-                </div>
               </div>
-            ) : (
-              /* 초기 선택 배너 */
-              <>
-                <div className="flex items-start gap-3">
-                  <Lightbulb size={16} className="text-[#b45309] flex-shrink-0 mt-0.5" />
-                  <div className="flex flex-col gap-0.5">
-                    <span className="font-kr font-semibold text-[13px] text-ink">
-                      소규모 사업자는 영양성분 표시가 면제될 수 있습니다.
-                    </span>
-                    <span className="font-kr text-[12px] text-[rgba(10,10,11,0.5)]">
-                      식품등의 표시기준 제5조 기준 적용
-                    </span>
-                  </div>
-                </div>
-                <div className="flex gap-2 pl-[28px]">
-                  <button
-                    onClick={openModal}
-                    className="btn-ghost flex items-center gap-1.5 text-[12px]"
-                  >
-                    면제 대상 확인하기
-                  </button>
-                  <button
-                    onClick={handleManualInput}
-                    className="btn-primary flex items-center gap-1.5 text-[12px]"
-                  >
-                    직접 입력하기
-                  </button>
-                </div>
-              </>
             )}
           </div>
         )}
+      </section>
 
-        {/* ── 영양성분 직접 입력 폼 ──────────────────────────────────────────── */}
-        {mode === 'input' && (
-          <>
-            {/* 자동 계산 Coming Soon 버튼 */}
-            <div className="flex items-center justify-between">
-              <span className="font-en text-[11px] font-semibold text-[rgba(10,10,11,0.35)] uppercase tracking-[0.1em]">
-                영양성분 직접 입력
-              </span>
-              <button
-                onClick={triggerToast}
-                className="flex items-center gap-1.5 px-3 py-1.5 border border-[rgba(10,10,11,0.15)] font-en text-[11px] text-[rgba(10,10,11,0.45)] hover:border-ink hover:text-ink transition-colors"
-              >
-                <Rocket size={11} />
-                🚀 자동 계산 — Coming Soon
-              </button>
+      {data.nutritionExempted && allYes && (
+        <section className="border border-[#15803d]/30 bg-[#f0fdf4] px-4 py-3.5">
+          <div className="flex items-start gap-3">
+            <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0 text-[#15803d]" />
+            <div>
+              <h3 className="font-kr text-[14px] font-semibold text-[#15803d]">영양표시 면제 가능</h3>
+              <p className="mt-1 font-kr text-[12px] leading-[1.6] text-[rgba(10,10,11,0.55)]">
+                이 상태로 다음 단계에서 라벨 미리보기를 확인할 수 있습니다.
+              </p>
             </div>
+          </div>
+        </section>
+      )}
 
-            {/* 1회 제공량 */}
-            <div className="flex flex-col gap-1.5">
-              <label className="font-en text-[11px] font-semibold text-[rgba(10,10,11,0.45)] uppercase tracking-[0.08em]">
-                1회 제공량
-              </label>
-              <div className="flex gap-2 max-w-[220px]">
+      {(manualInput || hasNutritionData(data)) && (
+        <section className="flex flex-col gap-4">
+          <div className="flex items-center justify-between gap-4">
+            <span className="font-en text-[11px] font-semibold uppercase tracking-[0.12em] text-[rgba(10,10,11,0.35)]">영양성분 직접 입력</span>
+            <button
+              type="button"
+              onClick={() => setShowToast(true)}
+              className="flex items-center gap-1.5 border border-[rgba(10,10,11,0.15)] px-3 py-1.5 font-kr text-[11px] text-[rgba(10,10,11,0.48)] transition-colors hover:border-ink hover:text-ink"
+            >
+              <Rocket size={11} />
+              자동 계산
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-[220px_1fr]">
+            <div>
+              <label className="mb-1.5 block font-en text-[11px] font-semibold uppercase tracking-[0.08em] text-[rgba(10,10,11,0.45)]">1회 제공량</label>
+              <div className="flex">
                 <input
                   className="input-field flex-1 text-right tabular-nums"
                   type="number"
                   min="0"
                   step="any"
                   placeholder="0"
-                  value={toDisplay(data.servingSize)}
+                  value={data.servingSize}
                   onChange={set('servingSize')}
-                  onBlur={handleServingBlur}
+                  onBlur={() => { if (data.servingSize.trim() === '') onChange({ servingSize: '0' }) }}
                   onKeyDown={blockNonNumeric}
                 />
-                <select
-                  className="input-field w-[72px] flex-shrink-0"
-                  value={data.servingUnit}
-                  onChange={set('servingUnit')}
-                >
+                <select className="input-field w-[76px] border-l-0" value={data.servingUnit} onChange={set('servingUnit')}>
                   <option value="g">g</option>
                   <option value="mL">mL</option>
                 </select>
               </div>
             </div>
 
-            {/* 영양성분 테이블 */}
-            <div className="border border-[rgba(10,10,11,0.12)] border-b-0 overflow-hidden">
-              <div className="bg-ink text-white px-4 py-2.5 text-center">
-                <span className="font-kr font-bold text-[13px] tracking-[0.06em]">영양성분표</span>
+            <div className="border border-[rgba(10,10,11,0.12)] bg-white">
+              <div className="bg-ink px-4 py-2.5 text-center text-white">
+                <span className="font-kr text-[13px] font-bold tracking-[0.06em]">영양성분표</span>
                 {data.servingSize && data.servingSize !== '0' && (
-                  <span className="font-en text-[11px] text-white/55 ml-3 tabular-nums">
-                    1회 {data.servingSize}{data.servingUnit} 기준
-                  </span>
+                  <span className="ml-3 font-en text-[11px] text-white/60 tabular-nums">1회 {data.servingSize}{data.servingUnit} 기준</span>
                 )}
               </div>
 
-              {NUTRIENTS.map((n, idx) => {
-                const isCalories = n.key === 'calories'
+              {NUTRIENTS.map((item, index) => {
+                const isCalories = item.key === 'calories'
                 return (
                   <div
-                    key={n.key}
-                    className={`flex items-center border-b border-[rgba(10,10,11,0.08)]
-                      ${idx % 2 === 0 ? 'bg-white' : 'bg-[rgba(10,10,11,0.015)]'}
-                      ${isCalories ? 'border-b-[2px] border-b-[rgba(10,10,11,0.15)]' : ''}`}
+                    key={item.key}
+                    className={`flex items-center border-b border-[rgba(10,10,11,0.08)] last:border-b-0 ${
+                      index % 2 === 0 ? 'bg-white' : 'bg-[rgba(10,10,11,0.015)]'
+                    } ${isCalories ? 'border-b-[2px] border-b-[rgba(10,10,11,0.15)]' : ''}`}
                   >
-                    <div className={`flex-1 py-2.5 ${n.indent ? 'pl-8' : 'pl-4'}`}>
+                    <div className={`flex-1 py-2.5 ${item.indent ? 'pl-8' : 'pl-4'}`}>
                       <span className={`font-kr text-[13px] ${
-                        isCalories ? 'font-bold text-ink' :
-                        n.indent   ? 'text-[rgba(10,10,11,0.55)]' :
-                                     'font-medium text-ink'
+                        isCalories ? 'font-bold text-ink' : item.indent ? 'text-[rgba(10,10,11,0.55)]' : 'font-medium text-ink'
                       }`}>
-                        {n.indent && <span className="text-[rgba(10,10,11,0.3)] mr-1.5 text-[11px]">└</span>}
-                        {n.label}
+                        {item.indent && <span className="mr-1.5 text-[11px] text-[rgba(10,10,11,0.3)]">└</span>}
+                        {item.label}
                       </span>
                     </div>
-                    <div className={`flex items-center gap-2 pr-4 py-1.5 ${isCalories ? 'py-2' : ''}`}>
+                    <div className="flex items-center gap-2 py-1.5 pr-4">
                       <input
-                        className={`border border-[rgba(10,10,11,0.15)] bg-white text-right px-3 tabular-nums
-                          font-en text-[13px] outline-none transition-colors
-                          focus:border-breath-500 focus:ring-[3px] focus:ring-breath-500/15
-                          ${isCalories ? 'h-10 w-[100px] font-bold text-[15px]' : 'h-9 w-[88px]'}`}
+                        className={`border border-[rgba(10,10,11,0.15)] bg-white px-3 text-right font-en text-[13px] tabular-nums outline-none transition-colors focus:border-breath-500 focus:ring-[3px] focus:ring-breath-500/15 ${
+                          isCalories ? 'h-10 w-[100px] font-bold' : 'h-9 w-[88px]'
+                        }`}
                         type="number"
                         min="0"
                         step="any"
                         placeholder="0"
-                        value={toDisplay(data[n.key])}
-                        onChange={set(n.key)}
-                        onBlur={handleBlur(n.key)}
+                        value={data[item.key]}
+                        onChange={set(item.key)}
+                        onBlur={handleBlur(item.key)}
                         onKeyDown={blockNonNumeric}
                       />
-                      <span className={`font-en text-right flex-shrink-0 tabular-nums
-                        ${isCalories ? 'text-[13px] font-semibold text-ink w-[32px]' : 'text-[12px] text-[rgba(10,10,11,0.45)] w-[28px]'}`}>
-                        {n.unit}
-                      </span>
+                      <span className="w-[32px] flex-shrink-0 text-right font-en text-[12px] text-[rgba(10,10,11,0.45)]">{item.unit}</span>
                     </div>
                   </div>
                 )
               })}
             </div>
+          </div>
 
-            {/* 안내 + 면제 재진단 링크 */}
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-start gap-2.5 px-4 py-3 bg-[rgba(10,10,11,0.02)] border border-[rgba(10,10,11,0.07)] flex-1">
-                <div className="w-1 h-1 rounded-full bg-[rgba(10,10,11,0.3)] flex-shrink-0 mt-[5px]" />
-                <p className="font-kr text-[12px] text-[rgba(10,10,11,0.5)] leading-[1.6]">
-                  숫자만 입력 가능합니다. 수치는 공인시험기관 분석 결과 기준으로 입력하세요.
-                </p>
-              </div>
-              <button
-                onClick={() => setMode('choose')}
-                className="font-en text-[11px] text-[rgba(10,10,11,0.35)] hover:text-ink underline transition-colors whitespace-nowrap self-center flex-shrink-0"
-              >
-                면제 확인하기
-              </button>
-            </div>
-          </>
-        )}
-
-      </div>
-    </>
+          <div className="border border-[rgba(10,10,11,0.07)] bg-[rgba(10,10,11,0.02)] px-4 py-3">
+            <p className="font-kr text-[12px] leading-[1.6] text-[rgba(10,10,11,0.5)]">
+              숫자만 입력 가능합니다. 수치는 공인시험기관 분석 결과 기준으로 입력하세요.
+            </p>
+          </div>
+        </section>
+      )}
+    </div>
   )
 }

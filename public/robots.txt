@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /checker/
+Disallow: /checker/dashboard
+Disallow: /checker/creator
+Disallow: /checker/review
+Disallow: /checker/export
+Disallow: /checker/payment
+Disallow: /checker/login
+Disallow: /checker/signup
+Disallow: /checker/verify-email
+Disallow: /checker/forgot-password
+Disallow: /checker/reset-password
+
+Sitemap: https://checker.krk.team/checker/sitemap.xml

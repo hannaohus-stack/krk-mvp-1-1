@@ -6,6 +6,7 @@ export interface Ingredient {
   name: string
   rawName: string          // OCR에서 추출된 원래 텍스트
   weight: number           // gram
+  origin?: string          // 원산지
   suggestedName: string    // 식약처 공식 원료명 추천
   isComposite: boolean     // 복합원재료 여부
   isAllergen: boolean      // 알레르기 유발물질 여부

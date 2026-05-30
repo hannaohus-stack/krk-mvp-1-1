@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react'
-import { INITIAL_DATA, isStep1Complete, type CreatorData } from './types'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import LogoLockup from '../../components/LogoLockup'
+import { INITIAL_DATA, isStep1Complete, isStep2Complete, type CreatorData } from './types'
+import type { Ingredient } from '../../utils/parsing'
+import type { Metadata } from '../ReviewResult'
 import Step1_ProductInfo from './Step1_ProductInfo'
 import Step2_Ingredients from './Step2_Ingredients'
 import Step3_Nutrition   from './Step3_Nutrition'
-import Step4_Preview     from './Step4_Preview'
-import Step5_Export      from './Step5_Export'
+import Step4_Preview, { hasBlockingPreviewIssues } from './Step4_Preview'
 
 // ─── 스텝 정의 ─────────────────────────────────────────────────────────────────
 
@@ -15,69 +17,191 @@ const STEPS = [
   { id: 2, label: '원재료'   },
   { id: 3, label: '영양성분' },
   { id: 4, label: '미리보기' },
-  { id: 5, label: '내보내기' },
 ]
 
-const SECTION_LABEL = [
-  '01 — 제품 정보',
-  '02 — 원재료',
-  '03 — 영양성분',
-  '04 — 미리보기',
-  '05 — 내보내기',
+const STEP_META = [
+  {
+    label: '제품 정보',
+    title: '제품 정보를 입력해 주세요',
+    desc: '검토할 제품의 기본 정보와 식품 카테고리를 선택해 주세요. 카테고리는 복수 선택 가능합니다.',
+    next: '다음 — 원재료 정보',
+  },
+  {
+    label: '원재료 정보',
+    title: '원재료를 입력해 주세요',
+    desc: '라벨에 표시될 원재료명과 중량을 입력하면 알레르기와 복합원재료를 자동으로 감지합니다.',
+    next: '다음 — 영양성분',
+  },
+  {
+    label: '영양성분',
+    title: '영양성분 정보를 입력해 주세요',
+    desc: '영양표시 면제 가능성을 확인하거나 분석 수치를 직접 입력하세요.',
+    next: '다음 — 라벨 미리보기',
+  },
+  {
+    label: '라벨 미리보기',
+    title: '라벨을 미리 확인해 주세요',
+    desc: '입력한 정보가 실제 라벨 구조에 어떻게 배치되는지 확인합니다.',
+    next: '확인하고 검토 결과 보기',
+  },
 ]
 
-const SECTION_HEAD: React.ReactNode[] = [
-  <>제품의 기본 정보를<br />입력해주세요.</>,
-  <>원재료를<br />등록해주세요.</>,
-  <>영양성분 수치를<br />입력해주세요.</>,
-  <>라벨을<br />미리 확인하세요.</>,
-  <>완성된 라벨을<br />내보내세요.</>,
-]
+const CREATOR_DRAFT_KEY = 'krk_creator_draft_v1'
 
-// ─── 진행 바 ───────────────────────────────────────────────────────────────────
+interface CreatorDraft {
+  step: number
+  data: CreatorData
+  savedAt?: string
+}
 
-function StepBar({ current }: { current: number }) {
-  const pct = (current - 1) / (STEPS.length - 1)  // 0 → 1
+function readCreatorDraft(): CreatorDraft | null {
+  try {
+    const raw = localStorage.getItem(CREATOR_DRAFT_KEY) ?? sessionStorage.getItem(CREATOR_DRAFT_KEY)
+    if (!raw) return null
 
+    const parsed = JSON.parse(raw) as Partial<CreatorDraft>
+    if (!parsed.data?.productName && !parsed.data?.categories?.length && !parsed.data?.ingredients?.length) {
+      return null
+    }
+    const safeStep = typeof parsed.step === 'number'
+      ? Math.min(Math.max(Math.round(parsed.step), 1), STEPS.length)
+      : 1
+
+    return {
+      step: safeStep,
+      data: {
+        ...INITIAL_DATA,
+        ...(parsed.data ?? {}),
+      },
+      savedAt: parsed.savedAt,
+    }
+  } catch {
+    return null
+  }
+}
+
+function convertToCheckerState(data: CreatorData): { ingredients: Ingredient[]; metadata: Metadata } {
+  let expiryDays = ''
+  if (data.expiryDate) {
+    const diffMs = new Date(data.expiryDate).getTime() - Date.now()
+    expiryDays = String(Math.max(1, Math.ceil(diffMs / 86_400_000)))
+  }
+
+  return {
+    ingredients: data.ingredients.map(ing => ({
+      id: ing.id,
+      name: ing.name,
+      rawName: ing.name,
+      weight: parseFloat(ing.weight) || 0,
+      origin: ing.origin,
+      suggestedName: ing.name,
+      isComposite: ing.isComposite,
+      isAllergen: ing.isAllergen,
+      matchConfidence: 1.0,
+    })),
+    metadata: {
+      productName: data.productName,
+      totalWeight: data.totalWeight,
+      unit: data.unit,
+      expiryDays,
+      storage: data.storage,
+      manufacturer: data.manufacturer,
+      manufacturerAddress: data.manufacturerAddress,
+      itemReportNumber: data.itemReportNumber,
+      marketingClaims: data.marketingClaims,
+      packagingMaterials: data.packagingMaterials,
+      sharedFacilityAllergens: data.sharedFacilityAllergens,
+      categories: data.categories,
+      businessType: data.businessType || undefined,
+      facilityType: data.facilityType || undefined,
+    },
+  }
+}
+
+function StepProgress({ current }: { current: number }) {
   return (
-    <div className="relative pt-1 pb-7">
-      {/* 배경 트랙 */}
-      <div className="absolute top-[15px] left-[26px] right-[26px] h-px bg-[rgba(10,10,11,0.1)]" />
-      {/* 진행 채움 */}
-      <div
-        className="absolute top-[15px] left-[26px] h-px bg-breath-500 transition-all duration-500 ease-in-out"
-        style={{ width: `calc(${pct} * (100% - 52px))` }}
-      />
-
-      {/* 스텝 서클 */}
-      <div className="relative flex justify-between">
-        {STEPS.map(s => {
-          const done   = s.id < current
-          const active = s.id === current
-          return (
-            <div key={s.id} className="flex flex-col items-center gap-2" style={{ width: 52 }}>
-              <div
-                className={`w-[30px] h-[30px] flex items-center justify-center
-                  text-[11px] font-semibold font-en border transition-all duration-300
-                  ${done   ? 'bg-breath-500 border-breath-500 text-white'
-                  : active ? 'bg-ink border-ink text-white'
-                  :          'bg-white border-[rgba(10,10,11,0.15)] text-[rgba(10,10,11,0.28)]'}`}
-              >
-                {done ? <CheckCircle2 size={13} /> : s.id}
-              </div>
-              <span
-                className={`font-kr text-[10px] text-center leading-tight transition-colors duration-200
-                  ${active ? 'text-ink font-semibold'
-                  : done   ? 'text-breath-500'
-                  :          'text-[rgba(10,10,11,0.3)]'}`}
-              >
-                {s.label}
-              </span>
-            </div>
-          )
-        })}
-      </div>
+    <div className="flex items-center gap-1.5" aria-label={`Step ${current} of ${STEPS.length}`}>
+      {STEPS.map(stepItem => {
+        const active = stepItem.id === current
+        const done = stepItem.id < current
+        return (
+          <span
+            key={stepItem.id}
+            className={`h-[3px] transition-all duration-200 ${active ? 'w-7' : 'w-3.5'} ${
+              active || done ? 'bg-heritage-500' : 'bg-[rgba(10,10,11,0.12)]'
+            }`}
+          />
+        )
+      })}
     </div>
+  )
+}
+
+function StepCrumb({ current }: { current: number }) {
+  const meta = STEP_META[current - 1]
+  return (
+    <div className="inline-flex items-center gap-2.5 font-en text-[10.5px] font-medium uppercase tracking-[0.16em] text-heritage-500">
+      <span className="h-px w-[18px] bg-heritage-500" />
+      <span className="font-kr font-semibold tracking-[0.04em] text-ink">{meta.label}</span>
+    </div>
+  )
+}
+
+function CreatorHeader({ current, onHome }: { current: number; onHome: () => void }) {
+  return (
+    <header className="sticky top-0 z-40 flex items-center justify-between border-b border-[rgba(10,10,11,0.08)] bg-white/75 px-5 py-[18px] backdrop-blur-[18px] md:px-14">
+      <button onClick={onHome} className="hover:opacity-70 transition-opacity">
+        <LogoLockup />
+      </button>
+      <StepProgress current={current} />
+      <div className="hidden font-en text-[11px] uppercase tracking-[0.14em] text-[rgba(10,10,11,0.4)] md:block">
+        krk.team/new — Step {current} / 4
+      </div>
+      <div className="md:hidden font-en text-[11px] uppercase tracking-[0.14em] text-[rgba(10,10,11,0.4)]">
+        {current}/4
+      </div>
+    </header>
+  )
+}
+
+function CreatorFooter({
+  current,
+  canGoNext,
+  onPrev,
+  onNext,
+}: {
+  current: number
+  canGoNext: boolean
+  onPrev: () => void
+  onNext: () => void
+}) {
+  const nextLabel = !canGoNext
+    ? current === 2
+      ? '원재료 1개 이상 필요'
+      : current === 4
+      ? '필수 항목 수정 필요'
+      : STEP_META[current - 1].next
+    : STEP_META[current - 1].next
+  return (
+    <footer className="sticky bottom-0 z-30 border-t border-[rgba(10,10,11,0.08)] bg-white px-5 py-4 md:px-14">
+      <div className="flex flex-col-reverse gap-3 md:flex-row md:items-center md:justify-between">
+        <button
+          onClick={onPrev}
+          className="inline-flex h-11 items-center justify-center gap-2 border border-[rgba(10,10,11,0.15)] px-5 font-kr text-[13px] font-medium text-ink transition-colors hover:bg-ink hover:text-white md:w-auto"
+        >
+          <ChevronLeft size={14} />
+          {current === 1 ? '홈으로' : '이전 단계'}
+        </button>
+        <button
+          onClick={onNext}
+          disabled={!canGoNext}
+          className="inline-flex h-12 items-center justify-center gap-2 bg-breath-500 px-6 font-kr text-[13px] font-semibold text-white transition-colors hover:bg-breath-600 disabled:cursor-not-allowed disabled:bg-[rgba(10,10,11,0.18)] md:w-auto"
+        >
+          {nextLabel}
+          <ChevronRight size={14} />
+        </button>
+      </div>
+    </footer>
   )
 }
 
@@ -89,15 +213,30 @@ export default function Creator() {
 
   // Checker → Creator 연결 시 사전 입력 데이터 적용
   const prefill = (location.state as { prefill?: Partial<CreatorData> } | null)?.prefill
+  const draft = prefill ? null : readCreatorDraft()
 
   const [step, setStep] = useState(1)
   const [data, setData] = useState<CreatorData>(() => ({
     ...INITIAL_DATA,
     ...(prefill ?? {}),
   }))
+  const [showDraftPrompt, setShowDraftPrompt] = useState(Boolean(draft))
 
   const update = (partial: Partial<CreatorData>) =>
     setData(prev => ({ ...prev, ...partial }))
+
+  const restoreDraft = () => {
+    if (!draft) return
+    setStep(draft.step)
+    setData(draft.data)
+    setShowDraftPrompt(false)
+  }
+
+  const discardDraft = () => {
+    localStorage.removeItem(CREATOR_DRAFT_KEY)
+    sessionStorage.removeItem(CREATOR_DRAFT_KEY)
+    setShowDraftPrompt(false)
+  }
 
   // ── 시나리오 테스트용 state 감시 로그 ────────────────────────────────────
   useEffect(() => {
@@ -120,112 +259,95 @@ export default function Creator() {
     console.groupEnd()
   }, [step, data.detectedAllergens, data.detectedComposites, data.nutritionExempted, data.ingredients])
 
-  const goNext = () => setStep(s => Math.min(s + 1, 5))
+  const goNext = () => {
+    if (step === STEPS.length) {
+      navigate('/review', { state: { ...convertToCheckerState(data), creatorData: data } })
+      return
+    }
+    setStep(s => Math.min(s + 1, STEPS.length))
+  }
   const goPrev = () => {
     if (step === 1) navigate('/')
     else setStep(s => s - 1)
   }
-  const restart = () => {
-    setData(INITIAL_DATA)
-    setStep(1)
-  }
-
-  const isLastStep = step === 5
+  useEffect(() => {
+    if (showDraftPrompt) return
+    const timer = window.setTimeout(() => {
+      try {
+        localStorage.setItem(CREATOR_DRAFT_KEY, JSON.stringify({
+          step,
+          data,
+          savedAt: new Date().toISOString(),
+        }))
+        sessionStorage.removeItem(CREATOR_DRAFT_KEY)
+      } catch {
+        // 저장 실패는 입력 플로우를 막지 않습니다.
+      }
+    }, 1000)
+    return () => window.clearTimeout(timer)
+  }, [step, data, showDraftPrompt])
 
   // Step별 validation
   const canGoNext = (() => {
     if (step === 1) return isStep1Complete(data)
+    if (step === 2) return isStep2Complete(data)
     if (step === 3) {
       // 면제 적용 시 통과
       if (data.nutritionExempted) return true
       // 직접 입력 선택 시 최소 1개 이상 입력 필요
-      const nutrKeys = ['calories','totalCarbs','sugar','protein','totalFat','sodium'] as const
+      const nutrKeys = ['calories','totalCarbs','sugar','protein','totalFat','saturatedFat','transFat','cholesterol','sodium'] as const
       return nutrKeys.some(k => data[k].trim() !== '' && data[k] !== '0')
     }
+    if (step === 4) return !hasBlockingPreviewIssues(data)
     return true
   })()
 
   return (
-    <div className="min-h-screen bg-white">
-
-      {/* ── 네비게이션 ────────────────────────────────────────────────────────── */}
-      <nav className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-6 md:px-16 py-[18px] bg-white/80 backdrop-blur-[18px] border-b border-[rgba(10,10,11,0.08)]">
-        <button
-          onClick={() => navigate('/')}
-          className="flex items-baseline gap-[5px] hover:opacity-70 transition-opacity"
-        >
-          <span
-            style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-            className="font-bold text-[15px] tracking-[0.04em] text-[#0A0A0B]"
-          >
-            krk
-          </span>
-          <span className="font-en font-light text-[15px] tracking-[0.14em] text-[#0A0A0B]">
-            check
-          </span>
-        </button>
-        <div className="font-en text-[12px] font-semibold tracking-[0.16em] text-[rgba(10,10,11,0.45)] uppercase">
-          Creator
-        </div>
-        <div className="font-en text-[11px] text-[rgba(10,10,11,0.35)] tracking-[0.08em]">
-          MVP v1
-        </div>
-      </nav>
-
-      {/* ── 본문 ─────────────────────────────────────────────────────────────── */}
-      <main className="pt-[72px] min-h-screen flex flex-col">
-        <div className="flex-1 max-w-[760px] mx-auto w-full px-6 md:px-0 py-10 md:py-12">
-
-          {/* 진행 바 */}
-          <StepBar current={step} />
-
-          {/* 섹션 헤더 */}
-          <div className="mb-10 pb-5 border-b border-[rgba(10,10,11,0.1)]">
-            <div className="font-en text-[11px] font-semibold text-[rgba(10,10,11,0.35)] uppercase tracking-[0.16em] mb-2">
-              {SECTION_LABEL[step - 1]}
+    <div className="min-h-screen bg-[#F4F4F5] font-kr text-ink">
+      <CreatorHeader current={step} onHome={() => navigate('/')} />
+      {showDraftPrompt && draft && (
+        <div className="fixed left-1/2 top-[82px] z-50 w-[calc(100%-32px)] max-w-[560px] -translate-x-1/2 border border-heritage-500 bg-white p-4 shadow-[0_18px_60px_rgba(10,10,11,0.16)]">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-kr text-[13px] font-semibold text-ink">이전 작업을 이어서 하시겠습니까?</p>
+              <p className="mt-0.5 font-kr text-[12px] text-[rgba(10,10,11,0.52)]">
+                {draft.data.productName || '이름 없는 제품'} · Step {draft.step}/4
+              </p>
             </div>
-            <h1 className="font-en font-medium text-[clamp(24px,3.5vw,36px)] tracking-[-0.02em] leading-[1.1]">
-              {SECTION_HEAD[step - 1]}
+            <div className="flex gap-2">
+              <button onClick={discardDraft} className="h-9 border border-[rgba(10,10,11,0.15)] px-3 font-kr text-[12px] text-ink">
+                새로 시작
+              </button>
+              <button onClick={restoreDraft} className="h-9 bg-heritage-500 px-3 font-kr text-[12px] font-semibold text-white">
+                이어서 하기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <main className="min-h-[calc(100vh-145px)]">
+        <div className="mx-auto w-full max-w-[920px] px-5 py-8 md:px-0 md:py-10">
+          <div className="mb-8">
+            <StepCrumb current={step} />
+            <h1 className="mt-4 font-kr text-[24px] font-semibold leading-[1.22] tracking-normal text-ink md:text-[28px]">
+              {STEP_META[step - 1].title}
             </h1>
+            <p className="mt-2 font-kr text-[13px] leading-[1.65] text-[rgba(10,10,11,0.52)]">
+              {STEP_META[step - 1].desc}
+            </p>
           </div>
 
-          {/* 스텝 콘텐츠 */}
-          <div className="min-h-[360px]">
+          <div>
             {step === 1 && <Step1_ProductInfo data={data} onChange={update} />}
             {step === 2 && <Step2_Ingredients data={data} onChange={update} />}
             {step === 3 && <Step3_Nutrition   data={data} onChange={update} />}
             {step === 4 && <Step4_Preview     data={data} onGoToStep={setStep} />}
-            {step === 5 && <Step5_Export      data={data} onRestart={restart} />}
           </div>
-
-          {/* 이전 / 다음 버튼 */}
-          {!isLastStep && (
-            <div className="flex items-center justify-between mt-12 pt-8 border-t border-[rgba(10,10,11,0.08)]">
-              <button onClick={goPrev} className="btn-ghost flex items-center gap-2">
-                <ChevronLeft size={14} />
-                {step === 1 ? '홈으로' : '이전'}
-              </button>
-              <button
-                onClick={goNext}
-                disabled={!canGoNext}
-                className="btn-heritage flex items-center gap-2"
-              >
-                {step === 4 ? '내보내기' : '다음'}
-                <ChevronRight size={14} />
-              </button>
-            </div>
-          )}
-
         </div>
-
-        {/* 하단 면책 문구 */}
-        <footer className="border-t border-[rgba(10,10,11,0.06)] px-6 py-5 text-center">
-          <p className="font-en text-[11px] text-[rgba(10,10,11,0.3)] leading-[1.6]">
-            krk.team이 제공하는 라벨 초안은 참고용이며 법적 효력이 없습니다.
-            최종 라벨은 관할 지자체 또는 식약처 기준에 따라 확인하세요.
-          </p>
-        </footer>
       </main>
+
+      <CreatorFooter current={step} canGoNext={canGoNext} onPrev={goPrev} onNext={goNext} />
     </div>
   )
 }

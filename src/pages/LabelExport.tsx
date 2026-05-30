@@ -266,26 +266,19 @@ function generateHtml(
 </html>`
 }
 
-// ─── 내보내기 함수 ─────────────────────────────────────────────────────────────
+// ─── 다운로드 (private — 외부 export 없음) ────────────────────────────────────
 
-export function exportToPDF(
-  ingredients: Ingredient[],
-  metadata: Metadata,
-): void {
+function exportToPDF(ingredients: Ingredient[], metadata: Metadata): void {
   const results  = analyzeRegulations(ingredients, metadata)
   const html     = generateHtml(ingredients, metadata, results)
   const blob     = new Blob([html], { type: 'text/html; charset=utf-8' })
   const url      = URL.createObjectURL(blob)
   const safeName = (metadata.productName || '제품').replace(/[\s/\\]/g, '_')
   const dateStr  = new Date().toISOString().slice(0, 10).replace(/-/g, '')
-
   const a = document.createElement('a')
-  a.href     = url
+  a.href = url
   a.download = `KRK_법규검토_${safeName}_${dateStr}.html`
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-
+  document.body.appendChild(a); a.click(); document.body.removeChild(a)
   setTimeout(() => URL.revokeObjectURL(url), 5_000)
 }
 

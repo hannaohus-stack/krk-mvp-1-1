@@ -1,238 +1,445 @@
 import { useState } from 'react'
-import { AlertCircle } from 'lucide-react'
-import type { StepProps, CreatorData } from './types'
+import type React from 'react'
+import { AlertTriangle, Check } from 'lucide-react'
+import type { StepProps } from './types'
+import { ALL_CATEGORIES } from '../../utils/tierUtils'
 
-// ─── 상수 ─────────────────────────────────────────────────────────────────────
-
-const FOOD_CATEGORIES = ['잼류', '소스류', '장류'] as const
-
-const UNITS = ['g', 'mL'] as const
-
-const STORAGE_OPTIONS = ['냉장보관', '상온보관', '냉동보관'] as const
-
+const BUSINESS_TYPES = ['식품제조가공업', '즉판가공업'] as const
+const FACILITY_TYPES = ['단독', '공유'] as const
+const STORAGE_OPTIONS = [
+  '실온 보관 (1~35℃)',
+  '냉장 보관 (0~10℃)',
+  '냉동 보관 (-18℃ 이하)',
+  '서늘하고 건조한 곳 보관',
+  '직사광선을 피하여 보관',
+]
 const TODAY = new Date().toISOString().slice(0, 10)
 
-// ─── 서브 컴포넌트 ─────────────────────────────────────────────────────────────
-
-interface FieldProps {
-  label: string
-  error?: string
+function SectionLabel({
+  children,
+  required,
+  error,
+}: {
   children: React.ReactNode
-}
-
-function Field({ label, error, children }: FieldProps) {
+  required?: boolean
+  error?: boolean
+}) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <label className="flex items-center gap-1 font-en text-[11px] font-semibold text-[rgba(10,10,11,0.45)] uppercase tracking-[0.08em]">
-        {label}
-        <span className="text-[#B30000]">*</span>
-      </label>
+    <label className={`inline-flex items-center gap-1.5 font-en text-[11px] font-semibold uppercase tracking-[0.08em] ${
+      error ? 'text-[#B30000]' : 'text-[rgba(10,10,11,0.45)]'
+    }`}>
       {children}
-      {error && (
-        <p className="flex items-center gap-1 font-kr text-[11px] text-[#B30000]">
-          <AlertCircle size={11} className="flex-shrink-0" />
-          {error}
-        </p>
-      )}
-    </div>
+      {required && <span className={error ? 'text-[#B30000]' : 'text-heritage-500'}>*</span>}
+    </label>
   )
 }
 
-/** 세그먼트 라디오 그룹 — KRK 토글 스타일 */
-function SegmentGroup<T extends string>({
+function CategoryCard({
   name,
-  options,
-  value,
-  onChange,
-  hasError,
-  labelFn,
+  selected,
+  onToggle,
 }: {
   name: string
-  options: readonly T[]
-  value: T | ''
-  onChange: (v: T) => void
-  hasError?: boolean
-  labelFn?: (v: T) => string
+  selected: boolean
+  onToggle: () => void
 }) {
-  const border = hasError ? 'border-[#B30000]' : 'border-[rgba(10,10,11,0.2)]'
   return (
-    <div className={`flex border ${border} overflow-hidden`}>
-      {options.map((opt, i) => {
-        const active = value === opt
-        return (
-          <label
-            key={opt}
-            className={`flex-1 flex items-center justify-center min-h-[44px] cursor-pointer
-              font-kr text-[13px] transition-colors select-none
-              ${i > 0 ? 'border-l border-[rgba(10,10,11,0.12)]' : ''}
-              ${active
-                ? 'bg-ink text-white font-semibold'
-                : 'bg-white text-ink hover:bg-[rgba(10,10,11,0.04)]'}`}
-          >
-            <input
-              type="radio"
-              name={name}
-              value={opt}
-              checked={active}
-              onChange={() => onChange(opt)}
-              className="sr-only"
-            />
-            {labelFn ? labelFn(opt) : opt}
-          </label>
-        )
-      })}
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={selected}
+      onClick={onToggle}
+      className={`relative flex min-h-[52px] w-full items-center border px-3 py-3 pl-9 text-left font-kr text-[14px] font-medium transition-colors ${
+        selected
+          ? 'border-ink bg-ink text-white'
+          : 'border-[rgba(10,10,11,0.15)] bg-white text-ink hover:bg-[rgba(10,10,11,0.04)]'
+      }`}
+    >
+      <span className={`absolute left-3 top-1/2 flex h-4 w-4 -translate-y-1/2 items-center justify-center border ${
+        selected ? 'border-white bg-white' : 'border-[rgba(10,10,11,0.3)]'
+      }`}>
+        {selected && <Check size={11} className="text-ink" strokeWidth={3} />}
+      </span>
+      {name}
+    </button>
+  )
+}
+
+function SegmentGroup({
+  value,
+  onChange,
+  error,
+}: {
+  value: string
+  onChange: (value: typeof BUSINESS_TYPES[number]) => void
+  error?: boolean
+}) {
+  return (
+    <div className={`grid grid-cols-2 border bg-white ${error ? 'border-[#B30000]' : 'border-[rgba(10,10,11,0.15)]'}`}>
+      {BUSINESS_TYPES.map((item, index) => (
+        <button
+          key={item}
+          type="button"
+          onClick={() => onChange(item)}
+          className={`min-h-[42px] border-l border-[rgba(10,10,11,0.08)] first:border-l-0 font-kr text-[13px] transition-colors ${
+            value === item
+              ? 'bg-ink text-white font-semibold'
+              : 'bg-white text-ink hover:bg-[rgba(10,10,11,0.04)]'
+          }`}
+        >
+          {index === 1 ? (
+            <span className="inline-flex items-center gap-1">
+              즉판가공업
+              <span className="font-en text-[10px] opacity-55">ⓘ</span>
+            </span>
+          ) : item}
+        </button>
+      ))}
     </div>
   )
 }
 
-const inputCls = (hasError: boolean) =>
-  `input-field ${hasError ? 'border-[#B30000] focus:ring-[#B30000]/15' : ''}`
+function FacilityGroup({
+  value,
+  onChange,
+  error,
+}: {
+  value: string
+  onChange: (value: typeof FACILITY_TYPES[number]) => void
+  error?: boolean
+}) {
+  return (
+    <div className={`grid grid-cols-2 border bg-white ${error ? 'border-[#B30000]' : 'border-[rgba(10,10,11,0.15)]'}`}>
+      {FACILITY_TYPES.map(item => (
+        <button
+          key={item}
+          type="button"
+          onClick={() => onChange(item)}
+          className={`min-h-[42px] border-l border-[rgba(10,10,11,0.08)] first:border-l-0 font-kr text-[13px] transition-colors ${
+            value === item
+              ? 'bg-ink text-white font-semibold'
+              : 'bg-white text-ink hover:bg-[rgba(10,10,11,0.04)]'
+          }`}
+        >
+          {item === '단독' ? '단독 주방' : '공유 주방'}
+        </button>
+      ))}
+    </div>
+  )
+}
 
-// ─── 메인 컴포넌트 ─────────────────────────────────────────────────────────────
+function StorageGroup({
+  value,
+  onChange,
+  error,
+}: {
+  value: string
+  onChange: (value: string) => void
+  error?: boolean
+}) {
+  return (
+    <div className={`mt-2 grid grid-cols-1 border bg-white ${error ? 'border-[#B30000]' : 'border-[rgba(10,10,11,0.15)]'}`}>
+      {STORAGE_OPTIONS.map(option => (
+        <button
+          key={option}
+          type="button"
+          aria-pressed={value === option}
+          onClick={() => onChange(option)}
+          className={`flex min-h-[40px] items-center justify-between border-t border-[rgba(10,10,11,0.08)] px-[14px] text-left font-kr text-[13px] first:border-t-0 transition-colors ${
+            value === option
+              ? 'bg-ink text-white font-semibold'
+              : 'bg-white text-ink hover:bg-[rgba(10,10,11,0.04)]'
+          }`}
+        >
+          <span>{option}</span>
+          {value === option && <Check size={13} strokeWidth={3} />}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function TextField({
+  label,
+  value,
+  onChange,
+  onBlur,
+  placeholder,
+  error,
+  type = 'text',
+  min,
+}: {
+  label: string
+  value: string
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void
+  onBlur?: () => void
+  placeholder?: string
+  error?: boolean
+  type?: string
+  min?: string
+}) {
+  return (
+    <div>
+      <SectionLabel required error={error}>{label}</SectionLabel>
+      <input
+        className={`mt-2 h-[40px] w-full border bg-white px-[14px] font-kr text-[13px] outline-none transition-colors placeholder:text-[rgba(10,10,11,0.35)] focus:border-breath-500 ${
+          error ? 'border-[#B30000]' : 'border-[rgba(10,10,11,0.15)]'
+        }`}
+        type={type}
+        min={min}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
+      />
+    </div>
+  )
+}
 
 export default function Step1_ProductInfo({ data, onChange }: StepProps) {
-  const [touched, setTouched] = useState<Set<string>>(new Set())
-  const touch = (field: string) =>
-    setTouched(prev => new Set([...prev, field]))
+  type TouchedField =
+    | 'productName'
+    | 'categories'
+    | 'businessType'
+    | 'facilityType'
+    | 'totalWeight'
+    | 'manufacturer'
+    | 'manufacturerAddress'
+    | 'storage'
+    | 'expiryDate'
 
-  const set =
-    (key: keyof CreatorData) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-      onChange({ [key]: e.target.value })
+  const [touched, setTouched] = useState<Record<TouchedField, boolean>>({
+    productName: false,
+    categories: false,
+    businessType: false,
+    facilityType: false,
+    totalWeight: false,
+    manufacturer: false,
+    manufacturerAddress: false,
+    storage: false,
+    expiryDate: false,
+  })
 
-  const err = (field: string, msg: string) =>
-    touched.has(field) ? msg : undefined
-
-  const errors = {
-    productName:  !data.productName.trim()
-                    ? err('productName',  '제품명을 입력해주세요.')      : undefined,
-    foodCategory: !data.foodCategory
-                    ? err('foodCategory', '식품 유형을 선택해주세요.')   : undefined,
-    totalWeight:  !data.totalWeight.trim() || parseFloat(data.totalWeight) <= 0
-                    ? err('totalWeight',  '내용량을 입력해주세요.')       : undefined,
-    manufacturer: !data.manufacturer.trim()
-                    ? err('manufacturer', '제조원을 입력해주세요.')       : undefined,
-    storage:      !data.storage
-                    ? err('storage',      '보관방법을 선택해주세요.')     : undefined,
-    expiryDate:   !data.expiryDate
-                    ? err('expiryDate',   '소비기한을 선택해주세요.')     : undefined,
+  const markTouched = (field: TouchedField) => {
+    setTouched(prev => prev[field] ? prev : { ...prev, [field]: true })
   }
 
+  const errors = {
+    productName: touched.productName && !data.productName.trim(),
+    categories: touched.categories && data.categories.length === 0,
+    businessType: touched.businessType && data.businessType === '',
+    facilityType: touched.facilityType && data.facilityType === '',
+    totalWeight: touched.totalWeight && (!data.totalWeight.trim() || parseFloat(data.totalWeight) <= 0),
+    manufacturer: touched.manufacturer && !data.manufacturer.trim(),
+    manufacturerAddress: touched.manufacturerAddress && !data.manufacturerAddress.trim(),
+    storage: touched.storage && !data.storage,
+    expiryDate: touched.expiryDate && !data.expiryDate,
+  }
+
+  const toggleCategory = (name: string) => {
+    markTouched('categories')
+    const next = data.categories.includes(name)
+      ? data.categories.filter(category => category !== name)
+      : [...data.categories, name]
+    onChange({ categories: next })
+  }
+
+  const setProductName = (event: React.ChangeEvent<HTMLInputElement>) => {
+    onChange({ productName: event.target.value })
+  }
+
+  const set = (key: keyof typeof data) =>
+    (event: React.ChangeEvent<HTMLInputElement>) =>
+      onChange({ [key]: event.target.value })
+
   return (
-    <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-
-      {/* 제품명 — full width */}
-      <div className="md:col-span-2">
-        <Field label="제품명" error={errors.productName}>
-          <input
-            className={inputCls(!!errors.productName)}
-            placeholder="예: 딸기잼, 고추장 등"
-            value={data.productName}
-            onChange={set('productName')}
-            onBlur={() => touch('productName')}
-          />
-        </Field>
-      </div>
-
-      {/* 식품 유형 — 세그먼트 라디오 */}
-      <div className="md:col-span-2">
-        <Field label="식품 유형" error={errors.foodCategory}>
-          <SegmentGroup
-            name="foodCategory"
-            options={FOOD_CATEGORIES}
-            value={data.foodCategory as typeof FOOD_CATEGORIES[number] | ''}
-            onChange={v => { onChange({ foodCategory: v }); touch('foodCategory') }}
-            hasError={!!errors.foodCategory}
-          />
-        </Field>
-      </div>
-
-      {/* 내용량 + 단위 라디오 */}
-      <Field label="내용량" error={errors.totalWeight}>
-        <div className="flex gap-2">
-          <input
-            className={`${inputCls(!!errors.totalWeight)} flex-1`}
-            type="number"
-            min="0"
-            step="any"
-            placeholder="예: 200"
-            value={data.totalWeight}
-            onChange={set('totalWeight')}
-            onBlur={() => touch('totalWeight')}
-          />
-          {/* 단위 라디오 */}
-          <div className="flex border border-[rgba(10,10,11,0.2)] overflow-hidden flex-shrink-0">
-            {UNITS.map((u, i) => (
-              <label
-                key={u}
-                className={`w-12 min-h-[44px] flex items-center justify-center cursor-pointer
-                  font-en text-[13px] transition-colors select-none
-                  ${i > 0 ? 'border-l border-[rgba(10,10,11,0.12)]' : ''}
-                  ${data.unit === u
-                    ? 'bg-ink text-white font-semibold'
-                    : 'bg-white text-ink hover:bg-[rgba(10,10,11,0.04)]'}`}
-              >
-                <input
-                  type="radio"
-                  name="unit"
-                  value={u}
-                  checked={data.unit === u}
-                  onChange={() => onChange({ unit: u })}
-                  className="sr-only"
-                />
-                {u}
-              </label>
-            ))}
-          </div>
-        </div>
-      </Field>
-
-      {/* 소비기한 */}
-      <Field label="소비기한" error={errors.expiryDate}>
+    <div className="flex flex-col gap-8">
+      <div>
+        <SectionLabel required error={errors.productName}>Product Name · 제품명</SectionLabel>
         <input
-          className={inputCls(!!errors.expiryDate)}
-          type="date"
-          min={TODAY}
-          value={data.expiryDate}
-          onChange={set('expiryDate')}
-          onBlur={() => touch('expiryDate')}
+          className={`mt-2 h-[40px] w-full border bg-white px-[14px] font-kr text-[13px] outline-none transition-colors placeholder:text-[rgba(10,10,11,0.35)] focus:border-breath-500 ${
+            errors.productName ? 'border-[#B30000]' : 'border-breath-500'
+          }`}
+          placeholder="제품명을 입력해주세요 (예: 수제 딸기잼)"
+          value={data.productName}
+          onChange={setProductName}
+          onBlur={() => markTouched('productName')}
         />
-      </Field>
+      </div>
 
-      {/* 제조원 — full width */}
-      <div className="md:col-span-2">
-        <Field label="제조원" error={errors.manufacturer}>
-          <input
-            className={inputCls(!!errors.manufacturer)}
-            placeholder="예: 주식회사 ○○식품"
+      <div>
+        <div className="mb-2 flex items-center justify-between gap-4">
+          <SectionLabel required error={errors.categories}>Food Category · 식품 카테고리</SectionLabel>
+          <span className="font-kr text-[11px] text-[rgba(10,10,11,0.4)]">
+            {data.categories.length > 0 ? `${data.categories.length}개 선택됨` : '복수 선택 가능'}
+          </span>
+        </div>
+
+        <div
+          className={`grid grid-cols-2 gap-2 md:grid-cols-4 ${errors.categories ? 'outline outline-1 outline-[#B30000]' : ''}`}
+          onBlurCapture={event => {
+            if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+              markTouched('categories')
+            }
+          }}
+        >
+          {ALL_CATEGORIES.map(category => (
+            <CategoryCard
+              key={category}
+              name={category}
+              selected={data.categories.includes(category)}
+              onToggle={() => toggleCategory(category)}
+            />
+          ))}
+        </div>
+
+        {data.categories.length > 0 && (
+          <p className="mt-3 font-kr text-[12px] text-[rgba(10,10,11,0.6)]">
+            <span className="font-semibold text-ink">선택</span>
+            {'  '}
+            {data.categories.join(', ')}
+          </p>
+        )}
+      </div>
+
+      <div>
+        <div className="mb-2">
+          <SectionLabel required error={errors.businessType}>Business Type · 사업자 유형</SectionLabel>
+        </div>
+        <SegmentGroup
+          value={data.businessType}
+          onChange={value => {
+            markTouched('businessType')
+            onChange({
+              businessType: value,
+              ...(!data.facilityType ? { facilityType: '단독' as const } : {}),
+            })
+          }}
+          error={errors.businessType}
+        />
+      </div>
+
+      <div className="border-t border-[rgba(10,10,11,0.08)] pt-8">
+        <div className="mb-5">
+          <div className="inline-flex items-center gap-2 font-en text-[10.5px] font-semibold uppercase tracking-[0.16em] text-heritage-500">
+            <span className="h-px w-[18px] bg-heritage-500" />
+            <span className="font-kr tracking-[0.04em] text-ink">라벨 기본정보</span>
+          </div>
+          <p className="mt-2 font-kr text-[12px] leading-[1.6] text-[rgba(10,10,11,0.5)]">
+            아래 정보는 라벨 미리보기와 다운로드 파일에 그대로 반영됩니다.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <div>
+            <SectionLabel required error={errors.facilityType}>Facility Type · 영업 시설</SectionLabel>
+            <div className="mt-2">
+              <FacilityGroup
+                value={data.facilityType}
+                onChange={facilityType => {
+                  markTouched('facilityType')
+                  onChange({ facilityType })
+                }}
+                error={errors.facilityType}
+              />
+            </div>
+            {data.facilityType === '공유' && (
+              <div className="mt-2 flex items-start gap-2 border border-[#F0A500] bg-[#FFF3DC] px-3 py-2.5">
+                <AlertTriangle size={13} className="mt-[1px] flex-shrink-0 text-[#8A5A00]" />
+                <p className="font-kr text-[12px] leading-[1.6] text-[#8A5A00]">
+                  공유주방 사용 시 타 제품 알레르기 원료 혼입 가능성 표시를 권장합니다.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <SectionLabel required error={errors.totalWeight}>Net Quantity · 내용량</SectionLabel>
+            <div className="mt-2 flex">
+              <input
+                className={`h-[40px] min-w-0 flex-1 border bg-white px-[14px] text-right font-en text-[13px] outline-none transition-colors focus:border-breath-500 ${
+                  errors.totalWeight ? 'border-[#B30000]' : 'border-[rgba(10,10,11,0.15)]'
+                }`}
+                type="number"
+                min="0"
+                step="any"
+                placeholder="200"
+                value={data.totalWeight}
+                onChange={set('totalWeight')}
+                onBlur={() => markTouched('totalWeight')}
+              />
+              {(['g', 'mL'] as const).map(unit => (
+                <button
+                  key={unit}
+                  type="button"
+                  onClick={() => onChange({ unit })}
+                  className={`h-[40px] w-12 border-y border-r border-[rgba(10,10,11,0.15)] font-en text-[12px] transition-colors ${
+                    data.unit === unit ? 'bg-ink text-white font-semibold' : 'bg-white text-ink hover:bg-[rgba(10,10,11,0.04)]'
+                  }`}
+                >
+                  {unit}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <TextField
+            label="Manufacturer · 제조원"
             value={data.manufacturer}
             onChange={set('manufacturer')}
-            onBlur={() => touch('manufacturer')}
+            onBlur={() => markTouched('manufacturer')}
+            placeholder="예: 주식회사 ○○식품"
+            error={errors.manufacturer}
           />
-        </Field>
-      </div>
 
-      {/* 보관방법 — 세그먼트 라디오 */}
-      <div className="md:col-span-2">
-        <Field label="보관방법" error={errors.storage}>
-          <SegmentGroup
-            name="storage"
-            options={STORAGE_OPTIONS}
-            value={data.storage as typeof STORAGE_OPTIONS[number] | ''}
-            onChange={v => { onChange({ storage: v }); touch('storage') }}
-            hasError={!!errors.storage}
+          <TextField
+            label="Manufacturer Address · 제조원 소재지"
+            value={data.manufacturerAddress}
+            onChange={set('manufacturerAddress')}
+            onBlur={() => markTouched('manufacturerAddress')}
+            placeholder="예: 서울특별시 ○○구 ○○로 00"
+            error={errors.manufacturerAddress}
           />
-        </Field>
-      </div>
 
-      {/* 안내 */}
-      <div className="md:col-span-2 flex items-start gap-2 px-4 py-3 bg-[rgba(10,10,11,0.02)] border border-[rgba(10,10,11,0.07)]">
-        <div className="w-1 h-1 rounded-full bg-[rgba(10,10,11,0.3)] flex-shrink-0 mt-[5px]" />
-        <p className="font-kr text-[12px] text-[rgba(10,10,11,0.5)] leading-[1.6]">
-          모든 항목은 필수입니다. 입력된 정보는 라벨 초안 및 품목제조보고서에 사용됩니다.
-        </p>
-      </div>
+          <TextField
+            label="Item Report No. · 품목보고번호"
+            value={data.itemReportNumber}
+            onChange={set('itemReportNumber')}
+            placeholder="식품제조가공업자는 입력 권장"
+          />
 
+          <div>
+            <SectionLabel required error={errors.storage}>Storage · 보관방법</SectionLabel>
+            <StorageGroup
+              value={data.storage}
+              onChange={storage => {
+                markTouched('storage')
+                onChange({ storage })
+              }}
+              error={errors.storage}
+            />
+          </div>
+
+          <TextField
+            label="Use-by Date · 소비기한"
+            type="date"
+            min={TODAY}
+            value={data.expiryDate}
+            onChange={set('expiryDate')}
+            onBlur={() => markTouched('expiryDate')}
+            error={errors.expiryDate}
+          />
+
+          <div className="md:col-span-2">
+            <TextField
+              label="Label/Ad Claims · 표시/광고 문구"
+              value={data.marketingClaims}
+              onChange={set('marketingClaims')}
+              placeholder="예: 무가당, 저칼로리, 고단백 등 라벨/상세페이지에 쓰는 표현"
+            />
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

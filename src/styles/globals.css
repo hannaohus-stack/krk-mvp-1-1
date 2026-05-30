@@ -15,12 +15,13 @@
     padding: 0;
     font-family: 'Pretendard Variable', 'Pretendard', system-ui, sans-serif;
     color: #0A0A0B;
-    background: #fff;
+    background: #F4F4F5;   /* SURFACE v2 — sys-100 */
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
 
-  ::selection { background: #0CA4F9; color: #fff; }
+  ::selection      { background: #0CA4F9; color: #fff; }
+  ::-moz-selection { background: #0CA4F9; color: #fff; }
 }
 
 @layer components {
@@ -38,11 +39,30 @@
            hover:bg-heritage-600 disabled:opacity-40 disabled:cursor-not-allowed;
   }
 
+  /* btn-soft — 정보성/보조 액션 (다른 결제 수단, 규정 보기 등) */
+  .btn-soft {
+    @apply inline-flex items-center gap-2 h-10 px-5
+           font-en font-medium text-[13px] tracking-[0.01em]
+           border-0 rounded-none transition-colors duration-150
+           disabled:opacity-40 disabled:cursor-not-allowed;
+    background: #EAF6FE;
+    color: #002D72;
+  }
+  .btn-soft:hover { background: #C9E8FD; }
+
   .btn-ghost {
     @apply inline-flex items-center gap-2 h-10 px-5 bg-transparent
            font-en font-medium text-[13px] tracking-[0.01em]
            border border-ink rounded-none transition-colors duration-150
            hover:bg-ink hover:text-white;
+  }
+
+  /* Dashboard Hero h1 그라데이션 텍스트 */
+  .gradient-text {
+    background: linear-gradient(120deg, #002D72 0%, #0CA4F9 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 
   .input-field {
