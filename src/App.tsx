@@ -37,7 +37,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <BrowserRouter basename="/checker">
+    <BrowserRouter>
       <Routes>
         {/* 공개 라우트 */}
         <Route path="/login"            element={<Login />} />
