@@ -94,8 +94,8 @@ function ActionItems({ items }: { items?: string[] }) {
         다음 액션
       </p>
       <ul className="flex flex-col gap-1">
-        {items.map(item => (
-          <li key={item} className="flex gap-2 font-kr text-[12px] leading-[1.55] text-[rgba(10,10,11,0.72)]">
+        {items.map((item, index) => (
+          <li key={`${item}-${index}`} className="flex gap-2 font-kr text-[12px] leading-[1.55] text-[rgba(10,10,11,0.72)]">
             <span className="mt-[7px] h-1 w-1 flex-shrink-0 rounded-full bg-heritage-500" />
             <span>{item}</span>
           </li>
@@ -265,7 +265,7 @@ export default function ReviewModal({ results, productName, onClose, onEdit }: P
                     <DetailBlock label="라벨 권장 문구" value={r.recommendedLabelText} tone="guide" />
                     <ActionItems items={r.actionItems} />
 
-                    {(r.penaltyRange || r.regulation) && (
+                    {(r.penaltyRange || r.legalBasis || r.regulation) && (
                       <div className="flex flex-col gap-1">
                         {r.penaltyRange && (
                           <p className="font-kr text-[11px] text-[rgba(10,10,11,0.5)]">

@@ -54,14 +54,11 @@
 
     <!-- ── GA4 ────────────────────────────────────────────────────────── -->
     <!-- 주의: Notion 참고 문서의 하드코딩 예시(G-XXXXXXXXXX)를 사용하지 않고 환경변수로 처리 -->
-    <script>
+    <script type="module">
       // VITE_GA4_ID 환경변수가 없으면 GA4 비활성화
-      window.__GA4_ID__ = '%VITE_GA4_ID%';
-    </script>
-    <script>
       (function() {
-        var id = window.__GA4_ID__;
-        if (!id || id === '%VITE_GA4_ID%' || id.trim() === '') return;
+        var id = import.meta.env.VITE_GA4_ID;
+        if (!id || id.trim() === '') return;
         var s = document.createElement('script');
         s.async = true;
         s.src = 'https://www.googletagmanager.com/gtag/js?id=' + id;
@@ -93,10 +90,10 @@
     -->
 
     <!-- ── Microsoft Clarity ──────────────────────────────────────────── -->
-    <script>
+    <script type="module">
       (function() {
-        var id = '%VITE_CLARITY_ID%';
-        if (!id || id === '%VITE_CLARITY_ID%' || id.trim() === '') return;
+        var id = import.meta.env.VITE_CLARITY_ID;
+        if (!id || id.trim() === '') return;
         (function(c,l,a,r,i,t,y){
           c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
           t=l.createElement(r);t.async=1;t.src='https://www.clarity.ms/tag/'+i;

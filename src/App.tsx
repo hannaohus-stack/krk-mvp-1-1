@@ -1,37 +1,30 @@
+import { lazy, Suspense } from 'react'
+import type React from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
 import { useAuth } from './lib/useAuth'
 
-// 페이지 임포트
-import Landing         from './pages/Landing'
-import Dashboard       from './pages/Dashboard'
-import ReviewResult    from './pages/ReviewResult'
-import LabelExport     from './pages/LabelExport'
-import Creator         from './pages/creator/Creator'
-import Payment         from './pages/Payment'
-import PaymentComplete from './pages/PaymentComplete'
-
-// Auth 페이지
-import Login           from './pages/auth/Login'
-import Signup          from './pages/auth/Signup'
-import EmailVerify     from './pages/auth/EmailVerify'
-import ForgotPassword  from './pages/auth/ForgotPassword'
-import ResetPassword   from './pages/auth/ResetPassword'
-import AuthCallback    from './pages/auth/AuthCallback'
-
-// 법적 페이지
-import Privacy         from './pages/Privacy'
-import Terms           from './pages/Terms'
-
-// SEO 공개 페이지
-import Pricing         from './pages/seo/Pricing'
-import GuideLabelPage  from './pages/seo/GuideLabel'
-import GuideRejection  from './pages/seo/GuideRejection'
-import FAQ             from './pages/seo/FAQ'
-
-// 베타 이벤트 (feature/beta-event)
-import BetaApply from './pages/beta/BetaApply'
-import BetaNps   from './pages/beta/BetaNps'
+const Landing = lazy(() => import('./pages/Landing'))
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const ReviewResult = lazy(() => import('./pages/ReviewResult'))
+const LabelExport = lazy(() => import('./pages/LabelExport'))
+const Creator = lazy(() => import('./pages/creator/Creator'))
+const Payment = lazy(() => import('./pages/Payment'))
+const PaymentComplete = lazy(() => import('./pages/PaymentComplete'))
+const Login = lazy(() => import('./pages/auth/Login'))
+const Signup = lazy(() => import('./pages/auth/Signup'))
+const EmailVerify = lazy(() => import('./pages/auth/EmailVerify'))
+const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'))
+const ResetPassword = lazy(() => import('./pages/auth/ResetPassword'))
+const AuthCallback = lazy(() => import('./pages/auth/AuthCallback'))
+const Privacy = lazy(() => import('./pages/Privacy'))
+const Terms = lazy(() => import('./pages/Terms'))
+const Pricing = lazy(() => import('./pages/seo/Pricing'))
+const GuideLabelPage = lazy(() => import('./pages/seo/GuideLabel'))
+const GuideRejection = lazy(() => import('./pages/seo/GuideRejection'))
+const FAQ = lazy(() => import('./pages/seo/FAQ'))
+const BetaApply = lazy(() => import('./pages/beta/BetaApply'))
+const BetaNps = lazy(() => import('./pages/beta/BetaNps'))
 
 // ─── ProtectedRoute ────────────────────────────────────────────────────────────
 const DEV_BYPASS = false
@@ -56,6 +49,7 @@ export default function App() {
   return (
     <HelmetProvider>
     <BrowserRouter>
+      <Suspense fallback={null}>
       <Routes>
         {/* 공개 라우트 */}
         <Route path="/login"            element={<Login />} />
@@ -102,6 +96,7 @@ export default function App() {
         {/* 404 → 홈 */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
     </BrowserRouter>
     </HelmetProvider>
   )

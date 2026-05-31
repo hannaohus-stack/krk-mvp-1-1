@@ -15,7 +15,6 @@ import LogoLockup from '../components/LogoLockup'
 import { supabase, getLabelReviews } from '../lib/supabase'
 import { useAuth } from '../lib/useAuth'
 import { getActiveRegulationUpdate } from '../utils/data/regulationUpdates'
-import { generateLabelPDF } from '../utils/generateLabelPDF'
 import type { Ingredient } from '../utils/parsing'
 import type { Metadata } from './ReviewResult'
 import type { CreatorData } from './creator/types'
@@ -250,6 +249,7 @@ export default function Dashboard() {
     }
     try {
       setPdfWorkId(work.id)
+      const { generateLabelPDF } = await import('../utils/generateLabelPDF')
       await generateLabelPDF(creatorData)
     } catch (error) {
       console.error('[Dashboard] 최근 작업 PDF 생성 실패:', error)

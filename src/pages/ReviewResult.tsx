@@ -46,6 +46,12 @@ export interface RegulationResult {
   suggestion: string
   status: RiskStatus
   detail: string
+  currentValue?: string
+  issueReason?: string
+  fixInstruction?: string
+  recommendedLabelText?: string
+  actionItems?: string[]
+  legalBasis?: string
 }
 
 // ─── 분석 로직 ─────────────────────────────────────────────────────────────────

@@ -11,9 +11,6 @@ import type { Metadata } from './ReviewResult'
 import type { CreatorData } from './creator/types'
 import type { ServiceTier } from '../utils/tierUtils'
 import { recordPayment, saveLabelReview } from '../lib/supabase'
-import { createCertPDFArtifact, generateCertPDF } from '../utils/generateCertPDF'
-import { createLabelPDFArtifact, generateLabelPDF } from '../utils/generateLabelPDF'
-import { createReportPDFArtifact, generateReportPDF } from '../utils/generateReportPDF'
 import { trackPurchase } from '../lib/analytics'
 
 type ServiceType = 'basic' | 'pro'
@@ -452,9 +449,18 @@ export default function PaymentComplete() {
   const creatorData = stateData?.creatorData ?? restoredState?.creatorData ?? toCreatorData(ingredients, metadata)
   const paidTier = serviceToTier(service)
 
-  const handleDownloadLabelPDF = () => generateLabelPDF(creatorData)
-  const handleDownloadReviewReport = () => generateCertPDF(creatorData, paidTier)
-  const handleDownloadReportGuide = () => generateReportPDF(creatorData, paidTier)
+  const handleDownloadLabelPDF = async () => {
+    const { generateLabelPDF } = await import('../utils/generateLabelPDF')
+    await generateLabelPDF(creatorData)
+  }
+  const handleDownloadReviewReport = async () => {
+    const { generateCertPDF } = await import('../utils/generateCertPDF')
+    await generateCertPDF(creatorData, paidTier)
+  }
+  const handleDownloadReportGuide = async () => {
+    const { generateReportPDF } = await import('../utils/generateReportPDF')
+    await generateReportPDF(creatorData, paidTier)
+  }
   const handleDownloadLabelPng = async () => {
     const blob = await createLabelPngBlob(creatorData)
     downloadBlob(blob, `KRK_라벨_${safeFilenamePart(metadata.productName)}.png`)
@@ -512,6 +518,7 @@ export default function PaymentComplete() {
       const zip = new JSZip()
       const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '')
       const safeName = safeFilenamePart(metadata.productName)
+      const { createLabelPDFArtifact } = await import('../utils/generateLabelPDF')
       const label = await createLabelPDFArtifact(creatorData)
       const labelPng = await createLabelPngBlob(creatorData)
 
@@ -525,6 +532,8 @@ export default function PaymentComplete() {
       zip.file(`02_label_${zipSlug}_${dateStr}.png`, labelPng)
 
       if (service === 'pro') {
+        const { createReportPDFArtifact } = await import('../utils/generateReportPDF')
+        const { createCertPDFArtifact } = await import('../utils/generateCertPDF')
         const reportGuide = await createReportPDFArtifact(creatorData, paidTier)
         const reviewReport = await createCertPDFArtifact(creatorData, paidTier)
         zip.file(`03_report-guide_${zipSlug}_${dateStr}.pdf`, reportGuide.blob)
