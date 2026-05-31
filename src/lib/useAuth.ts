@@ -13,15 +13,12 @@ export function useAuth() {
   const [loading, setLoading]   = useState(true)
 
   useEffect(() => {
-    // 최초 세션 로드
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
-      setLoading(false)
-    })
-
-    // 세션 변화 구독
+    // onAuthStateChange가 INITIAL_SESSION 이벤트로 첫 발화할 때 loading 해제.
+    // getSession()을 먼저 쓰면 OAuth hash 파싱 전에 null을 반환해
+    // ProtectedRoute가 /login으로 튕기는 race condition이 발생함.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s)
+      setLoading(false)
     })
 
     return () => subscription.unsubscribe()

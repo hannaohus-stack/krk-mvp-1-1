@@ -3,6 +3,7 @@
  * 배경 #F4F4F5, 중앙 카드, KRK 로고
  */
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../lib/useAuth'
 
 interface Props {
   crumb: string          // 예: "회원가입 · SIGN UP"
@@ -12,20 +13,17 @@ interface Props {
 
 export default function AuthShell({ crumb, crumbColor = '#002D72', children }: Props) {
   const navigate = useNavigate()
+  const { session } = useAuth()
 
   return (
     <div className="min-h-screen bg-[#F4F4F5] flex flex-col items-center justify-start pt-10 px-5 pb-16">
 
       {/* 로고 */}
       <button
-        onClick={() => navigate('/')}
-        className="flex items-baseline gap-[3px] mb-8 hover:opacity-70 transition-opacity"
+        onClick={() => navigate(session ? '/dashboard' : '/')}
+        className="mb-8 hover:opacity-70 transition-opacity"
       >
-        <span
-          style={{ fontFamily: "Georgia,'Times New Roman',serif" }}
-          className="font-bold text-[17px] tracking-[0.04em] text-ink"
-        >krk</span>
-        <span className="font-en font-light text-[17px] tracking-[0.22em] text-ink"> CHECKER·</span>
+        <img src="/krk-checker-logo.png" alt="KRK Checker" style={{ height: 16, display: 'block' }} />
       </button>
 
       {/* 카드 */}

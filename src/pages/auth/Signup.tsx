@@ -1,11 +1,13 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import AuthShell from './AuthShell'
 import { AuthField, AuthSubmitBtn, KakaoBtn, AuthDivider, AuthErrorBanner } from './AuthComponents'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../lib/useAuth'
 
 export default function Signup() {
   const navigate = useNavigate()
+  const { session, loading: authLoading } = useAuth()
 
   const [email,   setEmail]   = useState('')
   const [pw,      setPw]      = useState('')
@@ -15,6 +17,8 @@ export default function Signup() {
   const [serverErr, setServerErr] = useState('')
 
   const [errors, setErrors] = useState({ email: '', pw: '', pwConf: '', terms: '' })
+
+  if (!authLoading && session) return <Navigate to="/dashboard" replace />
 
   const validate = () => {
     const e = { email: '', pw: '', pwConf: '', terms: '' }
@@ -31,7 +35,7 @@ export default function Signup() {
     setServerErr('')
     if (!validate()) return
     setLoading(true)
-    const { error } = await supabase.auth.signUp({ email, password: pw })
+    const { data, error } = await supabase.auth.signUp({ email, password: pw })
     setLoading(false)
     if (error) {
       if (error.message.includes('already registered') || error.message.includes('already been registered')) {
@@ -41,7 +45,13 @@ export default function Signup() {
       }
       return
     }
-    navigate('/verify-email', { state: { email } })
+    // 이메일 인증 ON → verify-email 화면
+    // 이메일 인증 OFF → 세션 즉시 발급 → 대시보드로 바로 이동
+    if (data.session) {
+      navigate('/dashboard')
+    } else {
+      navigate('/verify-email', { state: { email } })
+    }
   }
 
   return (

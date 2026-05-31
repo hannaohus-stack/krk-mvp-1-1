@@ -1,14 +1,14 @@
 User-agent: *
-Allow: /checker/
-Disallow: /checker/dashboard
-Disallow: /checker/creator
-Disallow: /checker/review
-Disallow: /checker/export
-Disallow: /checker/payment
-Disallow: /checker/login
-Disallow: /checker/signup
-Disallow: /checker/verify-email
-Disallow: /checker/forgot-password
-Disallow: /checker/reset-password
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /payment/callback/
+Disallow: /checker/result/
 
-Sitemap: https://checker.krk.team/checker/sitemap.xml
+User-agent: Yeti
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+Sitemap: https://checker.krk.team/sitemap.xml

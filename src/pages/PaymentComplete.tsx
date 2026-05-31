@@ -7,14 +7,14 @@ import {
 } from 'lucide-react'
 import LogoLockup from '../components/LogoLockup'
 import type { Ingredient } from '../utils/parsing'
-import { analyzeRegulations, type Metadata } from './ReviewResult'
+import type { Metadata } from './ReviewResult'
 import type { CreatorData } from './creator/types'
 import type { ServiceTier } from '../utils/tierUtils'
-import { recordLabelReview, recordPayment } from '../lib/supabase'
+import { recordPayment, saveLabelReview } from '../lib/supabase'
 import { createCertPDFArtifact, generateCertPDF } from '../utils/generateCertPDF'
 import { createLabelPDFArtifact, generateLabelPDF } from '../utils/generateLabelPDF'
 import { createReportPDFArtifact, generateReportPDF } from '../utils/generateReportPDF'
-import { createProGuidePDFArtifact, generateProGuidePDF } from '../utils/generateProGuidePDF'
+import { trackPurchase } from '../lib/analytics'
 
 type ServiceType = 'basic' | 'pro'
 
@@ -36,14 +36,13 @@ const SERVICES: Record<ServiceType, {
     copyItems: ['원재료명 · 함량', '알레르기 유발물질', '제품명 · 영문'],
   },
   pro: {
-    name: '전문 수정 가이드 PDF',
+    name: '전문 수정 가이드',
     price: 19900,
     badge: '전문',
     files: [
-      { id: 'pro-guide', name: '전문 수정 가이드 PDF', use: '항목별 수정 방법 · 권장 문구', icon: <FileText size={16} /> },
       { id: 'label-pdf', name: '라벨 PDF', use: '인쇄용 · A4', icon: <Tag size={16} /> },
       { id: 'label-png', name: '라벨 PNG', use: '웹 · 스마트스토어', icon: <FileArchive size={16} /> },
-      { id: 'report-guide', name: '신고 입력 가이드', use: '정부24 참고용', icon: <ClipboardList size={16} /> },
+      { id: 'report-guide', name: '품목제조보고 입력 가이드', use: '정부24 참고용', icon: <ClipboardList size={16} /> },
       { id: 'review-report', name: 'krk 라벨 검토 리포트', use: '자율 점검 기록', icon: <FileText size={16} /> },
       { id: 'recycling', name: '분리배출 마크 ZIP', use: '환경부 공식 도안', icon: <Recycle size={16} /> },
     ],
@@ -53,19 +52,22 @@ const SERVICES: Record<ServiceType, {
 
 const RECYCLING_FILE_MAP: Record<string, string> = {
   '페트(PET)': '/recycling/plastic-pet.svg',
-  '고밀도 폴리에틸렌(HDPE)': '/recycling/plastic-pe.svg',
-  '폴리염화비닐(PVC)': '/recycling/plastic-pe.svg',
-  '저밀도 폴리에틸렌(LDPE)': '/recycling/plastic-pe.svg',
+  '고밀도 폴리에틸렌(HDPE)': '/recycling/plastic-hdpe.svg',
+  '폴리염화비닐(PVC)': '/recycling/plastic-other.svg',
+  '저밀도 폴리에틸렌(LDPE)': '/recycling/plastic-ldpe.svg',
   '폴리프로필렌(PP)': '/recycling/plastic-pp.svg',
   '폴리스티렌(PS)': '/recycling/plastic-ps.svg',
-  '기타 플라스틱': '/recycling/plastic-pe.svg',
+  '기타 플라스틱': '/recycling/plastic-other.svg',
   '유리': '/recycling/glass.svg',
   '철': '/recycling/can-steel.svg',
   '알루미늄': '/recycling/can-aluminum.svg',
-  '종이팩': '/recycling/paper.svg',
+  '종이팩': '/recycling/paper-pack.svg',
+  '멸균팩': '/recycling/paper-pack2.svg',
+  '도포·첩합류(빨간)': '/recycling/laminated-red.svg',
+  '도포·첩합류(검정)': '/recycling/laminated-black.svg',
   '골판지': '/recycling/paper.svg',
   '일반 종이': '/recycling/paper.svg',
-  '비닐류': '/recycling/vinyl.svg',
+  '비닐류': '/recycling/vinyl-ldpe.svg',
   '스티로폼': '/recycling/plastic-ps.svg',
 }
 
@@ -88,6 +90,25 @@ function safeFilenamePart(value: string): string {
   return (value || 'product').replace(/[\s/\\]/g, '_')
 }
 
+// ZIP 내부 파일명용 ASCII slug — 한글 제거, 영문/숫자만 유지
+// 정책: 고객-facing 개별 파일명은 한글 유지, ZIP 내부는 ASCII 호환
+const MATERIAL_SLUG: Record<string, string> = {
+  '유리': 'glass', '철': 'steel', '알루미늄': 'aluminum',
+  '종이팩': 'paper-pack', '멸균팩': 'aseptic-pack',
+  '골판지': 'cardboard', '일반 종이': 'paper', '비닐류': 'vinyl',
+  '스티로폼': 'styrofoam', '기타 플라스틱': 'plastic-other',
+  '도포·첩합류(빨간)': 'laminated-red', '도포·첩합류(검정)': 'laminated-black',
+}
+
+function toZipSlug(value: string): string {
+  if (MATERIAL_SLUG[value]) return MATERIAL_SLUG[value]
+  const paren = value.match(/\(([A-Za-z0-9-]+)\)/)
+  if (paren) return paren[1].toLowerCase()
+  const ascii = value.replace(/[^\x00-\x7F]+/g, '').trim().toLowerCase()
+    .replace(/[\s_/\\()]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
+  return ascii || 'file'
+}
+
 function createLabelPngBlob(data: CreatorData): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const canvas = document.createElement('canvas')
@@ -99,42 +120,6 @@ function createLabelPngBlob(data: CreatorData): Promise<Blob> {
       reject(new Error('Canvas를 생성할 수 없습니다.'))
       return
     }
-
-    const nutritionText = data.nutritionExempted
-      ? '영양표시 면제 가능(영양강조표시 사용 시 의무 발생 가능)'
-      : [
-          data.calories && `열량 ${data.calories}kcal`,
-          data.totalCarbs && `탄수화물 ${data.totalCarbs}g`,
-          data.sugar && `당류 ${data.sugar}g`,
-          data.totalFat && `지방 ${data.totalFat}g`,
-          data.saturatedFat && `포화지방 ${data.saturatedFat}g`,
-          data.transFat && `트랜스지방 ${data.transFat}g`,
-          data.cholesterol && `콜레스테롤 ${data.cholesterol}mg`,
-          data.protein && `단백질 ${data.protein}g`,
-          data.sodium && `나트륨 ${data.sodium}mg`,
-        ].filter(Boolean).join(' · ') || '—'
-    const allergenList = Array.from(new Set([
-      ...data.ingredients.filter(item => item.isAllergen).map(item => item.name),
-      ...data.detectedAllergens.map(item => item.name),
-    ]))
-    const sharedAllergenNotice = data.facilityType === '공유' && data.sharedFacilityAllergens.length > 0
-      ? `이 제품은 ${data.sharedFacilityAllergens.join(', ')}을 사용한 제품과 같은 제조시설에서 제조하고 있습니다.`
-      : ''
-    const totalIngredientWeight = data.ingredients.reduce((sum, item) => sum + (parseFloat(item.weight) || 0), 0)
-    const ingredientText = data.ingredients
-      .slice()
-      .sort((a, b) => (parseFloat(b.weight) || 0) - (parseFloat(a.weight) || 0))
-      .map(item => {
-        const pct = totalIngredientWeight > 0 && item.weight
-          ? ` ${((parseFloat(item.weight) || 0) / totalIngredientWeight * 100).toFixed(1)}%`
-          : item.weight
-          ? ` ${item.weight}g`
-          : ''
-        const origin = item.origin ? `(${item.origin})` : '(원산지 입력 필요)'
-        return `${item.name}${origin}${pct}`
-      })
-      .join(', ') || '원재료명 및 함량'
-    const packagingText = (data.packagingMaterials ?? []).join(', ') || '포장재질 입력 필요'
 
     ctx.fillStyle = '#FFFFFF'
     ctx.fillRect(0, 0, size, size)
@@ -150,59 +135,40 @@ function createLabelPngBlob(data: CreatorData): Promise<Blob> {
     ctx.fillText('KRK CHECKER', 260, 340)
 
     ctx.fillStyle = '#0A0A0B'
-    ctx.font = '700 170px system-ui, sans-serif'
-    wrapCanvasText(ctx, data.productName || '제품명', 260, 710, size - 520, 190, 2)
+    ctx.font = '700 190px system-ui, sans-serif'
+    wrapCanvasText(ctx, data.productName || '제품명', 260, 760, size - 520, 220)
 
-    ctx.font = '500 68px system-ui, sans-serif'
+    ctx.font = '500 76px system-ui, sans-serif'
     ctx.fillStyle = 'rgba(10,10,11,0.62)'
-    ctx.fillText(`내용량 ${data.totalWeight || '-'}${data.unit || ''}`, 260, 1160)
+    ctx.fillText(`내용량 ${data.totalWeight || '-'}${data.unit || ''}`, 260, 1450)
 
-    ctx.font = '500 52px system-ui, sans-serif'
+    ctx.font = '500 58px system-ui, sans-serif'
     ctx.fillStyle = 'rgba(10,10,11,0.52)'
-    ctx.fillText((data.categories ?? []).join(' · ') || '식품 유형', 260, 1265)
+    ctx.fillText((data.categories ?? []).join(' · ') || '식품 유형', 260, 1580)
 
     ctx.strokeStyle = 'rgba(10,10,11,0.18)'
     ctx.lineWidth = 4
     ctx.beginPath()
-    ctx.moveTo(260, 1385)
-    ctx.lineTo(size - 260, 1385)
+    ctx.moveTo(260, 1760)
+    ctx.lineTo(size - 260, 1760)
     ctx.stroke()
 
-    const drawBlock = (label: string, value: string, x: number, y: number, width: number, maxLines = 2) => {
-      ctx.fillStyle = 'rgba(10,10,11,0.48)'
-      ctx.font = '700 38px system-ui, sans-serif'
-      ctx.fillText(label, x, y)
-      ctx.fillStyle = '#0A0A0B'
-      ctx.font = '500 44px system-ui, sans-serif'
-      wrapCanvasText(ctx, value || '—', x, y + 66, width, 58, maxLines)
-    }
-
-    drawBlock('원재료명 및 함량', ingredientText, 260, 1505, size - 520, 4)
-    drawBlock('알레르기', allergenList.length ? `${allergenList.join(', ')} 함유` : '해당 없음', 260, 1815, size - 520, 2)
-    if (sharedAllergenNotice) drawBlock('공유시설 혼입 표시', sharedAllergenNotice, 260, 2025, size - 520, 2)
-    drawBlock('보관방법 / 소비기한', `${data.storage || '—'} / ${data.expiryDate || '별도 표기'}`, 260, 2235, size - 520, 1)
-    drawBlock('영양성분', nutritionText, 260, 2395, size - 520, 2)
-
-    ctx.strokeStyle = 'rgba(10,10,11,0.18)'
-    ctx.strokeRect(260, 2640, size - 520, 160)
-    ctx.font = '700 38px system-ui, sans-serif'
-    ctx.fillStyle = 'rgba(10,10,11,0.48)'
-    ctx.fillText('제조원 / 품목보고번호 / 포장재질', 300, 2700)
-    ctx.font = '500 40px system-ui, sans-serif'
+    ctx.font = '500 54px system-ui, sans-serif'
     ctx.fillStyle = '#0A0A0B'
     wrapCanvasText(
       ctx,
-      `${data.manufacturer || '-'} / ${data.manufacturerAddress || '소재지 입력 필요'} / ${data.itemReportNumber || '품목보고번호 입력 필요'} / ${packagingText}`,
-      300,
-      2760,
-      size - 600,
-      48,
-      2,
+      data.ingredients.map(item => item.weight ? `${item.name} ${item.weight}g` : item.name).join(', ') || '원재료명 및 함량',
+      260,
+      1900,
+      size - 520,
+      82,
+      5,
     )
 
-    ctx.font = '500 34px system-ui, sans-serif'
+    ctx.font = '500 48px system-ui, sans-serif'
     ctx.fillStyle = 'rgba(10,10,11,0.55)'
-    ctx.fillText('KRK 라벨 PNG 산출물 · 최종 판매 전 사업자 확인 필요', 260, 2885)
+    ctx.fillText(`제조원 ${data.manufacturer || '-'}`, 260, 2600)
+    ctx.fillText('본 이미지는 KRK 라벨 PNG 미리보기 산출물입니다.', 260, 2700)
 
     canvas.toBlob(blob => {
       if (blob) resolve(blob)
@@ -254,23 +220,24 @@ function toCreatorData(ingredients: Ingredient[], metadata: Metadata): CreatorDa
     unit: metadata.unit === 'kg' ? 'g' : metadata.unit === 'L' ? 'mL' : metadata.unit,
     manufacturer: metadata.manufacturer,
     manufacturerAddress: metadata.manufacturerAddress ?? '',
-    itemReportNumber: metadata.itemReportNumber ?? '',
+    reportNumberStatus: metadata.reportNumberStatus ?? '',
+    reportNumber: metadata.reportNumber ?? '',
+    labelClaim: metadata.labelClaim ?? '',
     storage: metadata.storage,
     expiryDate,
-    marketingClaims: metadata.marketingClaims ?? '',
     packagingMaterials: metadata.packagingMaterials ?? [],
-    sharedFacilityAllergens: metadata.sharedFacilityAllergens ?? [],
     ingredients: ingredients.map(ing => ({
       id: ing.id,
       name: ing.name,
-      weight: ing.weight > 0 ? String(ing.weight) : '',
       origin: ing.origin ?? '',
+      weight: ing.weight > 0 ? String(ing.weight) : '',
       isAllergen: ing.isAllergen,
       isComposite: ing.isComposite,
     })),
-    detectedAllergens: ingredients.filter(ing => ing.isAllergen).map(ing => ({ id: ing.id, name: ing.name })),
+    detectedAllergens: [],
     detectedComposites: [],
     nutritionExempted: true,
+    hasNutritionClaim: metadata.hasNutritionClaim ?? false,
     servingSize: '',
     servingUnit: 'g',
     calories: '',
@@ -290,18 +257,28 @@ function CopyRow({ label, value }: { label: string; value: string }) {
 
   const handleCopy = async () => {
     if (!value) return
+    let success = false
     try {
       await navigator.clipboard.writeText(value)
+      success = true
     } catch {
-      const el = document.createElement('textarea')
-      el.value = value
-      document.body.appendChild(el)
-      el.select()
-      document.execCommand('copy')
-      document.body.removeChild(el)
+      try {
+        const el = document.createElement('textarea')
+        el.value = value
+        el.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none;'
+        document.body.appendChild(el)
+        el.focus()
+        el.select()
+        success = document.execCommand('copy')
+        document.body.removeChild(el)
+      } catch {
+        success = false
+      }
     }
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
+    if (success) {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    }
   }
 
   return (
@@ -398,6 +375,14 @@ export default function PaymentComplete() {
           }
           setRestoredState(parsed)
           if (isTossRedirect) sessionStorage.removeItem('krk_payment_state')
+          const service = parsed.service ?? tierToService(parsed.tier)
+          recordPayment({
+            orderId: orderId ?? `KRK-FAIL-${Date.now()}`,
+            paymentKey: paymentKey ?? undefined,
+            amount: SERVICES[service].price,
+            tier: serviceToTier(service),
+            productName: parsed.metadata?.productName,
+          })
         }
       } catch {
         console.warn('[PaymentComplete] sessionStorage 복원 실패')
@@ -414,29 +399,22 @@ export default function PaymentComplete() {
   const errorMsg = stateData?.errorMessage ?? failMessage
 
   useEffect(() => {
-    if (!success || !ingredients || !metadata) return
-    const guardKey = `krk_paid_saved_${orderId ?? paymentKey ?? metadata.productName}_${service}`
-    if (sessionStorage.getItem(guardKey)) return
-    sessionStorage.setItem(guardKey, '1')
-
-    const paidOrderId = orderId ?? `KRK-MOCK-${Date.now()}`
-    recordPayment({
-      orderId: paidOrderId,
-      paymentKey: paymentKey ?? undefined,
-      amount: cfg.price,
-      tier: serviceToTier(service),
-      productName: metadata.productName,
-    })
-
-    recordLabelReview({
-      ingredients,
-      metadata,
-      results: analyzeRegulations(ingredients, metadata),
-      tier: serviceToTier(service),
-      status: 'paid',
-      amount: cfg.price,
-    })
-  }, [cfg.price, ingredients, metadata, orderId, paymentKey, service, success])
+    if (ready && success && orderId) {
+      trackPurchase(orderId, cfg.price, 'KRW')
+      // label_reviews 저장 (결제 완료 시)
+      const cd = stateData?.creatorData ?? restoredState?.creatorData
+      saveLabelReview({
+        productName: metadata?.productName ?? cd?.productName ?? '',
+        categories:  cd?.categories ?? [],
+        tier:        service === 'pro' ? 'tier2' : 'tier1',
+        status:      'paid',
+        amount:      cfg.price,
+        metadata:    metadata ? (metadata as unknown as Record<string, unknown>) : {},
+        ingredients: (ingredients ?? []) as unknown[],
+        results:     [],
+      })
+    }
+  }, [ready, success, orderId])
 
   if (!ready) return null
   if (!ingredients || !metadata) return <Navigate to="/" replace />
@@ -475,7 +453,6 @@ export default function PaymentComplete() {
   const paidTier = serviceToTier(service)
 
   const handleDownloadLabelPDF = () => generateLabelPDF(creatorData)
-  const handleDownloadProGuide = () => generateProGuidePDF(creatorData)
   const handleDownloadReviewReport = () => generateCertPDF(creatorData, paidTier)
   const handleDownloadReportGuide = () => generateReportPDF(creatorData, paidTier)
   const handleDownloadLabelPng = async () => {
@@ -500,8 +477,7 @@ export default function PaymentComplete() {
       await Promise.all(matched.map(async ({ material, path }) => {
         const res = await fetch(path)
         const text = await res.text()
-        const safeMat = material.replace(/[\s/\\()]/g, '_')
-        zip.file(`krk_recycling_${safeMat}.svg`, text)
+        zip.file(`recycling_${toZipSlug(material)}.svg`, text)
       }))
 
       const blob = await zip.generateAsync({ type: 'blob' })
@@ -513,25 +489,15 @@ export default function PaymentComplete() {
   }
 
   const allergenList = ingredients.filter(i => i.isAllergen).map(i => i.name).join(', ')
-  const ingredientList = creatorData.ingredients.map(i => {
-    const origin = i.origin ? `(${i.origin})` : ''
-    return i.weight ? `${i.name}${origin} ${i.weight}g` : `${i.name}${origin}`
-  }).join(', ')
-  const sharedAllergenNotice = creatorData.facilityType === '공유' && creatorData.sharedFacilityAllergens.length > 0
-    ? `이 제품은 ${creatorData.sharedFacilityAllergens.join(', ')}을 사용한 제품과 같은 제조시설에서 제조하고 있습니다.`
-    : ''
+  const ingredientList = ingredients.map(i => i.weight > 0 ? `${i.name}(${i.weight}g)` : i.name).join(', ')
   const copyRows = [
     { label: '원재료명', value: ingredientList },
     { label: '알레르기', value: allergenList || '해당 없음' },
-    { label: '혼입표시', value: sharedAllergenNotice },
     { label: '식품유형', value: (metadata.categories ?? []).join(', ') },
-    { label: '제조원', value: `${creatorData.manufacturer}${creatorData.manufacturerAddress ? ` / ${creatorData.manufacturerAddress}` : ''}` },
-    { label: '품목번호', value: creatorData.itemReportNumber },
     { label: '제품명', value: metadata.productName },
-  ].filter(row => row.value && (service === 'pro' || SERVICES.basic.copyItems.some(item => item.includes(row.label) || row.label === '제품명')))
+  ].filter(row => service === 'pro' || SERVICES.basic.copyItems.some(item => item.includes(row.label) || row.label === '제품명'))
 
   const downloadHandler = (fileId: string) => {
-    if (fileId === 'pro-guide') return handleDownloadProGuide
     if (fileId === 'label-pdf') return handleDownloadLabelPDF
     if (fileId === 'label-png') return handleDownloadLabelPng
     if (fileId === 'report-guide') return handleDownloadReportGuide
@@ -549,16 +515,20 @@ export default function PaymentComplete() {
       const label = await createLabelPDFArtifact(creatorData)
       const labelPng = await createLabelPngBlob(creatorData)
 
-      zip.file(label.filename, label.blob)
-      zip.file(`KRK_라벨_${safeName}_${dateStr}.png`, labelPng)
+      // ZIP 내부: ASCII 호환 번호 prefix 체계 (정책: ZIP 파일명은 한글 유지, 내부는 영문 slug)
+      const zipSlug = (() => {
+        const s = safeName.replace(/[^\x00-\x7F]/g, '').replace(/^[-_]+|[-_]+$/g, '').toLowerCase()
+        return s || 'product'
+      })()
+
+      zip.file(`01_label_${zipSlug}_${dateStr}.pdf`, label.blob)
+      zip.file(`02_label_${zipSlug}_${dateStr}.png`, labelPng)
 
       if (service === 'pro') {
-        const proGuide = await createProGuidePDFArtifact(creatorData)
         const reportGuide = await createReportPDFArtifact(creatorData, paidTier)
         const reviewReport = await createCertPDFArtifact(creatorData, paidTier)
-        zip.file(proGuide.filename, proGuide.blob)
-        zip.file(reportGuide.filename, reportGuide.blob)
-        zip.file(reviewReport.filename, reviewReport.blob)
+        zip.file(`03_report-guide_${zipSlug}_${dateStr}.pdf`, reportGuide.blob)
+        zip.file(`04_review-report_${zipSlug}_${dateStr}.pdf`, reviewReport.blob)
 
         const materials = metadata.packagingMaterials ?? []
         await Promise.all(materials.map(async material => {
@@ -566,12 +536,12 @@ export default function PaymentComplete() {
           if (!path) return
           const res = await fetch(path)
           const text = await res.text()
-          zip.file(`recycling/krk_recycling_${safeFilenamePart(material)}.svg`, text)
+          zip.file(`recycling/recycling_${toZipSlug(material)}.svg`, text)
         }))
       }
 
       const blob = await zip.generateAsync({ type: 'blob' })
-      downloadBlob(blob, `KRK_${service === 'pro' ? '전문수정가이드' : '기본라벨패키지'}_${safeName}_${dateStr}.zip`)
+      downloadBlob(blob, `KRK_${service === 'pro' ? 'professional_guide' : 'basic_label_package'}_${safeName}_${dateStr}.zip`)
     } catch (e) {
       console.error('[DownloadAllZip] 생성 실패:', e)
       alert('전체 다운로드 ZIP 생성 중 오류가 발생했습니다.')

@@ -13,6 +13,7 @@ import {
   createRasterPdfArtifact,
   downloadPdfArtifact,
   drawBusinessBadge,
+  drawKeyValueRows,
   drawPdfFooter,
   drawPdfHeader,
   drawCanvasText,
@@ -42,9 +43,9 @@ const BUSINESS_GUIDE: Record<string, BizGuide> = {
     steps: [
       '① 관할 시·군·구청에 식품제조·가공업 영업신고 완료 확인',
       '② 정부24(gov.kr) 또는 식품안전나라(foodsafetykorea.go.kr) 접속',
-      '③ "품목제조보고" 검색 → 품목제조보고서 온라인 작성',
-      '④ 온라인 작성 화면에서 아래 입력 참고표의 내용을 확인해 입력 후 제출',
-      '⑤ 품목보고번호 및 제출 완료 여부 확인',
+      '③ "품목제조보고" 검색 → 제조 신고서 온라인 작성',
+      '④ 아래 표 항목 입력 후 제출',
+      '⑤ 신고번호 발급 확인 (영업장 게시 의무)',
     ],
     note: '품목제조보고는 신제품 출시 전 또는 원재료 변경 시마다 새로 보고해야 합니다.',
   },
@@ -91,24 +92,19 @@ export async function createReportPDFArtifact(data: CreatorData, _tier: ServiceT
         .sort((a, b) => (parseFloat(b.weight) || 0) - (parseFloat(a.weight) || 0))
         .map(i => {
           const pct = totalW > 0 ? `(${((parseFloat(i.weight) || 0) / totalW * 100).toFixed(1)}%)` : ''
-          const origin = i.origin ? `(${i.origin})` : '(원산지 입력 필요)'
-          return `${i.name}${origin}${pct}`
+          return `${i.name}${pct}`
         })
         .join(', ')
     : '—'
 
   // 영양성분
   const nutritionDisplay = data.nutritionExempted
-    ? '영양표시 면제 가능 (영양강조표시 사용 시 의무 발생 가능)'
+    ? '소규모 제조업 면제 (식품등의 표시기준 제5조)'
     : [
         data.calories   && `열량 ${data.calories}kcal`,
         data.totalCarbs && `탄수화물 ${data.totalCarbs}g`,
-        data.sugar      && `당류 ${data.sugar}g`,
         data.protein    && `단백질 ${data.protein}g`,
         data.totalFat   && `지방 ${data.totalFat}g`,
-        data.saturatedFat && `포화지방 ${data.saturatedFat}g`,
-        data.transFat   && `트랜스지방 ${data.transFat}g`,
-        data.cholesterol && `콜레스테롤 ${data.cholesterol}mg`,
         data.sodium     && `나트륨 ${data.sodium}mg`,
       ].filter(Boolean).join(', ') || '—'
 
@@ -125,18 +121,14 @@ export async function createReportPDFArtifact(data: CreatorData, _tier: ServiceT
     ['영양성분',            nutritionDisplay],
     ['포장재질',            packagingDisplay],
     ['제조업소명',          data.manufacturer  || '—'],
-    ['제조업소 소재지',      data.manufacturerAddress || '— (직접 입력)'],
-    ['품목보고번호',        data.itemReportNumber || (data.businessType === '식품제조가공업' ? '— (입력 필요)' : '해당 시 입력')],
+    ['제조업소 소재지',      '— (직접 입력)'],
+    ['신고번호',            '— (신고 후 기재)'],
     ['연락처',              '— (직접 입력)'],
   ]
 
   const guide = BUSINESS_GUIDE[data.businessType] ?? null
   const businessLabel = data.businessType === '즉판가공업' ? '즉석판매제조·가공업' : data.businessType
 
-  // Canvas preview kept below for reference, but the actual guide uses the
-  // jsPDF path so long input rows and all guide steps can paginate.
-  void createCanvasPdfArtifact
-  void createRasterPdfArtifact
   return createCanvasPdfArtifact(filename, ctx => {
     ctx.fillStyle = PDF_COLORS.heritage
     ctx.fillRect(0, 0, 794, 68)
@@ -150,7 +142,7 @@ export async function createReportPDFArtifact(data: CreatorData, _tier: ServiceT
     ctx.fillText('SELF-INPUT GUIDE · 정부24 / 식품안전나라 신고 화면 입력 참고용', 175, 110)
     ctx.fillStyle = PDF_COLORS.ink
     ctx.font = '700 29px "Apple SD Gothic Neo", system-ui'
-    ctx.fillText('신고 입력 가이드', 292, 150)
+    ctx.fillText('품목제조보고 입력 가이드', 250, 150)
     ctx.fillStyle = PDF_COLORS.heritage
     ctx.fillRect(368, 170, 58, 2)
     ctx.fillStyle = PDF_COLORS.faint
@@ -175,14 +167,14 @@ export async function createReportPDFArtifact(data: CreatorData, _tier: ServiceT
     ctx.font = '700 15px "Apple SD Gothic Neo", system-ui'
     ctx.fillText('입력 가이드 안내', 76, 278)
     ctx.font = '12.5px "Apple SD Gothic Neo", system-ui'
-    drawCanvasText(ctx, '아래 표는 정부24 또는 식품안전나라의 품목제조보고 온라인 작성 화면에 옮겨 적을 내용을 정리한 참고표입니다. 실제 신고는 사업자가 직접 진행해야 합니다.', 76, 306, 630, 18, 2)
+    drawCanvasText(ctx, '본 문서는 입력된 정보를 바탕으로 품목제조보고 화면에 옮겨 적을 항목을 정리한 참고 가이드입니다. 실제 신고는 사업자가 정부24 또는 식품안전나라에서 직접 진행해야 합니다.', 76, 306, 630, 18, 2)
 
     ctx.fillStyle = PDF_COLORS.heritage
     ctx.font = '700 15px "Apple SD Gothic Neo", system-ui'
-    ctx.fillText('입력 항목', 54, 368)
-    let y = 386
+    ctx.fillText('입력 항목', 54, 378)
+    let y = 400
     tableRows.forEach(([label, value]) => {
-      const rowH = 30
+      const rowH = 38
       ctx.fillStyle = PDF_COLORS.paper
       ctx.fillRect(54, y, 190, rowH)
       ctx.strokeStyle = PDF_COLORS.hairline
@@ -192,10 +184,10 @@ export async function createReportPDFArtifact(data: CreatorData, _tier: ServiceT
       ctx.fillText(label, 68, y + 24)
       ctx.fillStyle = PDF_COLORS.ink
       ctx.font = '12px "Apple SD Gothic Neo", system-ui'
-      drawCanvasText(ctx, value, 260, y + 20, 454, 12, 1)
+      drawCanvasText(ctx, value, 260, y + 24, 454, 15, 1)
       y += rowH
     })
-    y += 22
+    y += 30
     ctx.fillStyle = PDF_COLORS.heritage
     ctx.font = '700 15px "Apple SD Gothic Neo", system-ui'
     ctx.fillText(guide ? `${businessLabel} 신고 절차 안내` : '신고 절차 안내', 54, y)
@@ -210,7 +202,7 @@ export async function createReportPDFArtifact(data: CreatorData, _tier: ServiceT
     drawCanvasText(ctx, `근거: ${guide?.law || '—'} · 신고 포털: ${guide?.portal || '—'}`, 76, y + 30, 630, 15, 2)
     ctx.fillStyle = PDF_COLORS.ink
     ctx.font = '11px "Apple SD Gothic Neo", system-ui'
-    ;(guide?.steps || ['사업자 유형을 입력하면 맞춤 신고 절차 안내가 표시됩니다.']).forEach((step, index) => {
+    ;(guide?.steps || ['사업자 유형을 입력하면 맞춤 신고 절차 안내가 표시됩니다.']).slice(0, 4).forEach((step, index) => {
       ctx.fillText(step, 76, y + 62 + index * 16)
     })
     ctx.fillStyle = PDF_COLORS.faint
@@ -236,7 +228,7 @@ export async function createReportPDFArtifact(data: CreatorData, _tier: ServiceT
       </div>
       <div style="padding:34px 54px 0;box-sizing:border-box;">
         <div style="text-align:center;color:${PDF_COLORS.faint};font-size:12px;letter-spacing:.08em;">SELF-INPUT GUIDE · 정부24 / 식품안전나라 신고 화면 입력 참고용</div>
-        <h1 style="text-align:center;margin:10px 0 8px;font-size:29px;letter-spacing:-.025em;">신고 입력 가이드</h1>
+        <h1 style="text-align:center;margin:10px 0 8px;font-size:29px;letter-spacing:-.025em;">품목제조보고 입력 가이드</h1>
         <div style="width:58px;height:2px;background:${PDF_COLORS.heritage};margin:0 auto 26px;"></div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;font-size:12px;color:${PDF_COLORS.faint};">
           <div>가이드 번호 <b style="color:${PDF_COLORS.ink};">${escapePdfHtml(reviewId)}</b> · 작성일 ${escapePdfHtml(new Date().toLocaleDateString('ko-KR'))}</div>
@@ -244,7 +236,7 @@ export async function createReportPDFArtifact(data: CreatorData, _tier: ServiceT
         </div>
         <div style="border:1px solid ${PDF_COLORS.heritage};border-left:5px solid ${PDF_COLORS.heritage};background:${PDF_COLORS.guide};padding:18px 20px;margin-bottom:22px;">
           <div style="font-weight:700;font-size:15px;margin-bottom:8px;">입력 가이드 안내</div>
-          <div style="font-size:12.5px;line-height:1.75;">아래 표는 정부24 또는 식품안전나라의 품목제조보고 온라인 작성 화면에 옮겨 적을 내용을 정리한 참고표입니다. 실제 신고는 사업자가 직접 진행해야 합니다.</div>
+          <div style="font-size:12.5px;line-height:1.75;">본 문서는 입력된 정보를 바탕으로 품목제조보고 화면에 옮겨 적을 항목을 정리한 참고 가이드입니다. 실제 신고는 사업자가 정부24 또는 식품안전나라에서 직접 진행해야 합니다.</div>
           <div style="margin-top:8px;font-size:12px;color:#8A5A00;">공식 서식 또는 제출 완료 문서가 아닙니다.</div>
         </div>
         <div style="font-size:15px;font-weight:700;color:${PDF_COLORS.heritage};margin-bottom:10px;">입력 항목</div>
@@ -265,7 +257,7 @@ export async function createReportPDFArtifact(data: CreatorData, _tier: ServiceT
       </div>
     </section>`
 
-  void html
+  return createRasterPdfArtifact(html, filename)
 
   const doc = await createPdfDoc()
   const today = new Date().toLocaleDateString('ko-KR')
@@ -277,7 +269,7 @@ export async function createReportPDFArtifact(data: CreatorData, _tier: ServiceT
   doc.text('SELF-INPUT GUIDE · 정부24 / 식품안전나라 신고 화면 입력 참고용', 46, 31)
   doc.setTextColor(PDF_COLORS.ink)
   doc.setFontSize(20)
-  doc.text('신고 입력 가이드', 82, 42)
+  doc.text('품목제조보고 입력 가이드', 68, 42)
   doc.setFillColor(PDF_COLORS.heritage)
   doc.rect(91, 48, 28, 1.3, 'F')
 
@@ -297,7 +289,7 @@ export async function createReportPDFArtifact(data: CreatorData, _tier: ServiceT
   doc.text('입력 가이드 안내', 19, 80)
   addWrappedText(
     doc,
-    '아래 표는 정부24 또는 식품안전나라의 품목제조보고 온라인 작성 화면에 옮겨 적을 내용을 정리한 참고표입니다. 실제 신고는 사업자가 직접 진행해야 합니다.',
+    '본 문서는 입력된 정보를 바탕으로 품목제조보고 화면에 옮겨 적을 항목을 정리한 참고 가이드입니다. 실제 신고는 사업자가 정부24 또는 식품안전나라에서 직접 진행해야 합니다.',
     19,
     88,
     170,
@@ -311,27 +303,7 @@ export async function createReportPDFArtifact(data: CreatorData, _tier: ServiceT
   doc.setTextColor(PDF_COLORS.heritage)
   doc.setFontSize(10)
   doc.text('입력 항목', 14, 116)
-  let y = 124
-  tableRows.forEach(([label, value]) => {
-    if (y > 250) {
-      doc.addPage()
-      drawPdfHeader(doc, 'PDF-02 입력 가이드 · 입력 항목 계속', today)
-      doc.setTextColor(PDF_COLORS.heritage)
-      doc.setFontSize(10)
-      doc.text('입력 항목 · 계속', 14, 34)
-      y = 44
-    }
-    doc.setFillColor(PDF_COLORS.paper)
-    doc.setDrawColor(PDF_COLORS.hairline)
-    doc.rect(14, y - 5, 48, 8, 'FD')
-    doc.setTextColor(PDF_COLORS.faint)
-    doc.setFontSize(8.3)
-    doc.text(label, 17, y)
-    y = addWrappedText(doc, value, 66, y, 128, 4.6, { size: 8.7, color: PDF_COLORS.ink })
-    doc.setDrawColor(PDF_COLORS.hairline)
-    doc.line(14, y + 1.8, 196, y + 1.8)
-    y += 7
-  })
+  let y = drawKeyValueRows(doc, tableRows, 14, 122, 182, 48)
 
   if (y > 222) {
     doc.addPage()

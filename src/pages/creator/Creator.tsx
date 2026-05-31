@@ -35,7 +35,7 @@ const STEP_META = [
   {
     label: '영양성분',
     title: '영양성분 정보를 입력해 주세요',
-    desc: '영양표시 면제 가능성을 확인하거나 분석 수치를 직접 입력하세요.',
+    desc: '소규모 제조업 면제 가능성을 확인하거나 분석 수치를 직접 입력하세요.',
     next: '다음 — 라벨 미리보기',
   },
   {
@@ -51,18 +51,14 @@ const CREATOR_DRAFT_KEY = 'krk_creator_draft_v1'
 interface CreatorDraft {
   step: number
   data: CreatorData
-  savedAt?: string
 }
 
 function readCreatorDraft(): CreatorDraft | null {
   try {
-    const raw = localStorage.getItem(CREATOR_DRAFT_KEY) ?? sessionStorage.getItem(CREATOR_DRAFT_KEY)
+    const raw = sessionStorage.getItem(CREATOR_DRAFT_KEY)
     if (!raw) return null
 
     const parsed = JSON.parse(raw) as Partial<CreatorDraft>
-    if (!parsed.data?.productName && !parsed.data?.categories?.length && !parsed.data?.ingredients?.length) {
-      return null
-    }
     const safeStep = typeof parsed.step === 'number'
       ? Math.min(Math.max(Math.round(parsed.step), 1), STEPS.length)
       : 1
@@ -73,7 +69,6 @@ function readCreatorDraft(): CreatorDraft | null {
         ...INITIAL_DATA,
         ...(parsed.data ?? {}),
       },
-      savedAt: parsed.savedAt,
     }
   } catch {
     return null
@@ -93,7 +88,7 @@ function convertToCheckerState(data: CreatorData): { ingredients: Ingredient[]; 
       name: ing.name,
       rawName: ing.name,
       weight: parseFloat(ing.weight) || 0,
-      origin: ing.origin,
+      origin: ing.origin ?? '',
       suggestedName: ing.name,
       isComposite: ing.isComposite,
       isAllergen: ing.isAllergen,
@@ -106,11 +101,12 @@ function convertToCheckerState(data: CreatorData): { ingredients: Ingredient[]; 
       expiryDays,
       storage: data.storage,
       manufacturer: data.manufacturer,
-      manufacturerAddress: data.manufacturerAddress,
-      itemReportNumber: data.itemReportNumber,
-      marketingClaims: data.marketingClaims,
+      manufacturerAddress: data.manufacturerAddress || undefined,
+      reportNumberStatus: data.reportNumberStatus || undefined,
+      reportNumber: data.reportNumber || undefined,
+      labelClaim: data.labelClaim || undefined,
+      hasNutritionClaim: data.hasNutritionClaim || undefined,
       packagingMaterials: data.packagingMaterials,
-      sharedFacilityAllergens: data.sharedFacilityAllergens,
       categories: data.categories,
       businessType: data.businessType || undefined,
       facilityType: data.facilityType || undefined,
@@ -233,31 +229,11 @@ export default function Creator() {
   }
 
   const discardDraft = () => {
-    localStorage.removeItem(CREATOR_DRAFT_KEY)
     sessionStorage.removeItem(CREATOR_DRAFT_KEY)
+    setStep(1)
+    setData(INITIAL_DATA)
     setShowDraftPrompt(false)
   }
-
-  // ── 시나리오 테스트용 state 감시 로그 ────────────────────────────────────
-  useEffect(() => {
-    if (step < 2) return
-    console.group(`%c[KRK Creator] Step ${step} — state`, 'color:#0CA4F9;font-weight:bold')
-    if (step >= 2) {
-      console.log('detectedAllergens :', data.detectedAllergens.length > 0
-        ? data.detectedAllergens.map(a => `${a.name}(${a.id})`).join(', ')
-        : '없음 ✅')
-      console.log('detectedComposites:', data.detectedComposites.length > 0
-        ? data.detectedComposites.map(c => `${c.ingredientName} → ${c.matchedKeyword}`).join(', ')
-        : '없음')
-      console.log('ingredients       :', data.ingredients.map(i =>
-        `${i.name} ${i.weight}g${i.isAllergen ? ' [알레르기]' : ''}${i.isComposite ? ' [복합]' : ''}`
-      ).join(' / ') || '(없음)')
-    }
-    if (step >= 3) {
-      console.log('nutritionExempted :', data.nutritionExempted ? '✅ 면제 적용' : '❌ 미적용')
-    }
-    console.groupEnd()
-  }, [step, data.detectedAllergens, data.detectedComposites, data.nutritionExempted, data.ingredients])
 
   const goNext = () => {
     if (step === STEPS.length) {
@@ -267,24 +243,18 @@ export default function Creator() {
     setStep(s => Math.min(s + 1, STEPS.length))
   }
   const goPrev = () => {
-    if (step === 1) navigate('/')
-    else setStep(s => s - 1)
+    if (step === 1) {
+      sessionStorage.removeItem(CREATOR_DRAFT_KEY)
+      navigate('/dashboard')
+    } else setStep(s => s - 1)
   }
   useEffect(() => {
     if (showDraftPrompt) return
-    const timer = window.setTimeout(() => {
-      try {
-        localStorage.setItem(CREATOR_DRAFT_KEY, JSON.stringify({
-          step,
-          data,
-          savedAt: new Date().toISOString(),
-        }))
-        sessionStorage.removeItem(CREATOR_DRAFT_KEY)
-      } catch {
-        // 저장 실패는 입력 플로우를 막지 않습니다.
-      }
-    }, 1000)
-    return () => window.clearTimeout(timer)
+    try {
+      sessionStorage.setItem(CREATOR_DRAFT_KEY, JSON.stringify({ step, data }))
+    } catch {
+      // 저장 실패는 입력 플로우를 막지 않습니다.
+    }
   }, [step, data, showDraftPrompt])
 
   // Step별 validation
@@ -294,9 +264,9 @@ export default function Creator() {
     if (step === 3) {
       // 면제 적용 시 통과
       if (data.nutritionExempted) return true
-      // 직접 입력 선택 시 최소 1개 이상 입력 필요
+      // 의무 9개 항목 모두 입력 필요 (식품등의 표시기준 2024년 개정)
       const nutrKeys = ['calories','totalCarbs','sugar','protein','totalFat','saturatedFat','transFat','cholesterol','sodium'] as const
-      return nutrKeys.some(k => data[k].trim() !== '' && data[k] !== '0')
+      return nutrKeys.every(k => data[k].trim() !== '')
     }
     if (step === 4) return !hasBlockingPreviewIssues(data)
     return true
@@ -304,7 +274,7 @@ export default function Creator() {
 
   return (
     <div className="min-h-screen bg-[#F4F4F5] font-kr text-ink">
-      <CreatorHeader current={step} onHome={() => navigate('/')} />
+      <CreatorHeader current={step} onHome={() => navigate('/dashboard')} />
       {showDraftPrompt && draft && (
         <div className="fixed left-1/2 top-[82px] z-50 w-[calc(100%-32px)] max-w-[560px] -translate-x-1/2 border border-heritage-500 bg-white p-4 shadow-[0_18px_60px_rgba(10,10,11,0.16)]">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

@@ -31,7 +31,7 @@ interface Props {
 
 const STATUS_CFG = {
   violation: {
-    label:  '위반',
+    label:  '필수 확인',
     color:  'text-[#B30000]',
     bg:     'bg-[#FFF0F0]',
     border: 'border-[#B30000]',
@@ -39,7 +39,7 @@ const STATUS_CFG = {
     Icon:   AlertTriangle,
   },
   warn: {
-    label:  '경고',
+    label:  '보완 권장',
     color:  'text-[#C07A00]',
     bg:     'bg-[#FFF8E0]',
     border: 'border-[#C07A00]',
@@ -47,7 +47,7 @@ const STATUS_CFG = {
     Icon:   AlertCircle,
   },
   pass: {
-    label:  '통과',
+    label:  '기준 충족',
     color:  'text-heritage-500',
     bg:     'bg-[rgba(0,45,114,0.06)]',
     border: 'border-heritage-500',
@@ -56,13 +56,62 @@ const STATUS_CFG = {
   },
 } as const
 
+function DetailBlock({
+  label,
+  value,
+  tone = 'default',
+}: {
+  label: string
+  value?: string
+  tone?: 'default' | 'guide' | 'alert'
+}) {
+  if (!value) return null
+
+  const toneClass = tone === 'guide'
+    ? 'border-heritage-500/20 bg-[#F5F8FC]'
+    : tone === 'alert'
+    ? 'border-[#B30000]/20 bg-[#FFF8F8]'
+    : 'border-[rgba(10,10,11,0.1)] bg-white'
+
+  return (
+    <div className={`border px-3 py-2.5 ${toneClass}`}>
+      <p className="mb-1 font-en text-[9px] font-bold uppercase tracking-[0.1em] text-[rgba(10,10,11,0.35)]">
+        {label}
+      </p>
+      <p className="whitespace-pre-line font-kr text-[12px] leading-[1.65] text-[rgba(10,10,11,0.72)]">
+        {value}
+      </p>
+    </div>
+  )
+}
+
+function ActionItems({ items }: { items?: string[] }) {
+  if (!items?.length) return null
+
+  return (
+    <div className="border border-heritage-500/20 bg-white px-3 py-2.5">
+      <p className="mb-1.5 font-en text-[9px] font-bold uppercase tracking-[0.1em] text-[rgba(10,10,11,0.35)]">
+        다음 액션
+      </p>
+      <ul className="flex flex-col gap-1">
+        {items.map(item => (
+          <li key={item} className="flex gap-2 font-kr text-[12px] leading-[1.55] text-[rgba(10,10,11,0.72)]">
+            <span className="mt-[7px] h-1 w-1 flex-shrink-0 rounded-full bg-heritage-500" />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 // ─── 메인 컴포넌트 ─────────────────────────────────────────────────────────────
 
 export default function ReviewModal({ results, productName, onClose, onEdit }: Props) {
 
   const [filter,   setFilter]   = useState<FilterType>('all')
   const [expanded, setExpanded] = useState<Set<string>>(
-    // 위반·경고는 기본 펼침
+    // 필수 확인·보완 권장은 기본 펼침
     () => new Set(results.filter(r => r.status !== 'pass').map(r => r.id))
   )
 
@@ -136,9 +185,9 @@ export default function ReviewModal({ results, productName, onClose, onEdit }: P
         <div className="flex-shrink-0 flex border-b border-[rgba(10,10,11,0.08)]">
           {([
             ['all',       '전체',    null],
-            ['violation', '위반',    counts.violation],
-            ['warn',      '경고',    counts.warn],
-            ['pass',      '통과',    counts.pass],
+            ['violation', '필수 확인', counts.violation],
+            ['warn',      '보완 권장', counts.warn],
+            ['pass',      '기준 충족', counts.pass],
           ] as [FilterType, string, number | null][]).map(([key, label, count]) => (
             <button
               key={key}
@@ -209,22 +258,12 @@ export default function ReviewModal({ results, productName, onClose, onEdit }: P
                 {isOpen && (
                   <div className="px-5 pb-4 flex flex-col gap-3 bg-[rgba(10,10,11,0.02)]">
 
-                    {r.detail && (
-                      <p className="font-kr text-[12px] text-[rgba(10,10,11,0.65)] leading-[1.7]">
-                        {r.detail}
-                      </p>
-                    )}
-
-                    {r.suggestion && (
-                      <div className="flex gap-2.5 px-3 py-2.5 bg-white border border-[rgba(10,10,11,0.1)]">
-                        <span className="font-en text-[9px] font-bold uppercase tracking-[0.1em] text-[rgba(10,10,11,0.35)] flex-shrink-0 mt-[2px]">
-                          권고
-                        </span>
-                        <p className="font-kr text-[12px] text-ink leading-[1.65]">
-                          {r.suggestion}
-                        </p>
-                      </div>
-                    )}
+                    <DetailBlock label="현재 입력값" value={r.currentValue} />
+                    <DetailBlock label="감지 내역" value={r.detail} />
+                    <DetailBlock label="왜 문제인가" value={r.issueReason} tone={r.status === 'violation' ? 'alert' : 'default'} />
+                    <DetailBlock label="수정 방법" value={r.fixInstruction || r.suggestion} tone="guide" />
+                    <DetailBlock label="라벨 권장 문구" value={r.recommendedLabelText} tone="guide" />
+                    <ActionItems items={r.actionItems} />
 
                     {(r.penaltyRange || r.regulation) && (
                       <div className="flex flex-col gap-1">
@@ -235,11 +274,11 @@ export default function ReviewModal({ results, productName, onClose, onEdit }: P
                             {r.penaltyRange}
                           </p>
                         )}
-                        {r.regulation && (
+                        {(r.legalBasis || r.regulation) && (
                           <p className="font-kr text-[11px] text-[rgba(10,10,11,0.45)]">
                             <span className="font-semibold text-[rgba(10,10,11,0.5)]">근거 법령</span>
                             {' '}
-                            {r.regulation}
+                            {r.legalBasis || r.regulation}
                           </p>
                         )}
                       </div>

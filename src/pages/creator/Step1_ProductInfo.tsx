@@ -6,6 +6,10 @@ import { ALL_CATEGORIES } from '../../utils/tierUtils'
 
 const BUSINESS_TYPES = ['식품제조가공업', '즉판가공업'] as const
 const FACILITY_TYPES = ['단독', '공유'] as const
+const REPORT_NUMBER_STATUSES = [
+  { value: 'none_or_needed', label: '없음 · 신청 필요' },
+  { value: 'exists', label: '있음' },
+] as const
 const STORAGE_OPTIONS = [
   '실온 보관 (1~35℃)',
   '냉장 보관 (0~10℃)',
@@ -128,6 +132,33 @@ function FacilityGroup({
   )
 }
 
+function ReportNumberStatusGroup({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (value: typeof REPORT_NUMBER_STATUSES[number]['value']) => void
+}) {
+  return (
+    <div className="grid grid-cols-2 border border-[rgba(10,10,11,0.15)] bg-white">
+      {REPORT_NUMBER_STATUSES.map(item => (
+        <button
+          key={item.value}
+          type="button"
+          onClick={() => onChange(item.value)}
+          className={`min-h-[40px] border-l border-[rgba(10,10,11,0.08)] px-3 font-kr text-[13px] first:border-l-0 transition-colors ${
+            value === item.value
+              ? 'bg-ink font-semibold text-white'
+              : 'bg-white text-ink hover:bg-[rgba(10,10,11,0.04)]'
+          }`}
+        >
+          {item.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 function StorageGroup({
   value,
   onChange,
@@ -138,24 +169,18 @@ function StorageGroup({
   error?: boolean
 }) {
   return (
-    <div className={`mt-2 grid grid-cols-1 border bg-white ${error ? 'border-[#B30000]' : 'border-[rgba(10,10,11,0.15)]'}`}>
+    <select
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      className={`mt-2 h-[40px] w-full appearance-none border bg-white bg-[url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%230a0a0b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")] bg-[right_14px_center] bg-no-repeat px-[14px] pr-[36px] font-kr text-[13px] outline-none transition-colors focus:border-breath-500 ${
+        error ? 'border-[#B30000]' : 'border-[rgba(10,10,11,0.15)]'
+      } ${value ? 'text-ink' : 'text-[rgba(10,10,11,0.35)]'}`}
+    >
+      <option value="" disabled>보관방법을 선택해주세요</option>
       {STORAGE_OPTIONS.map(option => (
-        <button
-          key={option}
-          type="button"
-          aria-pressed={value === option}
-          onClick={() => onChange(option)}
-          className={`flex min-h-[40px] items-center justify-between border-t border-[rgba(10,10,11,0.08)] px-[14px] text-left font-kr text-[13px] first:border-t-0 transition-colors ${
-            value === option
-              ? 'bg-ink text-white font-semibold'
-              : 'bg-white text-ink hover:bg-[rgba(10,10,11,0.04)]'
-          }`}
-        >
-          <span>{option}</span>
-          {value === option && <Check size={13} strokeWidth={3} />}
-        </button>
+        <option key={option} value={option}>{option}</option>
       ))}
-    </div>
+    </select>
   )
 }
 
@@ -204,7 +229,6 @@ export default function Step1_ProductInfo({ data, onChange }: StepProps) {
     | 'facilityType'
     | 'totalWeight'
     | 'manufacturer'
-    | 'manufacturerAddress'
     | 'storage'
     | 'expiryDate'
 
@@ -215,7 +239,6 @@ export default function Step1_ProductInfo({ data, onChange }: StepProps) {
     facilityType: false,
     totalWeight: false,
     manufacturer: false,
-    manufacturerAddress: false,
     storage: false,
     expiryDate: false,
   })
@@ -231,7 +254,6 @@ export default function Step1_ProductInfo({ data, onChange }: StepProps) {
     facilityType: touched.facilityType && data.facilityType === '',
     totalWeight: touched.totalWeight && (!data.totalWeight.trim() || parseFloat(data.totalWeight) <= 0),
     manufacturer: touched.manufacturer && !data.manufacturer.trim(),
-    manufacturerAddress: touched.manufacturerAddress && !data.manufacturerAddress.trim(),
     storage: touched.storage && !data.storage,
     expiryDate: touched.expiryDate && !data.expiryDate,
   }
@@ -393,20 +415,57 @@ export default function Step1_ProductInfo({ data, onChange }: StepProps) {
           />
 
           <TextField
-            label="Manufacturer Address · 제조원 소재지"
+            label="제조원 소재지"
             value={data.manufacturerAddress}
             onChange={set('manufacturerAddress')}
-            onBlur={() => markTouched('manufacturerAddress')}
-            placeholder="예: 서울특별시 ○○구 ○○로 00"
-            error={errors.manufacturerAddress}
+            placeholder="예: 서울특별시 강남구 테헤란로 123"
           />
 
-          <TextField
-            label="Item Report No. · 품목보고번호"
-            value={data.itemReportNumber}
-            onChange={set('itemReportNumber')}
-            placeholder="식품제조가공업자는 입력 권장"
-          />
+          <div>
+            <div className="mb-2">
+              <SectionLabel>품목보고번호</SectionLabel>
+            </div>
+            <ReportNumberStatusGroup
+              value={data.reportNumberStatus}
+              onChange={reportNumberStatus => onChange({
+                reportNumberStatus,
+                ...(reportNumberStatus === 'none_or_needed' ? { reportNumber: '' } : {}),
+              })}
+            />
+            {data.reportNumberStatus === 'exists' ? (
+              <input
+                className="mt-2 h-[40px] w-full border border-[rgba(10,10,11,0.15)] bg-white px-[14px] font-en text-[13px] outline-none transition-colors placeholder:text-[rgba(10,10,11,0.35)] focus:border-breath-500"
+                placeholder="예: 1234567890123"
+                value={data.reportNumber}
+                onChange={set('reportNumber')}
+              />
+            ) : (
+              <p className="mt-2 font-kr text-[11px] leading-[1.55] text-[rgba(10,10,11,0.48)]">
+                {data.reportNumberStatus === 'none_or_needed'
+                  ? '출시 전이라면 품목제조보고 후 발급 번호를 최종 라벨에 반영해야 합니다.'
+                  : '품목제조보고 상태를 선택해주세요.'}
+              </p>
+            )}
+          </div>
+
+          <div className="md:col-span-2">
+            <div className="mb-2 flex flex-wrap items-center gap-2">
+              <SectionLabel>Label Claims · 표시/광고 문구</SectionLabel>
+              <span className="border border-[rgba(10,10,11,0.12)] px-2 py-0.5 font-kr text-[10px] text-[rgba(10,10,11,0.45)]">
+                선택
+              </span>
+            </div>
+            <textarea
+              className="input-field w-full resize-none"
+              rows={3}
+              placeholder="예: 무가당, 100% 국산 재료, 저칼로리"
+              value={data.labelClaim}
+              onChange={e => onChange({ labelClaim: e.target.value })}
+            />
+            <p className="mt-1.5 font-kr text-[11px] leading-[1.5] text-[rgba(10,10,11,0.4)]">
+              입력한 문구는 부당 표시·광고(R12)와 영양강조표시(R20) 검토에 반영됩니다.
+            </p>
+          </div>
 
           <div>
             <SectionLabel required error={errors.storage}>Storage · 보관방법</SectionLabel>
@@ -429,15 +488,6 @@ export default function Step1_ProductInfo({ data, onChange }: StepProps) {
             onBlur={() => markTouched('expiryDate')}
             error={errors.expiryDate}
           />
-
-          <div className="md:col-span-2">
-            <TextField
-              label="Label/Ad Claims · 표시/광고 문구"
-              value={data.marketingClaims}
-              onChange={set('marketingClaims')}
-              placeholder="예: 무가당, 저칼로리, 고단백 등 라벨/상세페이지에 쓰는 표현"
-            />
-          </div>
         </div>
       </div>
     </div>

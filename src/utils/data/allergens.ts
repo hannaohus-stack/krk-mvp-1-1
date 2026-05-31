@@ -1,5 +1,5 @@
 export const ALLERGEN_LIST = [
-  // 현행 표시 기준 22품목 체계(조개류 세부 품목 포함) + alias 매핑
+  // 식약처 지정 27개 알레르기 유발 물질 + alias 매핑
   { id: "A01", name: "난류", aliases: ["계란", "달걀", "egg", "전란", "난황", "난백", "메추리알"] },
   { id: "A02", name: "우유", aliases: ["milk", "유크림", "버터", "치즈", "생크림", "탈지분유", "전지분유", "유청", "카제인", "락토스"] },
   { id: "A03", name: "메밀", aliases: ["buckwheat", "메밀가루", "메밀분"] },
@@ -18,7 +18,15 @@ export const ALLERGEN_LIST = [
   { id: "A16", name: "쇠고기", aliases: ["beef", "우육", "소고기", "한우"] },
   { id: "A17", name: "오징어", aliases: ["squid", "오징어분말", "오징어먹물"] },
   { id: "A18", name: "조개류", aliases: ["조개", "clam", "굴", "홍합", "전복", "가리비", "바지락"] },
-  { id: "A19", name: "잣", aliases: ["pine nut", "잣오일"] }
+  { id: "A19", name: "잣", aliases: ["pine nut", "잣오일"] },
+  { id: "A20", name: "아몬드", aliases: ["almond", "아몬드오일", "아몬드분말"] },
+  { id: "A21", name: "캐슈넛", aliases: ["cashew", "캐슈"] },
+  { id: "A22", name: "피스타치오", aliases: ["pistachio"] },
+  { id: "A23", name: "브라질너트", aliases: ["brazil nut"] },
+  { id: "A24", name: "마카다미아", aliases: ["macadamia"] },
+  { id: "A25", name: "헤이즐넛", aliases: ["hazelnut", "헤이즐넛오일"] },
+  { id: "A26", name: "셀러리", aliases: ["celery", "셀러리추출물", "셀러리씨드"] },
+  { id: "A27", name: "겨자", aliases: ["mustard", "겨자분", "겨자씨", "황겨자"] }
 ];
 
 export type Allergen = typeof ALLERGEN_LIST[number];

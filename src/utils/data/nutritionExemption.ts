@@ -1,17 +1,17 @@
 export const NUTRITION_EXEMPTION_CRITERIA = [
   {
     id: "E01",
-    question: "연 매출액이 120억원 이하인 영업소인가요?",
-    regulation: "식품등의 표시기준 영양표시 단계적 적용 기준"
+    question: "연 매출이 1억원 미만인 사업자인가요?",
+    regulation: "식품등의 표시기준 제5조 제1항"
   },
   {
     id: "E02",
-    question: "2028년 전까지 단계적 적용 유예 대상인지 확인했나요?",
-    regulation: "식품등의 표시기준 영양표시 단계적 적용 기준"
+    question: "종업원 수가 50인 미만인 사업장인가요?",
+    regulation: "식품등의 표시기준 제5조 제1항"
   },
   {
     id: "E03",
-    question: "영양강조표시(무가당·저칼로리·고단백 등)를 사용하지 않나요?",
+    question: "영양성분 표시 의무 대상 식품(과자류, 빵류 등)에 해당하지 않나요?",
     regulation: "식품등의 표시기준 제5조 제2항 별표"
   }
 ];

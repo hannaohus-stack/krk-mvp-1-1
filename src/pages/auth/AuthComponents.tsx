@@ -6,6 +6,7 @@
  */
 import { Eye, EyeOff, AlertCircle } from 'lucide-react'
 import { useState } from 'react'
+import { supabase } from '../../lib/supabase'
 
 // ─── 인풋 필드 ─────────────────────────────────────────────────────────────────
 
@@ -107,13 +108,26 @@ export function AuthSubmitBtn({
   )
 }
 
-// ─── 카카오 버튼 (UI only) ─────────────────────────────────────────────────────
+// ─── 카카오 버튼 ───────────────────────────────────────────────────────────────
 
 export function KakaoBtn() {
+  const handleKakao = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'kakao',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    })
+    if (error) {
+      console.error('Kakao OAuth error:', error)
+      alert(error.message)
+    }
+  }
+
   return (
     <button
       type="button"
-      onClick={() => alert('카카오 로그인은 준비 중입니다.')}
+      onClick={handleKakao}
       className="w-full h-[46px] flex items-center justify-center gap-2 font-kr font-semibold text-[14px]
         transition-opacity hover:opacity-90"
       style={{ background: '#FEE500', color: '#000' }}

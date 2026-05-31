@@ -12,7 +12,7 @@ type Issue = {
   stepLabel: string
 }
 
-type NutrKey = 'calories' | 'totalCarbs' | 'sugar' | 'protein' | 'totalFat' | 'saturatedFat' | 'transFat' | 'cholesterol' | 'sodium'
+type NutrKey = 'calories' | 'totalCarbs' | 'sugar' | 'protein' | 'totalFat' | 'sodium'
 
 const NUTR_ROWS: { key: NutrKey; label: string; unit: string; indent?: boolean }[] = [
   { key: 'calories', label: '열량', unit: 'kcal' },
@@ -20,9 +20,6 @@ const NUTR_ROWS: { key: NutrKey; label: string; unit: string; indent?: boolean }
   { key: 'sugar', label: '당류', unit: 'g', indent: true },
   { key: 'protein', label: '단백질', unit: 'g' },
   { key: 'totalFat', label: '지방', unit: 'g' },
-  { key: 'saturatedFat', label: '포화지방', unit: 'g', indent: true },
-  { key: 'transFat', label: '트랜스지방', unit: 'g', indent: true },
-  { key: 'cholesterol', label: '콜레스테롤', unit: 'mg' },
   { key: 'sodium', label: '나트륨', unit: 'mg' },
 ]
 
@@ -48,10 +45,7 @@ function buildIssues(data: CreatorData): Issue[] {
     issues.push({ id: 'weight', kind: 'error', title: '내용량 누락', desc: '내용량은 제품 표시의 필수 항목입니다.', stepIdx: 1, stepLabel: '제품 정보' })
   }
   if (!data.manufacturer.trim()) {
-    issues.push({ id: 'manufacturer', kind: 'error', title: '제조원 누락', desc: '제조업소명과 소재지 병기 여부 확인이 필요합니다.', stepIdx: 1, stepLabel: '제품 정보' })
-  }
-  if (!data.manufacturerAddress.trim()) {
-    issues.push({ id: 'manufacturerAddress', kind: 'error', title: '제조원 소재지 누락', desc: '제조업소 소재지는 라벨 표시사항에 필요합니다.', stepIdx: 1, stepLabel: '제품 정보' })
+    issues.push({ id: 'manufacturer', kind: 'error', title: '제조원 누락', desc: '제조업소명과 소재지/신고번호 병기 여부 확인이 필요합니다.', stepIdx: 1, stepLabel: '제품 정보' })
   }
   if (!data.storage) {
     issues.push({ id: 'storage', kind: 'error', title: '보관방법 누락', desc: '개봉 전후 보관조건을 라벨에 표시할 수 있어야 합니다.', stepIdx: 1, stepLabel: '제품 정보' })
@@ -61,12 +55,6 @@ function buildIssues(data: CreatorData): Issue[] {
   }
   if (data.ingredients.length === 0) {
     issues.push({ id: 'ingredients', kind: 'error', title: '원재료 없음', desc: '원재료명 및 함량 순서 검토를 위해 1개 이상 입력해야 합니다.', stepIdx: 2, stepLabel: '원재료' })
-  }
-  if (data.ingredients.some(ingredient => ingredient.name.trim() && !ingredient.origin.trim())) {
-    issues.push({ id: 'origin', kind: 'warn', title: '원산지 입력 확인', desc: '원산지 표시 대상 원료 판단과 라벨 생성을 위해 원재료별 원산지를 입력하세요.', stepIdx: 2, stepLabel: '원재료' })
-  }
-  if (data.facilityType === '공유' && data.sharedFacilityAllergens.length === 0) {
-    issues.push({ id: 'sharedAllergens', kind: 'warn', title: '공유시설 알레르기 확인', desc: '같은 시설에서 취급되는 알레르기 유발물질을 확인해야 혼입 가능성 표시를 판단할 수 있습니다.', stepIdx: 2, stepLabel: '원재료' })
   }
 
   const totalWeight = parseFloat(data.totalWeight)
@@ -157,11 +145,10 @@ function BackLabel({ data }: { data: CreatorData }) {
               const pct = totalIngredientWeight > 0
                 ? ` ${((parseFloat(ing.weight) || 0) / totalIngredientWeight * 100).toFixed(1)}%`
                 : ''
-              const origin = ing.origin ? `(${ing.origin})` : '(원산지 입력 필요)'
               return (
                 <span key={ing.id}>
                   {index > 0 && ', '}
-                  <strong className={ing.isAllergen ? 'text-[#B30000]' : ''}>{ing.name || '원재료'}</strong>{origin}{pct}
+                  <strong className={ing.isAllergen ? 'text-[#B30000]' : ''}>{ing.name || '원재료'}</strong>{pct}
                 </span>
               )
             }) : <span className="text-[rgba(10,10,11,0.35)]">원재료를 입력해주세요.</span>}
@@ -189,7 +176,7 @@ function BackLabel({ data }: { data: CreatorData }) {
         {data.nutritionExempted ? (
           <div className="border border-[rgba(10,10,11,0.14)] bg-[rgba(10,10,11,0.02)] px-3 py-2">
             <p className="font-semibold">영양성분</p>
-            <p className="text-[rgba(10,10,11,0.55)]">영양표시 면제 가능</p>
+            <p className="text-[rgba(10,10,11,0.55)]">소규모 제조업 면제 적용</p>
           </div>
         ) : (
           <div className="border border-ink">
@@ -208,12 +195,7 @@ function BackLabel({ data }: { data: CreatorData }) {
         <div className="grid grid-cols-[1fr_82px] gap-3 border-t-2 border-ink pt-3">
           <div>
             <p><strong>제조원</strong> {data.manufacturer || '제조원 입력 필요'}</p>
-            <p><strong>소재지</strong> {data.manufacturerAddress || '소재지 입력 필요'}</p>
-            <p><strong>품목보고번호</strong> {data.itemReportNumber || (data.businessType === '식품제조가공업' ? '입력 필요' : '해당 시 입력')}</p>
             <p><strong>포장재질</strong> {(data.packagingMaterials ?? []).join(', ') || '미선택'}</p>
-            {data.facilityType === '공유' && (
-              <p><strong>혼입표시</strong> {data.sharedFacilityAllergens.length > 0 ? `${data.sharedFacilityAllergens.join(', ')} 사용 제품과 같은 제조시설` : '확인 필요'}</p>
-            )}
           </div>
           <div className="flex h-[54px] items-center justify-center bg-[repeating-linear-gradient(90deg,#0A0A0B_0,#0A0A0B_2px,#fff_2px,#fff_5px)]" />
         </div>

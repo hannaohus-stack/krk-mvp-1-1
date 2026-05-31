@@ -51,7 +51,7 @@ export async function createPdfDoc(): Promise<jsPDF> {
   const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
   const fontBase64 = await loadFontBase64()
   doc.addFileToVFS('NotoSansGothic-Regular.ttf', fontBase64)
-  doc.addFont('NotoSansGothic-Regular.ttf', FONT_NAME, 'normal', 'Identity-H')
+  doc.addFont('NotoSansGothic-Regular.ttf', FONT_NAME, 'normal')
   doc.setFont(FONT_NAME, 'normal')
   return doc
 }
@@ -79,7 +79,7 @@ export async function createRasterPdfArtifact(html: string, filename: string): P
     ctx.fillRect(0, 0, canvas.width, canvas.height)
     ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
     const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
-    doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297)
+    doc.addImage(canvas.toDataURL('image/jpeg', 0.90), 'JPEG', 0, 0, 210, 297)
     return saveDocAsArtifact(doc, filename)
   } finally {
     URL.revokeObjectURL(url)
@@ -100,7 +100,7 @@ export async function createCanvasPdfArtifact(
   ctx.fillRect(0, 0, 794, 1123)
   draw(ctx)
   const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
-  doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297)
+  doc.addImage(canvas.toDataURL('image/jpeg', 0.90), 'JPEG', 0, 0, 210, 297)
   return saveDocAsArtifact(doc, filename)
 }
 

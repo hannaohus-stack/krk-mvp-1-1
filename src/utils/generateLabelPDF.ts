@@ -34,19 +34,22 @@ const SYS_WARN = '#B07A1A'
 // ─── GAP 6: 포장재 재활용 마크 맵 (식품등의 표시기준 별표 7) ──────────────────────
 const RECYCLING_FILE_MAP: Record<string, string> = {
   '페트(PET)':              '/recycling/plastic-pet.svg',
-  '고밀도 폴리에틸렌(HDPE)':  '/recycling/plastic-pe.svg',
-  '폴리염화비닐(PVC)':        '/recycling/plastic-pe.svg',
-  '저밀도 폴리에틸렌(LDPE)':  '/recycling/plastic-pe.svg',
+  '고밀도 폴리에틸렌(HDPE)':  '/recycling/plastic-hdpe.svg',
+  '폴리염화비닐(PVC)':        '/recycling/plastic-other.svg',
+  '저밀도 폴리에틸렌(LDPE)':  '/recycling/plastic-ldpe.svg',
   '폴리프로필렌(PP)':         '/recycling/plastic-pp.svg',
   '폴리스티렌(PS)':           '/recycling/plastic-ps.svg',
-  '기타 플라스틱':             '/recycling/plastic-pe.svg',
+  '기타 플라스틱':             '/recycling/plastic-other.svg',
   '유리':                    '/recycling/glass.svg',
   '철':                     '/recycling/can-steel.svg',
   '알루미늄':                 '/recycling/can-aluminum.svg',
-  '종이팩':                  '/recycling/paper.svg',
+  '종이팩':                  '/recycling/paper-pack.svg',
+  '멸균팩':                  '/recycling/paper-pack2.svg',
+  '도포·첩합류(빨간)':        '/recycling/laminated-red.svg',
+  '도포·첩합류(검정)':        '/recycling/laminated-black.svg',
   '골판지':                  '/recycling/paper.svg',
   '일반 종이':               '/recycling/paper.svg',
-  '비닐류':                  '/recycling/vinyl.svg',
+  '비닐류':                  '/recycling/vinyl-ldpe.svg',
   '스티로폼':                '/recycling/plastic-ps.svg',
 }
 
@@ -169,8 +172,7 @@ function buildBackLabel(data: CreatorData, appOrigin: string): string {
   // ingredient 이름이 알레르겐이면 bold
   const ingredientHtml = sortedIngs.map((ing, i) => {
     const pct  = totalW > 0 ? `(${((parseFloat(ing.weight)||0)/totalW*100).toFixed(1)}%)` : ''
-    const origin = ing.origin ? `(${ing.origin})` : '(원산지 입력 필요)'
-    const text = `${ing.name}${origin}${pct}`
+    const text = `${ing.name}${pct}`
     const bold = ing.isAllergen || allergenNames.has(ing.name)
     return `<span style="${bold ? `font-weight:700;` : ''}">${text}</span>${i < sortedIngs.length-1 ? '<span style="color:'+FAINT+';">, </span>' : ''}`
   }).join('')
@@ -190,7 +192,9 @@ function buildBackLabel(data: CreatorData, appOrigin: string): string {
         <div style="font-weight:700;color:${INK};font-size:8pt;">
           ${allergens.join(' · ')} 함유
         </div>
-        ${data.facilityType === '공유' && data.sharedFacilityAllergens.length > 0 ? `<div style="color:${FAINT};font-size:7pt;margin-top:0.5mm;">이 제품은 ${data.sharedFacilityAllergens.join('·')}을 사용한 제품과 같은 제조시설에서 제조하고 있습니다.</div>` : ''}
+        <div style="color:${FAINT};font-size:7pt;margin-top:0.5mm;">
+          같은 제조시설에서 우유·대두를 사용한 제품 생산
+        </div>
       </div>
     </div>` : ''
 
@@ -198,8 +202,8 @@ function buildBackLabel(data: CreatorData, appOrigin: string): string {
   const nutritionHtml = data.nutritionExempted
     ? `<div style="margin:1.5mm 0;padding:1.5mm 2mm;border:0.25mm dashed ${HAIRLINE};
         background:rgba(10,10,11,0.02);font-size:7pt;color:${FAINT};line-height:1.5;">
-        <b style="color:${INK};font-weight:600;">영양표시 면제 가능</b><br/>
-        입력값 기준 면제 가능 상태입니다. 영양강조표시 사용 시 표시 의무가 생길 수 있습니다.
+        <b style="color:${INK};font-weight:600;">소규모 제조업 면제 적용</b><br/>
+        식품등의 표시기준에 따라 영양성분 표시가 면제되는 사업장입니다.
       </div>`
     : (() => {
         const rows = [
@@ -208,9 +212,6 @@ function buildBackLabel(data: CreatorData, appOrigin: string): string {
           { k: '└ 당류',  v: data.sugar       ? `${data.sugar}g`        : '—' },
           { k: '단백질',   v: data.protein     ? `${data.protein}g`      : '—' },
           { k: '지방',     v: data.totalFat    ? `${data.totalFat}g`     : '—' },
-          { k: '└ 포화지방', v: data.saturatedFat ? `${data.saturatedFat}g` : '—' },
-          { k: '└ 트랜스지방', v: data.transFat ? `${data.transFat}g` : '—' },
-          { k: '콜레스테롤', v: data.cholesterol ? `${data.cholesterol}mg` : '—' },
           { k: '나트륨',   v: data.sodium      ? `${data.sodium}mg`      : '—' },
         ]
         const hasAny = rows.some(r => r.v !== '—')
@@ -278,12 +279,12 @@ function buildBackLabel(data: CreatorData, appOrigin: string): string {
     <!-- 소비기한 / 보관방법 -->
     ${row('소비기한', data.expiryDate ? `${data.expiryDate.replace(/-/g,'.')} 까지` : '—')}
     ${row('보관방법', data.storage || '—')}
-    ${row('제조원', `${data.manufacturer || '—'}${data.manufacturerAddress ? ` / ${data.manufacturerAddress}` : ' / 소재지 입력 필요'}`)}
-    ${row('품목보고번호', data.itemReportNumber || (data.businessType === '식품제조가공업' ? '입력 필요' : '해당 시 입력'))}
 
     <!-- 영양성분 -->
     ${nutritionHtml}
 
+    <!-- 제조원 -->
+    ${row('제조원', data.manufacturer || '—')}
     ${row('반품/교환', '구입처 또는 제조원에 문의')}
 
     <!-- GAP 4: 부정·불량식품 신고 1399 — 독립 의무 표시 (식품표시법 제10조) -->
@@ -336,19 +337,15 @@ export async function createLabelPDFArtifact(data: CreatorData): Promise<Downloa
         : item.weight
         ? ` ${item.weight}g`
         : ''
-      const origin = item.origin ? `(${item.origin})` : '(원산지 입력 필요)'
-      return `${item.name}${origin}${pct}`
+      return `${item.name}${pct}`
     })
     .join(', ') || '—'
   const labelAllergens = Array.from(new Set([
     ...data.ingredients.filter(item => item.isAllergen).map(item => item.name),
     ...data.detectedAllergens.map(item => item.name),
   ]))
-  const sharedAllergenNotice = data.facilityType === '공유' && data.sharedFacilityAllergens.length > 0
-    ? `이 제품은 ${data.sharedFacilityAllergens.join(', ')}을 사용한 제품과 같은 제조시설에서 제조하고 있습니다.`
-    : ''
   const labelNutrition = data.nutritionExempted
-    ? '영양표시 면제 가능(영양강조표시 사용 시 의무 발생 가능)'
+    ? '소규모 제조업 영양성분 표시 면제 적용'
     : [
         data.calories && `열량 ${data.calories}kcal`,
         data.totalCarbs && `탄수화물 ${data.totalCarbs}g`,
@@ -362,12 +359,6 @@ export async function createLabelPDFArtifact(data: CreatorData): Promise<Downloa
       ].filter(Boolean).join(' · ') || '—'
   const crop = '<span style="position:absolute;width:18px;height:18px;border-color:#9A9AA0;"></span>'
 
-  const packagingDisplay = (data.packagingMaterials ?? []).join(', ') || '포장재질 입력 필요'
-
-  // Canvas preview kept below for reference, but the actual label PDF uses the
-  // jsPDF path plus a full 표시사항 page so required text is not silently cut.
-  void createCanvasPdfArtifact
-  void createRasterPdfArtifact
   return createCanvasPdfArtifact(filename, ctx => {
     ctx.fillStyle = HERITAGE
     ctx.fillRect(0, 0, 794, 68)
@@ -475,11 +466,6 @@ export async function createLabelPDFArtifact(data: CreatorData): Promise<Downloa
     ctx.fillStyle = INK
     ctx.font = '11px "Apple SD Gothic Neo", system-ui'
     ctx.fillText(labelAllergens.length ? `${labelAllergens.join(', ')} 함유` : '해당 없음', backX + 30, y + 46)
-    if (sharedAllergenNotice) {
-      ctx.font = '9px "Apple SD Gothic Neo", system-ui'
-      ctx.fillStyle = '#77777B'
-      drawCanvasText(ctx, sharedAllergenNotice, backX + 30, y + 60, 240, 12, 2)
-    }
     y += 82
     const infoRow = (label: string, value: string, maxLines = 1) => {
       ctx.fillStyle = '#77777B'
@@ -492,9 +478,7 @@ export async function createLabelPDFArtifact(data: CreatorData): Promise<Downloa
     infoRow('소비기한', data.expiryDate || '별도 표기')
     infoRow('보관방법', data.storage || '—', 2)
     infoRow('영양성분', labelNutrition, 2)
-    infoRow('제조원', `${data.manufacturer || '—'} / ${data.manufacturerAddress || '소재지 입력 필요'}`, 2)
-    infoRow('품목번호', data.itemReportNumber || (data.businessType === '식품제조가공업' ? '입력 필요' : '해당 시 입력'))
-    infoRow('포장재질', packagingDisplay, 2)
+    infoRow('제조원', data.manufacturer || '—')
     infoRow('제조유형', data.businessType || '—')
     ctx.fillStyle = INK
     ctx.fillRect(backX + 18, labelY + 348, 266, 34)
@@ -574,13 +558,12 @@ export async function createLabelPDFArtifact(data: CreatorData): Promise<Downloa
             <span style="position:absolute;right:-16px;bottom:-1px;width:10px;border-top:1px solid #9A9AA0;"></span><span style="position:absolute;right:-1px;bottom:-16px;height:10px;border-left:1px solid #9A9AA0;"></span>
             <div style="display:flex;justify-content:space-between;font-weight:700;margin-bottom:8px;"><span>${escapePdfHtml(data.productName || '제품명')} · ${escapePdfHtml(data.totalWeight || '—')}${escapePdfHtml(data.unit)}</span><span style="color:${FAINT};font-size:10px;">BACK</span></div>
             <div style="border-top:1px solid ${HAIRLINE};padding-top:9px;"><b style="display:block;color:${FAINT};font-size:10px;margin-bottom:4px;">원재료명 및 함량</b>${escapePdfHtml(labelIngredients)}</div>
-            <div style="border:1px solid ${HERITAGE};background:rgba(0,45,114,.04);padding:9px 10px;margin-top:10px;"><b style="display:block;color:${HERITAGE};font-size:11px;">알레르기 유발물질</b><span>${escapePdfHtml(labelAllergens.length ? `${labelAllergens.join(', ')} 함유` : '해당 없음')}</span>${sharedAllergenNotice ? `<div style="margin-top:4px;color:${FAINT};font-size:9px;line-height:1.45;">${escapePdfHtml(sharedAllergenNotice)}</div>` : ''}</div>
+            <div style="border:1px solid ${HERITAGE};background:rgba(0,45,114,.04);padding:9px 10px;margin-top:10px;"><b style="display:block;color:${HERITAGE};font-size:11px;">알레르기 유발물질</b><span>${escapePdfHtml(labelAllergens.length ? `${labelAllergens.join(', ')} 함유` : '해당 없음')}</span></div>
             <div style="display:grid;grid-template-columns:58px 1fr;gap:6px 10px;border-top:1px solid ${HAIRLINE};margin-top:10px;padding-top:9px;">
               <b style="color:${FAINT};font-size:10px;">소비기한</b><span>${escapePdfHtml(data.expiryDate || '별도 표기')}</span>
               <b style="color:${FAINT};font-size:10px;">보관방법</b><span>${escapePdfHtml(data.storage || '—')}</span>
               <b style="color:${FAINT};font-size:10px;">영양성분</b><span>${escapePdfHtml(labelNutrition)}</span>
-              <b style="color:${FAINT};font-size:10px;">제조원</b><span>${escapePdfHtml(`${data.manufacturer || '—'} / ${data.manufacturerAddress || '소재지 입력 필요'}`)}</span>
-              <b style="color:${FAINT};font-size:10px;">품목번호</b><span>${escapePdfHtml(data.itemReportNumber || (data.businessType === '식품제조가공업' ? '입력 필요' : '해당 시 입력'))}</span>
+              <b style="color:${FAINT};font-size:10px;">제조원</b><span>${escapePdfHtml(data.manufacturer || '—')}</span>
               <b style="color:${FAINT};font-size:10px;">제조유형</b><span>${escapePdfHtml(data.businessType || '—')}</span>
             </div>
             <div style="background:${INK};color:#fff;margin-top:12px;padding:8px 10px;display:flex;justify-content:space-between;font-weight:700;"><span>부정·불량식품 신고는 국번 없이</span><span>1399</span></div>
@@ -605,7 +588,7 @@ export async function createLabelPDFArtifact(data: CreatorData): Promise<Downloa
       </div>
     </section>`
 
-  void html
+  return createRasterPdfArtifact(html, filename)
 
   const doc = await createPdfDoc()
   const officialCategory = data.categories.length > 0
@@ -621,27 +604,20 @@ export async function createLabelPDFArtifact(data: CreatorData): Promise<Downloa
         : item.weight
         ? ` ${item.weight}g`
         : ''
-      const origin = item.origin ? `(${item.origin})` : '(원산지 입력 필요)'
-      return `${item.name}${origin}${pct}`
+      return `${item.name}${pct}`
     })
     .join(', ') || '—'
   const allergens = Array.from(new Set([
     ...data.ingredients.filter(item => item.isAllergen).map(item => item.name),
     ...data.detectedAllergens.map(item => item.name),
   ]))
-  const pdfSharedAllergenNotice = data.facilityType === '공유' && data.sharedFacilityAllergens.length > 0
-    ? `이 제품은 ${data.sharedFacilityAllergens.join(', ')}을 사용한 제품과 같은 제조시설에서 제조하고 있습니다.`
-    : ''
   const nutrition = data.nutritionExempted
-    ? '영양표시 면제 가능(영양강조표시 사용 시 의무 발생 가능)'
+    ? '소규모 제조업 영양성분 표시 면제 적용'
     : [
         data.calories && `열량 ${data.calories}kcal`,
         data.totalCarbs && `탄수화물 ${data.totalCarbs}g`,
         data.sugar && `당류 ${data.sugar}g`,
         data.totalFat && `지방 ${data.totalFat}g`,
-        data.saturatedFat && `포화지방 ${data.saturatedFat}g`,
-        data.transFat && `트랜스지방 ${data.transFat}g`,
-        data.cholesterol && `콜레스테롤 ${data.cholesterol}mg`,
         data.protein && `단백질 ${data.protein}g`,
         data.sodium && `나트륨 ${data.sodium}mg`,
       ].filter(Boolean).join(' · ') || '—'
@@ -739,9 +715,7 @@ export async function createLabelPDFArtifact(data: CreatorData): Promise<Downloa
   row('소비기한', data.expiryDate || '별도 표기')
   row('보관방법', data.storage || '—', 2)
   row('영양성분', nutrition, 2)
-  row('제조원', `${data.manufacturer || '—'} / ${data.manufacturerAddress || '소재지 입력 필요'}`, 2)
-  row('품목번호', data.itemReportNumber || (data.businessType === '식품제조가공업' ? '입력 필요' : '해당 시 입력'))
-  row('포장재질', packagingDisplay, 2)
+  row('제조원', data.manufacturer || '—', 2)
   row('제조 유형', data.businessType || '—')
 
   doc.setFillColor(10, 10, 11)
@@ -766,58 +740,17 @@ export async function createLabelPDFArtifact(data: CreatorData): Promise<Downloa
   doc.rect(backX + backW - 18, barY, 9, 9)
   doc.setFontSize(5.5)
   doc.text('분리배출', backX + backW - 30, barY + 12)
-  doc.text(packagingDisplay.slice(0, 8), backX + backW - 18, barY + 12)
+  doc.text('재활용', backX + backW - 17, barY + 12)
 
   doc.setTextColor(PDF_COLORS.faint)
   doc.setFontSize(7)
   doc.text('전면 / FRONT', frontX, 166)
   doc.text('후면 / BACK', backX, 166)
-  doc.text(`포장재질: ${packagingDisplay}`, 14, 181)
+  doc.text(`포장재질: ${(data.packagingMaterials ?? []).join(', ') || '—'}`, 14, 181)
   doc.text('인쇄 안내: PDF를 실제 크기 100%로 출력한 뒤 크롭 마크 기준으로 재단하세요.', 14, 197)
   doc.text('부착 안내: 최종 라벨은 용기 재질과 냉장/상온 환경에서 번짐 여부를 확인하세요.', 14, 207)
   doc.text('법적 고지: 본 라벨은 입력값 기반 자동 생성 초안이며, 최종 표시는 사업자가 확인해야 합니다.', 14, 217)
   drawPdfFooter(doc, '식품 라벨 인쇄용 · 표시 기준 참고 산출물')
-
-  doc.addPage()
-  drawPdfHeader(doc, 'PDF-01 식품 라벨 · 전체 표시사항', new Date().toLocaleDateString('ko-KR'))
-  doc.setTextColor(PDF_COLORS.ink)
-  doc.setFontSize(15)
-  doc.text('라벨 전체 표시사항 확인용', 14, 34)
-  doc.setTextColor(PDF_COLORS.faint)
-  doc.setFontSize(8.5)
-  doc.text('인쇄 라벨 영역에 긴 문구가 축약될 수 있어, 전체 원문을 별도 페이지에 함께 제공합니다.', 14, 42)
-
-  const fullRows: Array<[string, string]> = [
-    ['제품명', data.productName || '—'],
-    ['식품유형', officialCategory],
-    ['내용량', `${data.totalWeight || '—'}${data.unit}`],
-    ['원재료명 및 함량', ingredients],
-    ['알레르기 유발물질', allergens.length ? `${allergens.join(', ')} 함유` : '해당 없음'],
-    ['공유시설 혼입 표시', pdfSharedAllergenNotice || '해당 없음'],
-    ['소비기한', data.expiryDate || '별도 표기'],
-    ['보관방법', data.storage || '—'],
-    ['영양성분', nutrition],
-    ['제조원', `${data.manufacturer || '—'} / ${data.manufacturerAddress || '소재지 입력 필요'}`],
-    ['품목보고번호', data.itemReportNumber || (data.businessType === '식품제조가공업' ? '입력 필요' : '해당 시 입력')],
-    ['포장재질', packagingDisplay],
-    ['제조유형', data.businessType || '—'],
-  ]
-  let fullY = 54
-  fullRows.forEach(([label, value]) => {
-    if (fullY > 248) {
-      doc.addPage()
-      drawPdfHeader(doc, 'PDF-01 식품 라벨 · 전체 표시사항 계속', new Date().toLocaleDateString('ko-KR'))
-      fullY = 34
-    }
-    doc.setTextColor(PDF_COLORS.faint)
-    doc.setFontSize(8)
-    doc.text(label, 14, fullY)
-    fullY = addWrappedText(doc, value, 52, fullY, 142, 4.5, { size: 8.6, color: PDF_COLORS.ink })
-    doc.setDrawColor(PDF_COLORS.hairline)
-    doc.line(14, fullY + 1.5, 196, fullY + 1.5)
-    fullY += 7
-  })
-  drawPdfFooter(doc, '식품 라벨 전체 표시사항 · 최종 판매 전 사업자 확인 필요')
 
   return saveDocAsArtifact(doc, filename)
 }

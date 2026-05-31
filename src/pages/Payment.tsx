@@ -1,8 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { useLocation, useNavigate, Navigate } from 'react-router-dom'
 import { AlertCircle, Check, ChevronLeft, CreditCard, LockKeyhole, ShieldCheck } from 'lucide-react'
-import { loadPaymentWidget } from '@tosspayments/payment-widget-sdk'
-import type { PaymentWidgetInstance } from '@tosspayments/payment-widget-sdk'
 import LogoLockup from '../components/LogoLockup'
 import type { Ingredient } from '../utils/parsing'
 import type { Metadata } from './ReviewResult'
@@ -11,9 +9,14 @@ import type { ServiceTier } from '../utils/tierUtils'
 
 type ServiceType = 'basic' | 'pro'
 
-const TOSS_CLIENT_KEY = import.meta.env.VITE_TOSS_CLIENT_KEY as string | undefined
-const IS_MOCK = !TOSS_CLIENT_KEY
-  || (!TOSS_CLIENT_KEY.startsWith('test_ck_') && !TOSS_CLIENT_KEY.startsWith('live_ck_'))
+// ─── Lemon Squeezy Variant IDs (공개 OK — API Key 아님) ───────────────────────
+const LS_VARIANT: Record<ServiceType, string> = {
+  basic: import.meta.env.VITE_LS_BASIC_VARIANT_ID as string,
+  pro:   import.meta.env.VITE_LS_PRO_VARIANT_ID   as string,
+}
+
+// ─── Supabase Edge Function URL ───────────────────────────────────────────────
+const LS_CHECKOUT_FN = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/lemonsqueezy-checkout`
 
 const SERVICES: Record<ServiceType, {
   eyebrow: string
@@ -34,13 +37,12 @@ const SERVICES: Record<ServiceType, {
   },
   pro: {
     eyebrow: 'Professional Guide',
-    name: '전문 수정 가이드 PDF',
+    name: '전문 수정 가이드',
     price: 19900,
     files: [
-      { name: '전문 수정 가이드 PDF', use: '항목별 수정 방법 · 권장 문구' },
       { name: '라벨 PDF', use: '인쇄용 · A4' },
       { name: '라벨 PNG', use: '웹 · 스마트스토어' },
-      { name: '신고 입력 가이드', use: '정부24 참고용' },
+      { name: '품목제조보고 입력 가이드', use: '정부24 참고용' },
       { name: 'krk 라벨 검토 리포트', use: '자율 점검 기록' },
       { name: '분리배출 마크 ZIP', use: '환경부 공식 도안' },
     ],
@@ -49,7 +51,6 @@ const SERVICES: Record<ServiceType, {
 }
 
 const fmtKRW = (value: number) => value.toLocaleString('ko-KR')
-
 const serviceToTier = (service: ServiceType): ServiceTier => service === 'basic' ? 'tier1' : 'tier2'
 
 function normalizeService(state: NonNullable<PaymentRouteState>): ServiceType {
@@ -66,6 +67,7 @@ type PaymentRouteState = {
   creatorData?: CreatorData
 } | null
 
+// ─── Header ──────────────────────────────────────────────────────────────────
 function Header({ onBack }: { onBack: () => void }) {
   return (
     <nav className="sticky top-0 z-40 border-b border-[rgba(10,10,11,0.1)] bg-white/75 px-5 py-4 backdrop-blur-[18px] md:px-12">
@@ -87,6 +89,7 @@ function Header({ onBack }: { onBack: () => void }) {
   )
 }
 
+// ─── OrderSummary ─────────────────────────────────────────────────────────────
 function OrderSummary({
   metadata,
   service,
@@ -137,77 +140,67 @@ function OrderSummary({
   )
 }
 
+// ─── TEST MODE: 결제 스킵 (테스트 시에만 true) ────────────────────────────────
+const TEST_MODE = true
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 export default function Payment() {
   const navigate = useNavigate()
   const location = useLocation()
-  const widgetRef = useRef<PaymentWidgetInstance | null>(null)
-  const [loading, setLoading] = useState(true)
+
   const [paying, setPaying] = useState(false)
-  const [widgetError, setWidgetError] = useState<string | null>(null)
+  const [error, setError]   = useState<string | null>(null)
 
   const state = location.state as PaymentRouteState
   if (!state?.ingredients || !state?.metadata) return <Navigate to="/" replace />
 
   const { ingredients, metadata, creatorData } = state
   const service = normalizeService(state)
-  const tier = serviceToTier(service)
-  const cfg = SERVICES[service]
+  const tier    = serviceToTier(service)
+  const cfg     = SERVICES[service]
 
-  useEffect(() => {
-    if (IS_MOCK) {
-      setLoading(false)
-      return
-    }
-
-    let mounted = true
-    ;(async () => {
-      try {
-        const widget = await loadPaymentWidget(TOSS_CLIENT_KEY!, 'ANONYMOUS')
-        if (!mounted) return
-        widgetRef.current = widget
-        await Promise.all([
-          widget.renderPaymentMethods('#toss-payment-widget', { value: cfg.price }),
-          widget.renderAgreement('#toss-agreement'),
-        ])
-        setLoading(false)
-      } catch (e) {
-        console.error('[Toss] 위젯 초기화 실패', e)
-        if (!mounted) return
-        setWidgetError('결제 위젯을 불러오지 못했습니다. 새로고침 후 다시 시도해주세요.')
-        setLoading(false)
-      }
-    })()
-
-    return () => { mounted = false }
-  }, [cfg.price])
-
+  // ── 결제 핸들러 ─────────────────────────────────────────────────────────────
   const handlePay = async () => {
     if (paying) return
     setPaying(true)
+    setError(null)
 
-    if (IS_MOCK) {
+    // TEST_MODE: 결제 스킵 → PaymentComplete로 직행
+    if (TEST_MODE) {
       navigate('/payment/complete', {
-        state: { ingredients, metadata, service, tier, success: true, creatorData },
+        replace: true,
+        state: { ingredients, metadata, service, tier, creatorData, success: true },
       })
       return
     }
 
-    sessionStorage.setItem(
-      'krk_payment_state',
-      JSON.stringify({ ingredients, metadata, service, tier, creatorData }),
-    )
-
     try {
-      const orderId = `KRK-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`
-      await widgetRef.current!.requestPayment({
-        orderId,
-        orderName: cfg.name,
-        customerName: '',
-        successUrl: `${window.location.origin}/checker/payment/complete`,
-        failUrl: `${window.location.origin}/checker/payment/fail`,
+      const res = await fetch(LS_CHECKOUT_FN, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          variantId: LS_VARIANT[service],
+          userId: null,
+          redirectUrl: `${window.location.origin}/payment/complete`,
+        }),
       })
+
+      if (!res.ok) throw new Error('checkout_failed')
+      const { checkoutUrl } = await res.json()
+
+      // sessionStorage 보존 (redirect 복귀 후 사용)
+      sessionStorage.setItem(
+        'krk_payment_state',
+        JSON.stringify({ ingredients, metadata, service, tier, creatorData }),
+      )
+
+      window.location.href = checkoutUrl
     } catch (e) {
-      console.error('[Toss] 결제 요청 실패', e)
+      console.error('[LemonSqueezy] 결제 요청 실패', e)
+      setError('결제 페이지를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.')
       setPaying(false)
     }
   }
@@ -231,7 +224,7 @@ export default function Payment() {
           </div>
           <div className="flex items-center gap-2 border border-[rgba(10,10,11,0.08)] bg-white px-3 py-2 font-en text-[11px] font-semibold uppercase tracking-[0.12em] text-[rgba(10,10,11,0.42)]">
             <LockKeyhole size={13} className="text-heritage-500" />
-            SSL · Toss Payments
+            SSL · Lemon Squeezy
           </div>
         </header>
 
@@ -247,44 +240,76 @@ export default function Payment() {
             </div>
 
             <div className="flex flex-col gap-4 px-5 py-5">
-              {widgetError && (
+              {error && (
                 <div className="flex items-start gap-2 border border-[#B30000] bg-[rgba(179,0,0,0.04)] px-4 py-3">
                   <AlertCircle size={14} className="mt-0.5 flex-shrink-0 text-[#B30000]" />
-                  <p className="font-kr text-[12px] text-[#B30000]">{widgetError}</p>
+                  <p className="font-kr text-[12px] text-[#B30000]">{error}</p>
                 </div>
               )}
 
-              {IS_MOCK ? (
-                <div className="flex min-h-[220px] flex-col items-center justify-center gap-3 border border-[rgba(10,10,11,0.09)] bg-[#F8F8F8] p-6 text-center">
-                  <CreditCard size={24} className="text-[rgba(10,10,11,0.35)]" />
-                  <p className="font-kr text-[13px] leading-[1.65] text-[rgba(10,10,11,0.48)]">
-                    결제 위젯 미리보기
-                    <br />
-                    <span className="text-[11px] text-[rgba(10,10,11,0.34)]">VITE_TOSS_CLIENT_KEY 설정 후 Toss Payments가 활성화됩니다.</span>
-                  </p>
-                </div>
-              ) : loading ? (
-                <div className="flex min-h-[220px] items-center justify-center border border-[rgba(10,10,11,0.09)] bg-white p-6">
-                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#002D72] border-t-transparent" />
-                </div>
-              ) : null}
+              {/* 결제 플로우 안내 */}
+              <div className="border border-[rgba(10,10,11,0.09)] bg-[#F8F8F8] p-6">
+                <p className="mb-5 font-en text-[10px] font-semibold uppercase tracking-[0.14em] text-[rgba(10,10,11,0.35)]">
+                  결제 진행 방식
+                </p>
 
-              {!IS_MOCK && (
-                <>
-                  <div id="toss-payment-widget" className="bg-white" />
-                  <div id="toss-agreement" className="bg-white" />
-                </>
-              )}
+                {/* Step flow */}
+                <div className="flex items-start justify-between gap-2">
+                  {[
+                    { icon: '🔒', step: 'STEP 1', text: '아래 버튼\n클릭' },
+                    { icon: '💳', step: 'STEP 2', text: '보안 결제창\n이동 후 결제' },
+                    { icon: '📦', step: 'STEP 3', text: '파일 자동\n준비 완료' },
+                  ].map((s, i) => (
+                    <div key={s.step} className="flex flex-1 items-start gap-2">
+                      <div className="flex flex-1 flex-col items-center gap-2 text-center">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-full border border-[rgba(0,45,114,0.15)] bg-[rgba(0,45,114,0.05)] text-[20px]">
+                          {s.icon}
+                        </div>
+                        <span className="font-en text-[9px] font-bold tracking-[0.1em] text-heritage-500">
+                          {s.step}
+                        </span>
+                        <span className="whitespace-pre-line font-kr text-[11px] leading-[1.5] text-[rgba(10,10,11,0.55)]">
+                          {s.text}
+                        </span>
+                      </div>
+                      {i < 2 && (
+                        <span className="mt-5 flex-shrink-0 text-[14px] text-[rgba(10,10,11,0.2)]">›</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* 결제 수단 배지 */}
+                <div className="mt-5 flex flex-wrap justify-center gap-2">
+                  {['Visa', 'Mastercard', 'Apple Pay', 'Google Pay'].map(m => (
+                    <span
+                      key={m}
+                      className="rounded border border-[rgba(10,10,11,0.1)] bg-white px-3 py-1 font-en text-[11px] font-medium text-[rgba(10,10,11,0.45)]"
+                    >
+                      {m}
+                    </span>
+                  ))}
+                </div>
+
+                {/* 보안 배지 */}
+                <div className="mt-4 flex items-center justify-center gap-1.5 rounded bg-[rgba(0,45,114,0.05)] px-4 py-2.5 text-center">
+                  <LockKeyhole size={12} className="flex-shrink-0 text-heritage-500" />
+                  <span className="font-kr text-[11px] text-[rgba(0,45,114,0.75)]">
+                    SSL 보안 결제 · Lemon Squeezy 제공 · 결제 후 자동으로 돌아옵니다
+                  </span>
+                </div>
+              </div>
 
               <button
                 onClick={handlePay}
-                disabled={paying || (!IS_MOCK && (loading || !!widgetError))}
+                disabled={paying}
                 className="btn-heritage mt-1 flex h-14 w-full items-center justify-center gap-2 text-[14px] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {paying
-                  ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  : `${fmtKRW(cfg.price)}원 결제하기`
-                }
+                {paying ? (
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                ) : (
+                  `${fmtKRW(cfg.price)}원 결제하기`
+                )}
               </button>
 
               <p className="text-center font-kr text-[11px] leading-[1.65] text-[rgba(10,10,11,0.36)]">

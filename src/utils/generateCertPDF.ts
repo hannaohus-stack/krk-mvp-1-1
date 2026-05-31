@@ -51,11 +51,7 @@ export async function createCertPDFArtifact(data: CreatorData, tier: ServiceTier
     expiryDays:        '',
     storage:           data.storage,
     manufacturer:      data.manufacturer,
-    manufacturerAddress: data.manufacturerAddress,
-    itemReportNumber:  data.itemReportNumber,
-    marketingClaims:   data.marketingClaims,
     packagingMaterials: data.packagingMaterials,
-    sharedFacilityAllergens: data.sharedFacilityAllergens,
     categories:        data.categories,
     businessType:      data.businessType || undefined,
     facilityType:      data.facilityType || undefined,
@@ -64,9 +60,9 @@ export async function createCertPDFArtifact(data: CreatorData, tier: ServiceTier
   const ingredients = data.ingredients.map(ing => ({
     id:              ing.id,
     name:            ing.name,
+    origin:          ing.origin ?? '',
     rawName:         ing.name,
     weight:          parseFloat(ing.weight) || 0,
-    origin:          ing.origin,
     suggestedName:   ing.name,
     isComposite:     ing.isComposite,
     isAllergen:      ing.isAllergen,
@@ -92,11 +88,6 @@ export async function createCertPDFArtifact(data: CreatorData, tier: ServiceTier
   const summaryBg = counts.violation > 0 ? PDF_COLORS.violBg : counts.warn > 0 ? PDF_COLORS.warnBg : PDF_COLORS.passBg
   const summaryColor = counts.violation > 0 ? PRN_VIOL : counts.warn > 0 ? PRN_WARN : PRN_PASS
 
-  // Canvas preview kept below for reference, but the actual paid report uses
-  // the jsPDF path so every regulation result can paginate instead of being
-  // limited to the first 10 rows.
-  void createCanvasPdfArtifact
-  void createRasterPdfArtifact
   return createCanvasPdfArtifact(filename, ctx => {
     ctx.fillStyle = PDF_COLORS.heritage
     ctx.fillRect(0, 0, 794, 68)
@@ -108,20 +99,20 @@ export async function createCertPDFArtifact(data: CreatorData, tier: ServiceTier
 
     ctx.fillStyle = PDF_COLORS.faint
     ctx.font = '12px system-ui'
-    ctx.fillText('LABEL REVIEW REPORT — SELF-AUDIT RECORD', 54, 110)
+    ctx.fillText('LABEL REVIEW REPORT — SELF-AUDIT RECORD', 54, 104)
     ctx.fillStyle = PDF_COLORS.ink
     ctx.font = '700 31px "Apple SD Gothic Neo", system-ui'
-    ctx.fillText('krk 라벨 검토 리포트', 54, 150)
+    ctx.fillText('krk 라벨 검토 리포트', 54, 162)
     ctx.fillStyle = PDF_COLORS.faint
     ctx.font = '14px "Apple SD Gothic Neo", system-ui'
-    ctx.fillText('사업자 자율 점검 기록', 54, 178)
+    ctx.fillText('사업자 자율 점검 기록', 54, 198)
     ctx.strokeStyle = PDF_COLORS.heritage
-    ctx.strokeRect(570, 108, 170, 54)
+    ctx.strokeRect(570, 104, 170, 66)
     ctx.fillStyle = PDF_COLORS.heritage
     ctx.font = '700 10px system-ui'
-    ctx.fillText('RECORD ID', 590, 132)
+    ctx.fillText('RECORD ID', 590, 128)
     ctx.font = '700 13px system-ui'
-    ctx.fillText(reviewId, 590, 152)
+    ctx.fillText(reviewId, 590, 154)
 
     ctx.strokeStyle = PDF_COLORS.alert
     ctx.fillStyle = PDF_COLORS.alertBg
@@ -172,22 +163,24 @@ export async function createCertPDFArtifact(data: CreatorData, tier: ServiceTier
     ctx.font = '700 15px "Apple SD Gothic Neo", system-ui'
     ctx.fillText(`점검 항목 결과 · 총 ${results.length}건`, 54, 632)
     let y = 660
-    results.forEach((result, index) => {
+    results.slice(0, 10).forEach((result, index) => {
       const color = result.status === 'pass' ? PRN_PASS : result.status === 'warn' ? PRN_WARN : PRN_VIOL
       const fill = result.status === 'pass' ? PDF_COLORS.passBg : result.status === 'warn' ? PDF_COLORS.warnBg : PDF_COLORS.violBg
       const x = index % 2 === 0 ? 54 : 405
-      if (index > 0 && index % 2 === 0) y += 36
+      if (index > 0 && index % 2 === 0) y += 72
       ctx.fillStyle = fill
-      ctx.fillRect(x, y, 335, 31)
+      ctx.fillRect(x, y, 335, 58)
       ctx.strokeStyle = PDF_COLORS.hairline
-      ctx.strokeRect(x, y, 335, 31)
+      ctx.strokeRect(x, y, 335, 58)
       ctx.fillStyle = color
-      ctx.font = '700 9px "Apple SD Gothic Neo", system-ui'
-      ctx.fillText(result.status === 'pass' ? '기준 충족' : result.status === 'warn' ? '보완 권장' : '필수 확인', x + 12, y + 13)
-      ctx.fillStyle = PDF_COLORS.ink
       ctx.font = '700 10px "Apple SD Gothic Neo", system-ui'
-      drawCanvasText(ctx, `${result.id || `R${String(index + 1).padStart(2, '0')}`} · ${result.title}`, x + 12, y + 27, 305, 11, 1)
+      ctx.fillText(result.status === 'pass' ? '기준 충족' : result.status === 'warn' ? '보완 권장' : '필수 확인', x + 14, y + 22)
+      ctx.fillStyle = PDF_COLORS.ink
+      ctx.font = '700 12px "Apple SD Gothic Neo", system-ui'
+      drawCanvasText(ctx, `R${String(index + 1).padStart(2, '0')} · ${result.title}`, x + 14, y + 42, 220, 14, 1)
       ctx.fillStyle = PDF_COLORS.faint
+      ctx.font = '9px "Apple SD Gothic Neo", system-ui'
+      drawCanvasText(ctx, result.regulation || result.id, x + 230, y + 42, 90, 12, 1)
     })
     ctx.fillStyle = PDF_COLORS.faint
     ctx.font = '10px "Apple SD Gothic Neo", system-ui'
@@ -269,7 +262,7 @@ export async function createCertPDFArtifact(data: CreatorData, tier: ServiceTier
       </div>
     </section>`
 
-  void html
+  return createRasterPdfArtifact(html, filename)
 
   const doc = await createPdfDoc()
 

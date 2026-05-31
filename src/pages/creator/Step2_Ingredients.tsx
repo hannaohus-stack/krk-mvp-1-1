@@ -4,7 +4,6 @@ import { AlertTriangle, ArrowUpDown, Check, CheckCircle2, ClipboardList, Plus, T
 import { detectAllergens, detectAllergensFromList } from '../../utils/allergenChecker'
 import { detectComposite, detectCompositesFromList } from '../../utils/compositeChecker'
 import type { CreatorIngredient, StepProps } from './types'
-import { ALLERGEN_LIST } from '../../utils/data/allergens'
 
 import jamData from '../../utils/data/ingredients-jam.json'
 import sauceData from '../../utils/data/ingredients-sauce.json'
@@ -21,7 +20,7 @@ const PACKAGING_GROUPS = [
   },
   {
     label: '기타 재질',
-    items: ['유리', '철', '알루미늄', '종이팩', '골판지', '일반 종이', '비닐류', '스티로폼'],
+    items: ['유리', '철', '알루미늄', '종이팩', '멸균팩', '골판지', '일반 종이', '비닐류', '스티로폼', '도포·첩합류(빨간)', '도포·첩합류(검정)'],
   },
 ] as const
 
@@ -294,7 +293,7 @@ export default function Step2_Ingredients({ data, onChange }: StepProps) {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_128px_120px_82px]">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_128px_82px]">
                 <div>
                   <label className="mb-1.5 block font-en text-[10px] font-semibold uppercase tracking-[0.1em] text-[rgba(10,10,11,0.38)]">원재료명</label>
                   <AutocompleteInput
@@ -318,20 +317,25 @@ export default function Step2_Ingredients({ data, onChange }: StepProps) {
                   </div>
                 </div>
                 <div>
-                  <label className="mb-1.5 block font-en text-[10px] font-semibold uppercase tracking-[0.1em] text-[rgba(10,10,11,0.38)]">원산지</label>
-                  <input
-                    className="input-field"
-                    placeholder="예: 국산"
-                    value={ingredient.origin}
-                    onChange={event => update(ingredient.id, 'origin', event.target.value)}
-                  />
-                </div>
-                <div>
                   <label className="mb-1.5 block font-en text-[10px] font-semibold uppercase tracking-[0.1em] text-[rgba(10,10,11,0.38)]">비율</label>
                   <div className="flex h-10 items-center justify-center border border-[rgba(10,10,11,0.12)] bg-[rgba(10,10,11,0.02)] font-en text-[13px] text-[rgba(10,10,11,0.5)] tabular-nums">
                     {ratio(ingredient.weight)}
                   </div>
                 </div>
+              </div>
+
+              <div className="mt-3">
+                <label className="mb-1.5 flex items-center gap-1.5 font-en text-[10px] font-semibold uppercase tracking-[0.1em] text-[rgba(10,10,11,0.38)]">
+                  원산지
+                  <span className="rounded bg-[rgba(179,0,0,0.08)] px-1.5 py-0.5 font-kr text-[10px] font-medium normal-case tracking-normal text-[#B30000]">R19 의무</span>
+                </label>
+                <input
+                  className="input-field w-full"
+                  type="text"
+                  placeholder="예: 국산, 미국산, 칠레산"
+                  value={ingredient.origin ?? ''}
+                  onChange={event => update(ingredient.id, 'origin', event.target.value)}
+                />
               </div>
 
               <div className="mt-3 flex flex-wrap gap-2">
@@ -345,44 +349,6 @@ export default function Step2_Ingredients({ data, onChange }: StepProps) {
           ))
         )}
       </section>
-
-      {data.facilityType === '공유' && (
-        <section className="border border-[#F0A500] bg-[#FFF8EB] p-4">
-          <div className="flex flex-col gap-1">
-            <p className="font-kr text-[14px] font-semibold text-[#8A5A00]">공유 시설 알레르기 혼입 가능성</p>
-            <p className="font-kr text-[12px] leading-[1.6] text-[#8A5A00]">
-              같은 제조 시설에서 취급되는 알레르기 유발물질을 선택하면 라벨에 혼입 가능성 문구를 생성합니다.
-            </p>
-          </div>
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {ALLERGEN_LIST.map(allergen => {
-              const selected = data.sharedFacilityAllergens.includes(allergen.name)
-              return (
-                <button
-                  key={allergen.id}
-                  type="button"
-                  onClick={() => {
-                    const next = selected
-                      ? data.sharedFacilityAllergens.filter(name => name !== allergen.name)
-                      : [...data.sharedFacilityAllergens, allergen.name]
-                    onChange({ sharedFacilityAllergens: next })
-                  }}
-                  className="flex min-h-8 items-center gap-1.5 border px-2.5 font-kr text-[11px] transition-colors"
-                  style={{
-                    background: selected ? '#8A5A00' : '#fff',
-                    borderColor: selected ? '#8A5A00' : 'rgba(138,90,0,0.24)',
-                    color: selected ? '#fff' : '#8A5A00',
-                    fontWeight: selected ? 600 : 400,
-                  }}
-                >
-                  {selected && <Check size={11} />}
-                  {allergen.name}
-                </button>
-              )
-            })}
-          </div>
-        </section>
-      )}
 
       <button onClick={() => pushUpdate([...data.ingredients, newRow()])} className="flex min-h-[44px] w-full items-center justify-center gap-2 border border-dashed border-[rgba(10,10,11,0.15)] bg-transparent px-4 font-kr text-[13px] font-medium text-heritage-500 transition-colors hover:border-heritage-500 hover:bg-[rgba(0,45,114,0.03)]">
         <Plus size={14} />

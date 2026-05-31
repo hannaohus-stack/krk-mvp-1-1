@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate, useLocation, Navigate } from 'react-router-dom'
 import {
   AlertTriangle, CheckCircle2, AlertCircle,
@@ -9,7 +9,6 @@ import type { Ingredient } from '../utils/parsing'
 import type { ServiceTier } from '../utils/tierUtils'
 import type { CreatorData } from './creator/types'
 import { TIER_1_PRICE, TIER_2_PRICE, fmtKRW } from '../utils/tierUtils'
-import { recordLabelReview } from '../lib/supabase'
 import regulationsData from '../utils/data/regulations.json'
 
 // ─── 타입 ─────────────────────────────────────────────────────────────────────
@@ -21,11 +20,12 @@ export interface Metadata {
   expiryDays: string
   storage: string
   manufacturer: string
-  manufacturerAddress?: string
-  itemReportNumber?: string
-  marketingClaims?: string
+  manufacturerAddress?: string    // P1-001: 제조원 소재지
+  reportNumberStatus?: 'none_or_needed' | 'exists' | '' // P1-002: 품목보고번호 보유 상태
+  reportNumber?:        string    // P1-002: 품목보고번호
+  labelClaim?:          string    // P1-003: 라벨 표시/광고 문구 (R12/R20 검토용)
+  hasNutritionClaim?:   boolean   // P1-005: 영양강조표시 직접 선언 여부 (R20 연동)
   packagingMaterials?: string[]   // v4: 분리배출 마크 판별용 (선택)
-  sharedFacilityAllergens?: string[]
   categories?:   string[]         // v5: 식품 카테고리 (라벨 PDF · 복사 항목용)
   businessType?: string           // v5: 사업자 유형 (신고 가이드 분기용)
   facilityType?: '단독' | '공유'  // A-8: 영업 시설 유형 (공유주방 혼입 경고용)
@@ -46,15 +46,6 @@ export interface RegulationResult {
   suggestion: string
   status: RiskStatus
   detail: string
-  currentValue?: string
-  issueReason?: string
-  legalBasis?: string
-  fixInstruction?: string
-  recommendedLabelText?: string
-  beforeExample?: string
-  afterExample?: string
-  actionItems?: string[]
-  targetOutput?: string[]
 }
 
 // ─── 분석 로직 ─────────────────────────────────────────────────────────────────
@@ -69,7 +60,7 @@ export function analyzeRegulations(
   const isSorted   = allWeights &&
     ingredients.every((ing, idx) => idx === 0 || ingredients[idx - 1].weight >= ing.weight)
 
-  const map: Record<string, Partial<RegulationResult> & { status: RiskStatus; detail: string }> = {
+  const map: Record<string, { status: RiskStatus; detail: string }> = {
     R01: metadata.productName.trim()
       ? { status: 'pass',      detail: `제품명 "${metadata.productName}" 확인.` }
       : { status: 'violation', detail: '제품명이 입력되지 않았습니다. 라벨 필수 기재 항목입니다.' },
@@ -88,49 +79,17 @@ export function analyzeRegulations(
 
     R05: (() => {
       const sharedKitchen = metadata.facilityType === '공유'
-      const sharedAllergens = metadata.sharedFacilityAllergens ?? []
       if (allergens.length > 0) {
         const base = `${allergens.map(a => a.name).join(', ')} 등 ${allergens.length}개 알레르기 유발 원료 감지. 별도 구분하여 명시 필요.`
-        const extra = sharedKitchen && sharedAllergens.length > 0
-          ? `\n공유시설 혼입 가능성 표시 필요: ${sharedAllergens.join(', ')} 사용 제품과 같은 제조시설에서 제조.`
-          : sharedKitchen
-          ? '\n공유시설 사용 중입니다. 같은 시설에서 취급되는 알레르기 유발물질을 입력해야 혼입 가능성 표시를 완성할 수 있습니다.'
+        const extra = sharedKitchen
+          ? '\n⚠️ 공유주방 사용 감지 — 타 제품 알레르기 원료 혼입 가능성을 라벨에 추가 표시 권장. (식품위생법 시행규칙 별표2)'
           : ''
-        return {
-          status: 'warn' as RiskStatus,
-          detail: base + extra,
-          currentValue: allergens.map(a => a.name).join(', '),
-          issueReason: '알레르기 유발 원료는 원재료명과 별도로 소비자가 쉽게 확인할 수 있게 표시해야 합니다.',
-          fixInstruction: '라벨 정보표시면에 알레르기 표시 줄을 별도로 만들고, 직접 사용 원료와 공유시설 혼입 가능성 문구를 분리해 작성하세요.',
-          recommendedLabelText: `알레르기 유발물질: ${allergens.map(a => a.name).join(', ')} 함유${sharedAllergens.length > 0 ? ` / 이 제품은 ${sharedAllergens.join(', ')}을 사용한 제품과 같은 제조시설에서 제조하고 있습니다.` : ''}`,
-          beforeExample: '원재료명 안에만 알레르기 원료가 섞여 있음',
-          afterExample: `알레르기 유발물질: ${allergens.map(a => a.name).join(', ')} 함유`,
-          actionItems: ['알레르기 표시 문구를 정보표시면에 별도 배치', '공유시설 사용 시 혼입 가능 알레르기 품목 확인', '라벨 PDF/PNG에 동일 문구 반영'],
-          targetOutput: ['전문 수정 가이드 PDF', '라벨 PDF', '라벨 PNG'],
-        }
+        return { status: 'warn' as RiskStatus, detail: base + extra }
       }
       if (sharedKitchen) {
-        if (sharedAllergens.length > 0) {
-          return {
-            status: 'warn' as RiskStatus,
-            detail: `공유시설 혼입 가능성 표시 필요: ${sharedAllergens.join(', ')} 사용 제품과 같은 제조시설에서 제조하고 있음을 라벨에 표시하세요. (식품 등의 표시·광고에 관한 법률 시행규칙 별표 2)`,
-            currentValue: sharedAllergens.join(', '),
-            issueReason: '공유시설에서 알레르기 유발물질을 취급하면 직접 원료가 아니어도 혼입 가능성 안내가 필요할 수 있습니다.',
-            fixInstruction: '공유시설에서 함께 취급되는 알레르기 품목을 확인한 뒤 혼입 가능성 문구를 정보표시면 하단에 넣으세요.',
-            recommendedLabelText: `이 제품은 ${sharedAllergens.join(', ')}을 사용한 제품과 같은 제조시설에서 제조하고 있습니다.`,
-            actionItems: ['공유시설 취급 알레르기 목록 확인', '혼입 가능성 문구 라벨 반영'],
-            targetOutput: ['전문 수정 가이드 PDF', '라벨 PDF', '라벨 PNG'],
-          }
-        }
         return {
           status: 'warn' as RiskStatus,
-          detail: '직접 사용한 알레르기 유발 원료는 감지되지 않았습니다. 다만 공유시설 사용 시 같은 시설에서 취급되는 알레르기 유발물질을 확인해 혼입 가능성 표시 여부를 판단해야 합니다.',
-          currentValue: '공유시설 사용, 혼입 가능 알레르기 미입력',
-          issueReason: '공유시설 사용 시 같은 제조시설 취급 품목을 확인해야 혼입 가능성 표시 여부를 판단할 수 있습니다.',
-          fixInstruction: '공유시설 운영자에게 같은 시설에서 취급하는 알레르기 유발물질 목록을 확인하고 입력 단계에 반영하세요.',
-          recommendedLabelText: '이 제품은 [알레르기 품목]을 사용한 제품과 같은 제조시설에서 제조하고 있습니다.',
-          actionItems: ['공유시설 취급 품목 확인', '필요 시 혼입 가능성 문구 추가'],
-          targetOutput: ['전문 수정 가이드 PDF'],
+          detail: '직접 사용한 알레르기 유발 원료는 감지되지 않았습니다.\n⚠️ 공유주방 사용 감지 — 타 제품 원료 혼입 가능성이 있으므로 라벨에 "본 제품은 ○○을 사용한 제품과 같은 제조 시설에서 만들어졌습니다" 등의 표시를 권장합니다. (식품위생법 시행규칙 별표2)',
         }
       }
       return { status: 'pass' as RiskStatus, detail: '알레르기 유발 원료가 감지되지 않았습니다.' }
@@ -148,61 +107,61 @@ export function analyzeRegulations(
       ? { status: 'pass',  detail: `보관방법 "${metadata.storage}" 확인. 개봉 후 보관방법도 포함되어 있는지 확인하세요.` }
       : { status: 'warn',  detail: '보관방법이 입력되지 않았습니다. 개봉 전·후 보관조건을 모두 표시하세요.' },
 
-    R09: {
-      status: 'warn',
-      detail: '영양성분표 의무 여부는 식품유형, 영업소 매출 규모, 적용 시기, 영양강조표시 사용 여부에 따라 달라집니다. 영양강조표시를 쓰면 면제 대상이어도 열량·탄수화물·당류·단백질·지방·포화지방·트랜스지방·콜레스테롤·나트륨 9개 영양성분 표시가 필요할 수 있습니다.',
-      currentValue: metadata.marketingClaims || metadata.productName || '영양강조표시 사용 여부 확인 필요',
-      issueReason: '영양표시 면제 대상이어도 무가당, 저칼로리, 고단백 등 영양강조표시를 사용하면 9개 영양성분 표시가 필요할 수 있습니다.',
-      fixInstruction: '영양강조표시를 유지할 경우 9개 영양성분을 표시하고, 영양성분 산출 근거를 보관하세요. 산출이 어렵다면 영양강조표시 표현을 제거하세요.',
-      recommendedLabelText: '영양성분: 열량, 탄수화물, 당류, 단백질, 지방, 포화지방, 트랜스지방, 콜레스테롤, 나트륨',
-      beforeExample: '무설탕 수제잼',
-      afterExample: '수제잼 또는 9개 영양성분표를 함께 표시한 무설탕 수제잼',
-      actionItems: ['영양강조표시 사용 여부 결정', '유지 시 9개 영양성분 입력', '제거 시 제품명/광고문구에서 강조 표현 삭제'],
-      targetOutput: ['전문 수정 가이드 PDF', '라벨 PDF', '라벨 PNG'],
-    },
+    R09: { status: 'warn', detail: '영양성분표 의무 여부는 사업 규모에 따라 다릅니다. 연매출 120억 원 미만 사업장은 면제 가능합니다 (2026년 현행 기준, 단계제 적용). 의무 대상은 열량·탄수화물·당류·단백질·지방·포화지방·트랜스지방·콜레스테롤·나트륨 9개 항목을 표시해야 합니다.' },
 
-    R10: metadata.manufacturer.trim() && (metadata.manufacturerAddress ?? '').trim()
-      ? {
-          status: 'pass',
-          detail: `제조업소 "${metadata.manufacturer}" 및 소재지 확인. 품목보고번호는 식품제조가공업 해당 시 함께 표시하세요.`,
-          currentValue: `${metadata.manufacturer} / ${metadata.manufacturerAddress ?? ''}`,
-          recommendedLabelText: `제조원: ${metadata.manufacturer} / 소재지: ${metadata.manufacturerAddress ?? ''}${metadata.itemReportNumber ? ` / 품목보고번호: ${metadata.itemReportNumber}` : ''}`,
-          targetOutput: ['라벨 PDF', '라벨 PNG', '신고 입력 가이드 PDF'],
+    R10: (() => {
+      if (!metadata.manufacturer.trim()) {
+        return { status: 'violation' as RiskStatus, detail: '제조업소명이 입력되지 않았습니다. 소재지(도로명 주소)·품목보고번호를 함께 표시해야 합니다.' }
+      }
+      const missing: string[] = []
+      if (!metadata.manufacturerAddress?.trim()) missing.push('소재지(도로명 주소)')
+      const hasReportNumber = Boolean(metadata.reportNumber?.trim())
+      const reportNumberNeeded = metadata.reportNumberStatus === 'none_or_needed'
+      if (!hasReportNumber && !reportNumberNeeded) missing.push('품목보고번호')
+      if (missing.length > 0) {
+        return {
+          status: 'warn' as RiskStatus,
+          detail: `제조업소 "${metadata.manufacturer}" 확인. 미입력 항목: ${missing.join(', ')}\n근거: 식품등의 표시기준 제3조 제6항 — 제조업소명·소재지·품목보고번호 모두 필수`,
         }
-      : {
-          status: 'violation',
-          detail: '제조업소명 또는 소재지가 입력되지 않았습니다. 라벨에는 영업소 명칭과 소재지를 함께 표시해야 합니다.',
-          currentValue: `제조업소명: ${metadata.manufacturer || '미입력'} / 소재지: ${metadata.manufacturerAddress || '미입력'}`,
-          issueReason: '제조업소명과 소재지는 표시사항의 기본 필수 정보입니다. 누락되면 소비자가 제조 주체와 소재지를 확인할 수 없습니다.',
-          fixInstruction: '영업신고증 기준의 제조업소명과 도로명 소재지를 입력하고, 식품제조가공업 품목은 품목보고번호까지 확인해 라벨에 반영하세요.',
-          recommendedLabelText: `제조원: ${metadata.manufacturer || '[제조업소명]'} / 소재지: ${metadata.manufacturerAddress || '[도로명 주소]'}${metadata.businessType === '식품제조가공업' ? ' / 품목보고번호: [품목보고번호]' : ''}`,
-          actionItems: ['영업신고증 기준 제조업소명 확인', '도로명 소재지 입력', '식품제조가공업이면 품목보고번호 확인'],
-          targetOutput: ['전문 수정 가이드 PDF', '라벨 PDF', '라벨 PNG', '신고 입력 가이드 PDF'],
-        },
+      }
+      if (reportNumberNeeded) {
+        return {
+          status: 'warn' as RiskStatus,
+          detail: `제조업소 "${metadata.manufacturer}" 확인. 품목보고번호는 없음/신청 필요 상태입니다.\n최종 판매 라벨에는 품목제조보고 후 발급 번호를 반영해야 합니다.`,
+        }
+      }
+      return {
+        status: 'pass' as RiskStatus,
+        detail: `제조업소 "${metadata.manufacturer}" / 소재지 "${metadata.manufacturerAddress}" / 품목보고번호 "${metadata.reportNumber}" 확인.`,
+      }
+    })(),
 
-    R11: {
-      status: 'warn',
-      detail: '포장재질(PET, PP 등)은 자동 감지되지 않습니다. 용기·뚜껑 각각의 재질을 직접 확인하세요.',
-      currentValue: (metadata.packagingMaterials ?? []).join(', ') || '미선택',
-      issueReason: '포장재질과 분리배출 표시는 실제 용기/뚜껑 재질에 맞춰 표시해야 합니다.',
-      fixInstruction: '용기, 뚜껑, 라벨/필름 등 구성품별 재질을 확인하고, 선택한 재질에 맞는 분리배출 마크를 라벨에 배치하세요.',
-      recommendedLabelText: (metadata.packagingMaterials ?? []).length > 0 ? `포장재질: ${(metadata.packagingMaterials ?? []).join(', ')}` : '포장재질: [용기 재질], [뚜껑 재질]',
-      actionItems: ['실제 포장 구성품별 재질 확인', '포장재질 입력값 수정', '분리배출 마크 ZIP에서 해당 도안 사용'],
-      targetOutput: ['전문 수정 가이드 PDF', '라벨 PDF', '라벨 PNG', '분리배출 마크 ZIP'],
-    },
+    R11: (() => {
+      const pm = metadata.packagingMaterials ?? []
+      if (pm.length > 0) {
+        return {
+          status: 'pass' as RiskStatus,
+          detail: `포장재질 선택 확인: [${pm.join(', ')}]\n라벨에 선택하신 재질명을 정확히 표시하세요. 용기·뚜껑이 다른 재질인 경우 각각 표기해야 합니다.\n근거: 식품등의 표시기준 제3조`,
+        }
+      }
+      return {
+        status: 'warn' as RiskStatus,
+        detail: 'Step 2에서 포장재질이 선택되지 않았습니다. 용기·뚜껑 각각의 재질을 직접 확인하고 라벨에 표시하세요.\n근거: 식품등의 표시기준 제3조',
+      }
+    })(),
 
     R12: (() => {
-      // 제품명 + 원재료명에서 금지 키워드 자동 감지
+      // 제품명 + 원재료명 + 라벨 표시 문구에서 금지 키워드 자동 감지
       const BANNED = ['천연', '유기농', '무첨가', '다이어트', '저칼로리', '자연산']
       const targets = [
         metadata.productName,
-        metadata.marketingClaims ?? '',
+        metadata.labelClaim ?? '',
         ...ingredients.map(i => i.name),
       ].join(' ')
       const found = BANNED.filter(kw => targets.includes(kw))
       return found.length > 0
         ? { status: 'violation', detail: `금지 표현 감지: "${found.join('", "')}" — 인증 없이 사용 불가. 즉시 제거하거나 인증 취득 후 표시하세요.` }
-        : { status: 'pass',      detail: '금지 표현(천연, 유기농, 무첨가, 다이어트 등)이 제품명 및 원재료에서 감지되지 않았습니다.' }
+        : { status: 'pass',      detail: '금지 표현(천연, 유기농, 무첨가, 다이어트 등)이 제품명·원재료·라벨 문구에서 감지되지 않았습니다.' }
     })(),
 
     // ─── v4 신규 항목 ──────────────────────────────────────────────────────
@@ -268,12 +227,6 @@ export function analyzeRegulations(
         return {
           status: 'warn' as RiskStatus,
           detail: '원재료 함량 정보가 없어 원산지 표시 의무 여부를 자동 확인할 수 없습니다. 배합비율 98% 이상 원료에 원산지(볼드체)를 표시하세요.\n근거: 농수산물의 원산지 표시 등에 관한 법률 + 시행규칙 별표 1\n과태료: 최대 1,000만원',
-          currentValue: '원재료 함량 미입력',
-          issueReason: '원산지 표시 대상 원료를 판단하려면 원재료 배합비율이 필요합니다.',
-          fixInstruction: '물, 정제수, 식품첨가물 등 제외 원료를 제외하고 배합비율 상위 원료의 원산지를 확인해 입력하세요.',
-          recommendedLabelText: '원재료명: [주원료](원산지) ...',
-          actionItems: ['원재료 배합비율 입력', '표시 대상 원료 원산지 확인', '원재료명 옆에 원산지 표시'],
-          targetOutput: ['전문 수정 가이드 PDF', '라벨 PDF', '라벨 PNG'],
         }
       }
 
@@ -287,55 +240,56 @@ export function analyzeRegulations(
         return { status: 'pass' as RiskStatus, detail: '원산지 표시 의무 대상 원료가 없습니다.' }
       }
 
-      // 1순위 원료 단독 98% 이상, 상위 2개 합 98% 이상, 그 외 상위 3개 표시
+      // 1순위 원료 단독 98% 이상
       const THRESHOLD = 98
-      let required = filtered.slice(0, 3)
+      const required: string[] = []
       if (filtered[0].pct >= THRESHOLD) {
-        required = filtered.slice(0, 1)
+        required.push(`${filtered[0].name} (${filtered[0].pct.toFixed(1)}%)`)
       } else if (filtered.length >= 2 && filtered[0].pct + filtered[1].pct >= THRESHOLD) {
-        required = filtered.slice(0, 2)
+        // 상위 두 원료 합계 98% 이상
+        required.push(`${filtered[0].name} (${filtered[0].pct.toFixed(1)}%)`)
+        required.push(`${filtered[1].name} (${filtered[1].pct.toFixed(1)}%)`)
       }
 
       if (required.length > 0) {
-        const missing = required.filter(item => {
-          const source = ingredients.find(ing => ing.name === item.name)
-          return !(source?.origin ?? '').trim()
+        // 원산지 입력 여부 확인
+        const requiredNames = required.map(r => r.split(' (')[0])
+        const originFilled = requiredNames.every(rName => {
+          const ing = ingredients.find(i => i.name === rName)
+          return ing && ing.origin && ing.origin.trim() !== ''
         })
-        const requiredText = required.map(item => {
-          const source = ingredients.find(ing => ing.name === item.name)
-          const origin = (source?.origin ?? '').trim()
-          return `${item.name} (${item.pct.toFixed(1)}%, 원산지: ${origin || '입력 필요'})`
-        })
+        if (originFilled) {
+          return {
+            status: 'pass' as RiskStatus,
+            detail: `원산지 표시 대상 원료의 원산지가 입력되었습니다.\n대상 원료: ${requiredNames.map(n => {
+              const ing = ingredients.find(i => i.name === n)
+              return `${n}(${ing?.origin ?? ''})`
+            }).join(', ')}\n라벨 출력 시 굵은 글씨(볼드체)로 표시하세요.`,
+          }
+        }
         return {
           status: 'warn' as RiskStatus,
-          detail: `원산지 표시 대상 원료: ${requiredText.join(', ')}\n근거: 농수산물의 원산지 표시 등에 관한 법률 시행령 제3조\n${missing.length > 0 ? `원산지 미입력: ${missing.map(item => item.name).join(', ')}\n` : ''}과태료: 최대 1,000만원(사안별 상이)\n수정방법: 표시 대상 원료의 원산지를 원재료명 옆에 굵은 글씨로 표시하세요.`,
-          currentValue: requiredText.join(', '),
-          issueReason: '배합비율 기준으로 원산지 표시 대상이 되는 원료는 원재료명 옆에 원산지를 명확히 표시해야 합니다.',
-          fixInstruction: '표시 대상 원료의 원산지를 확인하고 원재료명 바로 뒤 괄호 안에 표기하세요. 인쇄 라벨에서는 해당 원산지가 잘 보이도록 굵게 처리하세요.',
-          recommendedLabelText: required.map(item => {
-            const source = ingredients.find(ing => ing.name === item.name)
-            return `${item.name}(${(source?.origin ?? '').trim() || '원산지 입력'})`
-          }).join(', '),
-          beforeExample: required.map(item => item.name).join(', '),
-          afterExample: required.map(item => {
-            const source = ingredients.find(ing => ing.name === item.name)
-            return `${item.name}(${(source?.origin ?? '').trim() || '국산/수입산 등'})`
-          }).join(', '),
-          actionItems: ['표시 대상 원료 원산지 확인', '원재료명 옆에 원산지 표기', '라벨 PDF/PNG에서 굵게 또는 명확한 위치로 표시'],
-          targetOutput: ['전문 수정 가이드 PDF', '라벨 PDF', '라벨 PNG'],
+          detail: `원산지 표시 의무 대상 감지 — 원산지 미입력\n대상 원료: ${required.join(', ')}\n근거: 농수산물의 원산지 표시 등에 관한 법률 + 시행규칙 별표 1\n과태료: 최대 1,000만원\n수정방법: Step 2에서 해당 원료의 원산지(국산·미국산 등)를 입력하고, 라벨에 굵은 글씨(볼드체)로 표시하세요.`,
         }
       }
 
       return {
         status: 'pass' as RiskStatus,
-        detail: `원산지 표시 대상 원료가 없습니다.\n(제외 원료: ${ORIGIN_EXCLUDED.join(', ')} 등)`,
+        detail: `배합비율 98% 기준 초과 원료가 없습니다. 원산지 표시 의무 자동 발생 해당 없음.\n(제외 원료: ${ORIGIN_EXCLUDED.join(', ')} 등)`,
       }
     })(),
 
     // ─── R20: 영양강조표시 자동 감지 ──────────────────────────────────────────
     // [KRK-LAW] 카테고리 2 - 식품등의 표시기준 (식약처) 영양강조표시 조항
-    // 감지 대상: 제품명(A-1) + 원재료명(A-2) — 광고문구 필드(A-3) 추가 시 확장 예정
+    // 감지 대상: 제품명(A-1) + 원재료명(A-2) + 라벨 표시 문구(A-3, P1-005)
     R20: (() => {
+      // P1-005: Step3 자가진단 Q2에서 영양강조표시 있다고 명시한 경우 즉시 warn
+      if (metadata.hasNutritionClaim) {
+        return {
+          status: 'warn' as RiskStatus,
+          detail: '영양강조표시 사용 신고됨 — 영양표시 의무 발생.\n근거: 식품등의 표시기준 (식약처)\n영양강조표시 사용 시 연매출 120억 이하 면제 적용 불가. 열량·탄수화물·당류·단백질·지방·포화지방·트랜스지방·콜레스테롤·나트륨 9개 영양성분 표시가 필요합니다.',
+        }
+      }
       const NUTRITION_CLAIM_KEYWORDS = [
         // 열량/지방
         '저칼로리', '저열량', '무칼로리', '무열량', '칼로리프리',
@@ -353,7 +307,7 @@ export function analyzeRegulations(
       ]
       const targets = [
         metadata.productName,
-        metadata.marketingClaims ?? '',
+        metadata.labelClaim ?? '',
         ...ingredients.map(i => i.name),
       ].join(' ')
       const found = NUTRITION_CLAIM_KEYWORDS.filter(kw =>
@@ -363,23 +317,14 @@ export function analyzeRegulations(
         ? {
             status: 'warn' as RiskStatus,
             detail: `영양강조표시 감지: "${found.join('", "')}" — 영양표시 의무 발생.\n근거: 식품등의 표시기준 (식약처)\n영양강조표시 사용 시 연매출 120억 이하 면제 적용 불가. 열량·탄수화물·당류·단백질·지방·포화지방·트랜스지방·콜레스테롤·나트륨 9개 영양성분 표시가 필요합니다.`,
-            currentValue: found.join(', '),
-            issueReason: '영양강조표시를 사용하면 소규모 제조업 면제 여부와 별개로 영양성분 표시 의무가 발생할 수 있습니다.',
-            fixInstruction: '강조 표현을 유지하려면 9개 영양성분표를 완성하세요. 영양성분 산출이 어렵다면 제품명/광고문구에서 강조 표현을 제거하세요.',
-            recommendedLabelText: '영양성분표 9개 항목 표시 또는 영양강조표시 표현 제거',
-            beforeExample: found.join(', '),
-            afterExample: '강조 표현 제거 또는 9개 영양성분표 병기',
-            actionItems: ['영양강조표시 유지 여부 결정', '유지 시 영양성분 9개 입력', '제거 시 라벨/상세페이지 문구 수정'],
-            targetOutput: ['전문 수정 가이드 PDF', '라벨 PDF', '라벨 PNG'],
           }
-        : { status: 'pass' as RiskStatus, detail: '영양강조표시 표현(무가당·저칼로리·고단백 등)이 제품명 및 원재료에서 감지되지 않았습니다.' }
+        : { status: 'pass' as RiskStatus, detail: '영양강조표시 표현(무가당·저칼로리·고단백 등)이 제품명·원재료·라벨 문구에서 감지되지 않았습니다.' }
     })(),
   }
 
   return (regulationsData as unknown as Omit<RegulationResult, 'status' | 'detail'>[]).map(reg => ({
     ...reg,
     severity: reg.severity as 'red' | 'yellow',
-    legalBasis: reg.regulation,
     ...(map[reg.id] ?? { status: 'warn' as RiskStatus, detail: '' }),
   }))
 }
@@ -412,13 +357,8 @@ export function toCreatorPrefill(ingredients: Ingredient[], metadata: Metadata) 
     totalWeight:  metadata.totalWeight,
     unit:         unitMap[metadata.unit] ?? 'g',
     manufacturer: metadata.manufacturer,
-    manufacturerAddress: metadata.manufacturerAddress ?? '',
-    itemReportNumber: metadata.itemReportNumber ?? '',
     storage:      metadata.storage,
     expiryDate,
-    marketingClaims: metadata.marketingClaims ?? '',
-    packagingMaterials: metadata.packagingMaterials ?? [],
-    sharedFacilityAllergens: metadata.sharedFacilityAllergens ?? [],
     ingredients:  ingredients.map(ing => ({
       id:          ing.id,
       name:        ing.name,
@@ -852,7 +792,7 @@ export function LegacyReviewResult() {
                   { title: '영양성분표 위치',   desc: '주표시면 외 측면 또는 후면, 표의 형태로 기재' },
                   { title: '소비기한 표시 위치', desc: '주표시면 또는 잘 보이는 위치, 도트 인쇄 병행 권장' },
                   { title: '분리배출 마크 크기', desc: '가로·세로 각 8mm 이상, 주표시면 외 표시 가능' },
-                  { title: '제조업소 표시',      desc: '제조업소명 + 소재지 필수, 식품제조가공업은 품목보고번호 확인' },
+                  { title: '제조업소 표시',      desc: '제조업소명 + 소재지 + 신고번호 3개 항목 모두 필수' },
                 ].map(({ title, desc }) => (
                   <div key={title} className="flex flex-col gap-0.5">
                     <span className="font-kr font-semibold text-ink">{title}</span>
@@ -989,7 +929,7 @@ export function LegacyReviewResult() {
                     <div>
                       <p className={`font-en text-[10px] font-semibold uppercase tracking-[0.1em] mb-0.5
                         ${selectedTier === 'tier2' ? 'text-white/60' : 'text-heritage-500'}`}>
-                        전문 수정 가이드 PDF
+                        전문 수정 가이드
                       </p>
                       <div className="flex items-baseline gap-0.5">
                         <span className={`font-en text-[22px] font-semibold tabular-nums leading-none
@@ -1025,7 +965,7 @@ export function LegacyReviewResult() {
                       }`}
                   >
                     <Lock size={14} />
-                    {selectedTier === 'tier2' ? '전문 수정 가이드 PDF 받기' : '기본 라벨 패키지 받기'} — {fmtKRW(selectedTier === 'tier2' ? TIER_2_PRICE : TIER_1_PRICE)}원
+                    {selectedTier === 'tier2' ? '상세 수정 가이드 받기' : '기본 라벨 패키지 받기'} — {fmtKRW(selectedTier === 'tier2' ? TIER_2_PRICE : TIER_1_PRICE)}원
                   </button>
                   <p className="font-kr text-[11px] text-[rgba(10,10,11,0.35)] text-center leading-[1.5]">
                     결제 후 선택한 산출물을 바로 확인하고 다운로드할 수 있어요.
@@ -1441,33 +1381,6 @@ export default function ReviewResult() {
   const { ingredients, metadata, creatorData } = state
   const fromCreator = state.fromCreator ?? false
   const results = useMemo(() => analyzeRegulations(ingredients, metadata), [ingredients, metadata])
-  useEffect(() => {
-    const signature = JSON.stringify({
-      productName: metadata.productName,
-      categories: metadata.categories,
-      ingredients: ingredients.map(({ id, name, weight, isAllergen, isComposite }) => ({
-        id,
-        name,
-        weight,
-        isAllergen,
-        isComposite,
-      })),
-    })
-    const guardKey = `krk_review_saved_${signature}`
-    if (sessionStorage.getItem(guardKey)) return
-
-    sessionStorage.setItem(guardKey, '1')
-    recordLabelReview({
-      ingredients,
-      metadata,
-      results,
-      tier: 'free',
-      status: 'reviewed',
-      amount: 0,
-    }).then(saved => {
-      if (saved) localStorage.removeItem('krk_creator_draft_v1')
-    })
-  }, [ingredients, metadata, results])
   const items = useMemo(() => toResultItems(results), [results])
   const counts = useMemo<BResultCounts>(() => ({
     need: items.filter(i => i.kind === 'need').length,

@@ -6,21 +6,21 @@ import type { CreatorData, StepProps } from './types'
 type NutrientKey = 'calories' | 'totalCarbs' | 'sugar' | 'protein' | 'totalFat' | 'saturatedFat' | 'transFat' | 'cholesterol' | 'sodium'
 type Answer = 'yes' | 'no' | null
 
+// 식품등의 표시기준 의무 9개 항목 (2024년 개정)
 const NUTRIENTS: { key: NutrientKey; label: string; unit: string; indent?: boolean }[] = [
-  { key: 'calories', label: '열량', unit: 'kcal' },
-  { key: 'totalCarbs', label: '탄수화물', unit: 'g' },
-  { key: 'sugar', label: '당류', unit: 'g', indent: true },
-  { key: 'protein', label: '단백질', unit: 'g' },
-  { key: 'totalFat', label: '지방', unit: 'g' },
-  { key: 'saturatedFat', label: '포화지방', unit: 'g', indent: true },
-  { key: 'transFat', label: '트랜스지방', unit: 'g', indent: true },
-  { key: 'cholesterol', label: '콜레스테롤', unit: 'mg' },
-  { key: 'sodium', label: '나트륨', unit: 'mg' },
+  { key: 'calories',     label: '열량',       unit: 'kcal' },
+  { key: 'totalCarbs',   label: '탄수화물',   unit: 'g' },
+  { key: 'sugar',        label: '당류',       unit: 'g', indent: true },
+  { key: 'protein',      label: '단백질',     unit: 'g' },
+  { key: 'totalFat',     label: '지방',       unit: 'g' },
+  { key: 'saturatedFat', label: '포화지방',   unit: 'g', indent: true },
+  { key: 'transFat',     label: '트랜스지방', unit: 'g', indent: true },
+  { key: 'cholesterol',  label: '콜레스테롤', unit: 'mg', indent: true },
+  { key: 'sodium',       label: '나트륨',     unit: 'mg' },
 ]
 
 const QUESTIONS = [
-  { id: 'sales', question: '연 매출액이 120억 원 이하인 영업소인가요?' },
-  { id: 'phase', question: '2028년 전까지 단계적 적용 유예 대상인지 확인했나요?' },
+  { id: 'sales', question: '연 매출액이 120억 원 미만인가요? (2026년 현행 기준)' },
   { id: 'claim', question: '제품에 영양강조표시(저칼로리·무가당 등)가 없나요?' },
   { id: 'type', question: '건강기능식품 또는 특수영양식품이 아닌가요?' },
 ] as const
@@ -29,7 +29,6 @@ type Answers = Record<typeof QUESTIONS[number]['id'], Answer>
 
 const INITIAL_ANSWERS: Answers = {
   sales: null,
-  phase: null,
   claim: null,
   type: null,
 }
@@ -58,6 +57,12 @@ export default function Step3_Nutrition({ data, onChange }: StepProps) {
       onChange({ nutritionExempted: false })
     }
   }, [answered, allYes])
+
+  // P1-005: Q2(claim) 답변을 hasNutritionClaim으로 전달 (R20 Free Review 연동)
+  useEffect(() => {
+    if (answers.claim === null) return
+    onChange({ hasNutritionClaim: answers.claim === 'no' })
+  }, [answers.claim])
 
   useEffect(() => {
     if (!showToast) return
@@ -93,12 +98,12 @@ export default function Step3_Nutrition({ data, onChange }: StepProps) {
             <Lightbulb size={17} className="mt-0.5 flex-shrink-0 text-[#B07A1A]" />
             <div>
               <h2 className="font-kr text-[14px] font-semibold text-ink">
-                {expanded ? `면제 자가진단 · ${Object.values(answers).filter(Boolean).length}/4` : '면제 대상인지 확인하세요'}
+                {expanded ? `면제 자가진단 · ${Object.values(answers).filter(Boolean).length}/3` : '면제 대상인지 확인하세요'}
               </h2>
               <p className="mt-1 font-kr text-[12px] leading-[1.6] text-[rgba(10,10,11,0.5)]">
                 {expanded
                   ? '4개 질문으로 면제 가능성을 확인합니다.'
-                  : '4개 질문으로 빠르게 진단합니다. 영양강조표시 사용 시 면제 대상이어도 표시 의무가 생길 수 있습니다.'}
+                  : '3개 질문으로 빠르게 진단합니다. 식품등의 표시기준 제5조 (2024년 개정)'}
               </p>
             </div>
           </div>
@@ -149,8 +154,8 @@ export default function Step3_Nutrition({ data, onChange }: StepProps) {
                     </h3>
                     <p className="mt-1 font-kr text-[12px] leading-[1.6] text-[rgba(10,10,11,0.55)]">
                       {allYes
-                        ? '라벨 미리보기에는 영양표시 면제 가능 상태로 표시됩니다. 최종 판단은 기준일 법규와 관할 지자체 기준을 확인하세요.'
-                        : '아래 9개 영양성분표에 분석 수치를 입력하세요.'
+                        ? '라벨 미리보기에는 소규모 제조업 면제 적용으로 표시됩니다. 최종 판단은 관할 지자체 또는 식약처 기준을 확인하세요.'
+                        : '아래 영양성분표에 분석 수치를 입력하세요.'
                       }
                     </p>
                     {!allYes && (
@@ -175,7 +180,7 @@ export default function Step3_Nutrition({ data, onChange }: StepProps) {
           <div className="flex items-start gap-3">
             <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0 text-[#15803d]" />
             <div>
-              <h3 className="font-kr text-[14px] font-semibold text-[#15803d]">영양표시 면제 가능</h3>
+              <h3 className="font-kr text-[14px] font-semibold text-[#15803d]">소규모 제조업 면제 적용</h3>
               <p className="mt-1 font-kr text-[12px] leading-[1.6] text-[rgba(10,10,11,0.55)]">
                 이 상태로 다음 단계에서 라벨 미리보기를 확인할 수 있습니다.
               </p>
