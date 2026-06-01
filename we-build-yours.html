@@ -3,6 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Google tag (gtag.js) — GA4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-BR49R7FZC7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-BR49R7FZC7');
+    </script>
     <title>KRK | 처음부터, 브랜드답게.</title>
     <meta name="description" content="식품 브랜드를 위한 KRK 브랜드 시스템. 이번 라운드는 5팀." />
     <meta property="og:title" content="KRK | 처음부터, 브랜드답게." />
@@ -1330,7 +1338,7 @@
         if (event.target.classList.contains('is-error')) event.target.classList.remove('is-error');
       });
 
-      const MAKE_WEBHOOK_URL = 'https://hook.us1.make.com/REPLACE_WITH_YOUR_HOOK';
+      const MAKE_WEBHOOK_URL = 'https://hook.us2.make.com/8omwxlfwuwdrenvqu3jdr7i8kyfror2l';
       form.addEventListener('submit', (event) => {
         event.preventDefault();
         const required = ['name', 'brand', 'category', 'stage', 'why', 'goal', 'email'];
@@ -1358,6 +1366,11 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         }).catch((err) => console.warn('[KRK] Make webhook failed:', err));
+
+        if (typeof gtag === 'function') {
+          gtag('event', 'generate_lead', { campaign: 'we-build-yours', form: 'apply' });
+        }
+        // Meta Pixel Lead 이벤트는 픽셀 설치 후 이 지점에 추가: fbq('track', 'Lead');
 
         form.style.display = 'none';
         success.classList.add('is-active');
